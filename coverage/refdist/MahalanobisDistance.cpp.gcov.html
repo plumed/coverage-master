@@ -1,0 +1,416 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - refdist/MahalanobisDistance.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">refdist</a> - MahalanobisDistance.cpp<span style="font-size: 80%;"> (source / <a href="MahalanobisDistance.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">87</td>
+            <td class="headerCovTableEntry">93</td>
+            <td class="headerCovTableEntryHi">93.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-09-11 11:00:23</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2016-2018 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/PlumedMain.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;core/ActionSet.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;core/ActionShortcut.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &quot;core/ActionWithValue.h&quot;</a>
+<a name="27"><span class="lineNum">      27 </span>            : </a>
+<a name="28"><span class="lineNum">      28 </span>            : //+PLUMEDOC FUNCTION MAHALANOBIS_DISTANCE</a>
+<a name="29"><span class="lineNum">      29 </span>            : /*</a>
+<a name="30"><span class="lineNum">      30 </span>            : Calculate the Mahalanobis distance between two points in CV space</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : If we have two $n$-dimensional vectors $u$ and $v$ we can calculate the</a>
+<a name="33"><span class="lineNum">      33 </span>            : [Mahalanobis distance](https://en.wikipedia.org/wiki/Mahalanobis_distance) between the two points as</a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span>            : $$</a>
+<a name="36"><span class="lineNum">      36 </span>            : d = \sqrt{ \sum_{i=1}^n \sum_{j=1}^n m_{ij} (u_i - v_i)(u_j - v_j) }</a>
+<a name="37"><span class="lineNum">      37 </span>            : $$</a>
+<a name="38"><span class="lineNum">      38 </span>            : </a>
+<a name="39"><span class="lineNum">      39 </span>            : which can be expressed in matrix form as:</a>
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<a name="41"><span class="lineNum">      41 </span>            : $$</a>
+<a name="42"><span class="lineNum">      42 </span>            : d^2 = (u-v)^T M (u-v)</a>
+<a name="43"><span class="lineNum">      43 </span>            : $$</a>
+<a name="44"><span class="lineNum">      44 </span>            : </a>
+<a name="45"><span class="lineNum">      45 </span>            : The inputs below shows an example where this is used to calculate the Mahalanobis distance</a>
+<a name="46"><span class="lineNum">      46 </span>            : between the instaneous values of some torsional angles and some reference values</a>
+<a name="47"><span class="lineNum">      47 </span>            : for these distances.  The inverse covriance values are provided in the constant value with label `m`.</a>
+<a name="48"><span class="lineNum">      48 </span>            : In this first example the input values are vectors:</a>
+<a name="49"><span class="lineNum">      49 </span>            : </a>
+<a name="50"><span class="lineNum">      50 </span>            : ```plumed</a>
+<a name="51"><span class="lineNum">      51 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="52"><span class="lineNum">      52 </span>            : c: CONSTANT VALUES=1,2</a>
+<a name="53"><span class="lineNum">      53 </span>            : d: DISTANCE ATOMS1=1,2 ATOMS2=3,4</a>
+<a name="54"><span class="lineNum">      54 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=c ARG2=d METRIC=m</a>
+<a name="55"><span class="lineNum">      55 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="56"><span class="lineNum">      56 </span>            : ```</a>
+<a name="57"><span class="lineNum">      57 </span>            : </a>
+<a name="58"><span class="lineNum">      58 </span>            : while this second example does the same thing but uses scalars in input.</a>
+<a name="59"><span class="lineNum">      59 </span>            : </a>
+<a name="60"><span class="lineNum">      60 </span>            : ```plumed</a>
+<a name="61"><span class="lineNum">      61 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="62"><span class="lineNum">      62 </span>            : c1: CONSTANT VALUE=1</a>
+<a name="63"><span class="lineNum">      63 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="64"><span class="lineNum">      64 </span>            : c2: CONSTANT VALUE=2</a>
+<a name="65"><span class="lineNum">      65 </span>            : d2: DISTANCE ATOMS=3,4</a>
+<a name="66"><span class="lineNum">      66 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=c1,c2 ARG2=d1,d2 METRIC=m</a>
+<a name="67"><span class="lineNum">      67 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="68"><span class="lineNum">      68 </span>            : ```</a>
+<a name="69"><span class="lineNum">      69 </span>            : </a>
+<a name="70"><span class="lineNum">      70 </span>            : Lastly, note that if you want to calculate the square of the distance rather than the distance you can use</a>
+<a name="71"><span class="lineNum">      71 </span>            : the `SQUARED` flag as shown below:</a>
+<a name="72"><span class="lineNum">      72 </span>            : </a>
+<a name="73"><span class="lineNum">      73 </span>            : ```plumed</a>
+<a name="74"><span class="lineNum">      74 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="75"><span class="lineNum">      75 </span>            : c: CONSTANT VALUES=1,2</a>
+<a name="76"><span class="lineNum">      76 </span>            : d: DISTANCE ATOMS1=1,2 ATOMS2=3,4</a>
+<a name="77"><span class="lineNum">      77 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=c ARG2=d METRIC=m SQUARED</a>
+<a name="78"><span class="lineNum">      78 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="79"><span class="lineNum">      79 </span>            : ```</a>
+<a name="80"><span class="lineNum">      80 </span>            : </a>
+<a name="81"><span class="lineNum">      81 </span>            : Calculating the square of the distance is slightly cheapter than computing the distance as you avoid taking the square root.</a>
+<a name="82"><span class="lineNum">      82 </span>            : </a>
+<a name="83"><span class="lineNum">      83 </span>            : ## Dealing with periodic variables</a>
+<a name="84"><span class="lineNum">      84 </span>            : </a>
+<a name="85"><span class="lineNum">      85 </span>            : When you are calculating a distance from a reference point you need to be careful when the input variables</a>
+<a name="86"><span class="lineNum">      86 </span>            : are periodic. If you are calculating the distance using the [EUCLIDEAN_DISTANCE](EUCLIDEAN_DISTANCE.md) and</a>
+<a name="87"><span class="lineNum">      87 </span>            : [NORMALIZED_EUCLIDEAN_DISTANCE](NORMALIZED_EUCLIDEAN_DISTANCE.md) commands this is not a problem. The problems are</a>
+<a name="88"><span class="lineNum">      88 </span>            : specific to the Mahalanobis distance command and have been resolved in the papers that are cited below by defining</a>
+<a name="89"><span class="lineNum">      89 </span>            : the following alternatative to the Mahalanobis distance:</a>
+<a name="90"><span class="lineNum">      90 </span>            : </a>
+<a name="91"><span class="lineNum">      91 </span>            : $$</a>
+<a name="92"><span class="lineNum">      92 </span>            : d^2 = 2\sum_{i=1}^n m_{ii} \left[ 1 - \cos\left( \frac{2\pi(u_i-v_i)}{P_i} \right) \right] + \sum_{i\ne j} m_{ij} \sin\left( \frac{2\pi(u_i-v_i)}{P_i} \right) \sin\left( \frac{2\pi(u_j-v_j)}{P_j} \right)</a>
+<a name="93"><span class="lineNum">      93 </span>            : $$</a>
+<a name="94"><span class="lineNum">      94 </span>            : </a>
+<a name="95"><span class="lineNum">      95 </span>            : In this expression, $P_i$ indicates the periodicity of the domain for variable $i$. If you would like to compute this</a>
+<a name="96"><span class="lineNum">      96 </span>            : distance with PLUMED you use the `VON_MISSES` shown below:</a>
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<a name="98"><span class="lineNum">      98 </span>            : ```plumed</a>
+<a name="99"><span class="lineNum">      99 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="100"><span class="lineNum">     100 </span>            : c: CONSTANT VALUES=1,2</a>
+<a name="101"><span class="lineNum">     101 </span>            : d: TORSION ATOMS1=1,2,3,4 ATOMS2=5,6,7,8</a>
+<a name="102"><span class="lineNum">     102 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=c ARG2=d METRIC=m VON_MISSES</a>
+<a name="103"><span class="lineNum">     103 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="104"><span class="lineNum">     104 </span>            : ```</a>
+<a name="105"><span class="lineNum">     105 </span>            : </a>
+<a name="106"><span class="lineNum">     106 </span>            : ## Calculating multiple distances</a>
+<a name="107"><span class="lineNum">     107 </span>            : </a>
+<a name="108"><span class="lineNum">     108 </span>            : Suppose that we now have $m$ reference configurations we can define the following $m$ distances</a>
+<a name="109"><span class="lineNum">     109 </span>            : from these reference configurations:</a>
+<a name="110"><span class="lineNum">     110 </span>            : </a>
+<a name="111"><span class="lineNum">     111 </span>            : $$</a>
+<a name="112"><span class="lineNum">     112 </span>            : d_j^2 = (u-v_j)^T M (u-v_j)</a>
+<a name="113"><span class="lineNum">     113 </span>            : $$</a>
+<a name="114"><span class="lineNum">     114 </span>            : </a>
+<a name="115"><span class="lineNum">     115 </span>            : Lets suppose that we put the $m$, $n$-dimensional $(u-v_j)$ vectors in this expression into a</a>
+<a name="116"><span class="lineNum">     116 </span>            : $n\times m$ matrix, $A$, by using the [DISPLACEMENT](DISPLACEMENT.md) command.  It is then</a>
+<a name="117"><span class="lineNum">     117 </span>            : straightforward to show that the $d_j^2$ values in the above expression are the diagonal</a>
+<a name="118"><span class="lineNum">     118 </span>            : elements of the matrix product $A^T M A$.</a>
+<a name="119"><span class="lineNum">     119 </span>            : </a>
+<a name="120"><span class="lineNum">     120 </span>            : We can use this idea to calculate multiple MAHALANOBIS_DISTANCE values in the following inputs.</a>
+<a name="121"><span class="lineNum">     121 </span>            : This first example calculates the three distances between the instaneoues values of two torsions</a>
+<a name="122"><span class="lineNum">     122 </span>            : and three reference configurations.</a>
+<a name="123"><span class="lineNum">     123 </span>            : </a>
+<a name="124"><span class="lineNum">     124 </span>            : ```plumed</a>
+<a name="125"><span class="lineNum">     125 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="126"><span class="lineNum">     126 </span>            : ref_psi: CONSTANT VALUES=2.25,1.3,-1.5</a>
+<a name="127"><span class="lineNum">     127 </span>            : ref_phi: CONSTANT VALUES=-1.91,-0.6,2.4</a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span>            : psi: TORSION ATOMS=1,2,3,4</a>
+<a name="130"><span class="lineNum">     130 </span>            : phi: TORSION ATOMS=13,14,15,16</a>
+<a name="131"><span class="lineNum">     131 </span>            : </a>
+<a name="132"><span class="lineNum">     132 </span>            : dd: MAHALANOBIS_DISTANCE ARG2=psi,phi ARG1=ref_psi,ref_phi METRIC=m</a>
+<a name="133"><span class="lineNum">     133 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="134"><span class="lineNum">     134 </span>            : ```</a>
+<a name="135"><span class="lineNum">     135 </span>            : </a>
+<a name="136"><span class="lineNum">     136 </span>            : This section example calculates the three distances between a single reference value for the two</a>
+<a name="137"><span class="lineNum">     137 </span>            : torsions and three instances of this pair of torsions.</a>
+<a name="138"><span class="lineNum">     138 </span>            : </a>
+<a name="139"><span class="lineNum">     139 </span>            : ```plumed</a>
+<a name="140"><span class="lineNum">     140 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="141"><span class="lineNum">     141 </span>            : ref_psi: CONSTANT VALUES=2.25</a>
+<a name="142"><span class="lineNum">     142 </span>            : ref_phi: CONSTANT VALUES=-1.91</a>
+<a name="143"><span class="lineNum">     143 </span>            : </a>
+<a name="144"><span class="lineNum">     144 </span>            : psi: TORSION ATOMS1=1,2,3,4 ATOMS2=5,6,7,8 ATOMS3=9,10,11,12</a>
+<a name="145"><span class="lineNum">     145 </span>            : phi: TORSION ATOMS1=13,14,15,16 ATOMS2=17,18,19,20 ATOMS3=21,22,23,24</a>
+<a name="146"><span class="lineNum">     146 </span>            : </a>
+<a name="147"><span class="lineNum">     147 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=psi,phi ARG2=ref_psi,ref_phi METRIC=m</a>
+<a name="148"><span class="lineNum">     148 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="149"><span class="lineNum">     149 </span>            : ```</a>
+<a name="150"><span class="lineNum">     150 </span>            : </a>
+<a name="151"><span class="lineNum">     151 </span>            : This final example then computes three distances between three pairs of torsional angles and threee</a>
+<a name="152"><span class="lineNum">     152 </span>            : reference values for these three values.</a>
+<a name="153"><span class="lineNum">     153 </span>            : </a>
+<a name="154"><span class="lineNum">     154 </span>            : ```plumed</a>
+<a name="155"><span class="lineNum">     155 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="156"><span class="lineNum">     156 </span>            : ref_psi: CONSTANT VALUES=2.25,1.3,-1.5</a>
+<a name="157"><span class="lineNum">     157 </span>            : ref_phi: CONSTANT VALUES=-1.91,-0.6,2.4</a>
+<a name="158"><span class="lineNum">     158 </span>            : </a>
+<a name="159"><span class="lineNum">     159 </span>            : psi: TORSION ATOMS1=1,2,3,4 ATOMS2=5,6,7,8 ATOMS3=9,10,11,12</a>
+<a name="160"><span class="lineNum">     160 </span>            : phi: TORSION ATOMS1=13,14,15,16 ATOMS2=17,18,19,20 ATOMS3=21,22,23,24</a>
+<a name="161"><span class="lineNum">     161 </span>            : </a>
+<a name="162"><span class="lineNum">     162 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=psi,phi ARG2=ref_psi,ref_phi METRIC=m</a>
+<a name="163"><span class="lineNum">     163 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="164"><span class="lineNum">     164 </span>            : ```</a>
+<a name="165"><span class="lineNum">     165 </span>            : </a>
+<a name="166"><span class="lineNum">     166 </span>            : Notice, finally, that you can also calculate multiple distances if you use the `VON_MISSES` option:</a>
+<a name="167"><span class="lineNum">     167 </span>            : </a>
+<a name="168"><span class="lineNum">     168 </span>            : ```plumed</a>
+<a name="169"><span class="lineNum">     169 </span>            : m: CONSTANT VALUES=2.45960237E-0001,-1.30615381E-0001,-1.30615381E-0001,2.40239117E-0001 NROWS=2 NCOLS=2</a>
+<a name="170"><span class="lineNum">     170 </span>            : ref_psi: CONSTANT VALUES=2.25,1.3,-1.5</a>
+<a name="171"><span class="lineNum">     171 </span>            : ref_phi: CONSTANT VALUES=-1.91,-0.6,2.4</a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span>            : psi: TORSION ATOMS1=1,2,3,4 ATOMS2=5,6,7,8 ATOMS3=9,10,11,12</a>
+<a name="174"><span class="lineNum">     174 </span>            : phi: TORSION ATOMS1=13,14,15,16 ATOMS2=17,18,19,20 ATOMS3=21,22,23,24</a>
+<a name="175"><span class="lineNum">     175 </span>            : </a>
+<a name="176"><span class="lineNum">     176 </span>            : dd: MAHALANOBIS_DISTANCE ARG1=psi,phi ARG2=ref_psi,ref_phi METRIC=m VON_MISSES</a>
+<a name="177"><span class="lineNum">     177 </span>            : PRINT ARG=dd FILE=colvar</a>
+<a name="178"><span class="lineNum">     178 </span>            : ```</a>
+<a name="179"><span class="lineNum">     179 </span>            : </a>
+<a name="180"><span class="lineNum">     180 </span>            : !!! note &quot;scalars must be specified in ARG2&quot;</a>
+<a name="181"><span class="lineNum">     181 </span>            : </a>
+<a name="182"><span class="lineNum">     182 </span>            :     If you use a mixture of vectors are scalars when specifying the input to to this action the</a>
+<a name="183"><span class="lineNum">     183 </span>            :     vectors should be passed using the ARG1 keyword and the scalars must be passed in the ARG2 keyword</a>
+<a name="184"><span class="lineNum">     184 </span>            :     as is done in the example inputs above.</a>
+<a name="185"><span class="lineNum">     185 </span>            : </a>
+<a name="186"><span class="lineNum">     186 </span>            : */</a>
+<a name="187"><span class="lineNum">     187 </span>            : //+ENDPLUMEDOC</a>
+<a name="188"><span class="lineNum">     188 </span>            : </a>
+<a name="189"><span class="lineNum">     189 </span>            : namespace PLMD {</a>
+<a name="190"><span class="lineNum">     190 </span>            : namespace refdist {</a>
+<a name="191"><span class="lineNum">     191 </span>            : </a>
+<a name="192"><span class="lineNum">     192 </span>            : class MahalanobisDistance : public ActionShortcut {</a>
+<a name="193"><span class="lineNum">     193 </span>            : public:</a>
+<a name="194"><span class="lineNum">     194 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="195"><span class="lineNum">     195 </span>            :   explicit MahalanobisDistance(const ActionOptions&amp;ao);</a>
+<a name="196"><span class="lineNum">     196 </span>            : };</a>
+<a name="197"><span class="lineNum">     197 </span>            : </a>
+<a name="198"><span class="lineNum">     198 </span>            : PLUMED_REGISTER_ACTION(MahalanobisDistance,&quot;MAHALANOBIS_DISTANCE&quot;)</a>
+<a name="199"><span class="lineNum">     199 </span>            : </a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineCov">         23 : void MahalanobisDistance::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">         23 :   ActionShortcut::registerKeywords(keys);</span></a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineCov">         23 :   keys.add(&quot;compulsory&quot;,&quot;ARG1&quot;,&quot;The point that we are calculating the distance from&quot;);</span></a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">         23 :   keys.add(&quot;compulsory&quot;,&quot;ARG2&quot;,&quot;The point that we are calculating the distance to&quot;);</span></a>
+<a name="204"><span class="lineNum">     204 </span><span class="lineCov">         23 :   keys.add(&quot;compulsory&quot;,&quot;METRIC&quot;,&quot;The inverse covariance matrix that should be used when calculating the distance&quot;);</span></a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineCov">         23 :   keys.addFlag(&quot;SQUARED&quot;,false,&quot;The squared distance should be calculated&quot;);</span></a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">         23 :   keys.addFlag(&quot;VON_MISSES&quot;,false,&quot;Compute the mahalanobis distance in a way that is more sympathetic to the periodic boundary conditions&quot;);</span></a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">         46 :   keys.setValueDescription(&quot;scalar/vector&quot;,&quot;the Mahalanobis distances between the input vectors&quot;);</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">         23 :   keys.needsAction(&quot;DISPLACEMENT&quot;);</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">         23 :   keys.needsAction(&quot;CUSTOM&quot;);</span></a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">         23 :   keys.needsAction(&quot;OUTER_PRODUCT&quot;);</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">         23 :   keys.needsAction(&quot;TRANSPOSE&quot;);</span></a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineCov">         23 :   keys.needsAction(&quot;MATRIX_PRODUCT_DIAGONAL&quot;);</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">         23 :   keys.needsAction(&quot;CONSTANT&quot;);</span></a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">         23 :   keys.needsAction(&quot;MATRIX_VECTOR_PRODUCT&quot;);</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">         23 :   keys.needsAction(&quot;MATRIX_PRODUCT&quot;);</span></a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">         23 :   keys.needsAction(&quot;COMBINE&quot;);</span></a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">         23 :   keys.addDOI(&quot;10.1073/pnas.1011511107&quot;);</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">         23 :   keys.addDOI(&quot;10.1021/acs.jctc.7b00993&quot;);</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">         23 : }</span></a>
+<a name="220"><span class="lineNum">     220 </span>            : </a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">         12 : MahalanobisDistance::MahalanobisDistance( const ActionOptions&amp; ao):</span></a>
+<a name="222"><span class="lineNum">     222 </span>            :   Action(ao),</a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">         12 :   ActionShortcut(ao) {</span></a>
+<a name="224"><span class="lineNum">     224 </span>            :   std::string arg1, arg2, metstr;</a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">         12 :   parse(&quot;ARG1&quot;,arg1);</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">         12 :   parse(&quot;ARG2&quot;,arg2);</span></a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">         12 :   parse(&quot;METRIC&quot;,metstr);</span></a>
+<a name="228"><span class="lineNum">     228 </span>            :   // Check on input metric</a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineCov">         12 :   ActionWithValue* mav=plumed.getActionSet().selectWithLabel&lt;ActionWithValue*&gt;( metstr );</span></a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">         12 :   if( !mav ) {</span></a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineNoCov">          0 :     error(&quot;could not find action named &quot; + metstr + &quot; to use for metric&quot;);</span></a>
+<a name="232"><span class="lineNum">     232 </span>            :   }</a>
+<a name="233"><span class="lineNum">     233 </span><span class="lineCov">         12 :   if( mav-&gt;copyOutput(0)-&gt;getRank()!=2 ) {</span></a>
+<a name="234"><span class="lineNum">     234 </span><span class="lineNoCov">          0 :     error(&quot;metric has incorrect rank&quot;);</span></a>
+<a name="235"><span class="lineNum">     235 </span>            :   }</a>
+<a name="236"><span class="lineNum">     236 </span>            : </a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">         24 :   readInputLine( getShortcutLabel() + &quot;_diff: DISPLACEMENT ARG1=&quot; + arg1 + &quot; ARG2=&quot; + arg2 );</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">         24 :   readInputLine( getShortcutLabel() + &quot;_diffT: TRANSPOSE ARG=&quot; + getShortcutLabel() + &quot;_diff&quot;);</span></a>
+<a name="239"><span class="lineNum">     239 </span>            :   bool von_miss, squared;</a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">         12 :   parseFlag(&quot;VON_MISSES&quot;,von_miss);</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">         12 :   parseFlag(&quot;SQUARED&quot;,squared);</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">         12 :   if( von_miss ) {</span></a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">          7 :     unsigned nrows = mav-&gt;copyOutput(0)-&gt;getShape()[0];</span></a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineCov">          7 :     if( mav-&gt;copyOutput(0)-&gt;getShape()[1]!=nrows ) {</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineNoCov">          0 :       error(&quot;metric is not symmetric&quot;);</span></a>
+<a name="246"><span class="lineNum">     246 </span>            :     }</a>
+<a name="247"><span class="lineNum">     247 </span>            :     // Create a matrix that can be used to compute the off diagonal elements</a>
+<a name="248"><span class="lineNum">     248 </span>            :     std::string valstr, nrstr;</a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">          7 :     Tools::convert( mav-&gt;copyOutput(0)-&gt;get(0), valstr );</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">          7 :     Tools::convert( nrows, nrstr );</span></a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">          7 :     std::string diagmet = getShortcutLabel() + &quot;_diagmet: CONSTANT VALUES=&quot; + valstr;</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">         14 :     std::string offdiagmet = getShortcutLabel() + &quot;_offdiagmet: CONSTANT NROWS=&quot; + nrstr + &quot; NCOLS=&quot; + nrstr + &quot; VALUES=0&quot;;</span></a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">         21 :     for(unsigned i=0; i&lt;nrows; ++i) {</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineCov">         42 :       for(unsigned j=0; j&lt;nrows; ++j) {</span></a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">         28 :         Tools::convert( mav-&gt;copyOutput(0)-&gt;get(i*nrows+j), valstr );</span></a>
+<a name="256"><span class="lineNum">     256 </span><span class="lineCov">         28 :         if( i==j &amp;&amp; i&gt;0 ) {</span></a>
+<a name="257"><span class="lineNum">     257 </span>            :           offdiagmet += &quot;,0&quot;;</a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineCov">         14 :           diagmet += &quot;,&quot; + valstr;</span></a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">         21 :         } else if( i!=j ) {</span></a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">         28 :           offdiagmet += &quot;,&quot; + valstr;</span></a>
+<a name="261"><span class="lineNum">     261 </span>            :         }</a>
+<a name="262"><span class="lineNum">     262 </span>            :       }</a>
+<a name="263"><span class="lineNum">     263 </span>            :     }</a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">          7 :     readInputLine( diagmet );</span></a>
+<a name="265"><span class="lineNum">     265 </span><span class="lineCov">          7 :     readInputLine( offdiagmet );</span></a>
+<a name="266"><span class="lineNum">     266 </span>            :     // Compute distances scaled by periods</a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">          7 :     ActionWithValue* av=plumed.getActionSet().selectWithLabel&lt;ActionWithValue*&gt;( getShortcutLabel() + &quot;_diff&quot; );</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">          7 :     plumed_assert( av );</span></a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineCov">          7 :     if( !av-&gt;copyOutput(0)-&gt;isPeriodic() ) {</span></a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineNoCov">          0 :       error(&quot;VON_MISSES only works with periodic variables&quot;);</span></a>
+<a name="271"><span class="lineNum">     271 </span>            :     }</a>
+<a name="272"><span class="lineNum">     272 </span>            :     std::string min, max;</a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">          7 :     av-&gt;copyOutput(0)-&gt;getDomain(min,max);</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_scaled: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_diffT FUNC=2*pi*x/(&quot; + max +&quot;-&quot; + min + &quot;) PERIODIC=NO&quot;);</span></a>
+<a name="275"><span class="lineNum">     275 </span>            :     // We start calculating off-diagonal elements by computing the sines of the scaled differences (this is a column vector)</a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_sinediffT: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_scaled FUNC=sin(x) PERIODIC=NO&quot;);</span></a>
+<a name="277"><span class="lineNum">     277 </span>            :     // Transpose sines to get a row vector</a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_sinediff: TRANSPOSE ARG=&quot; + getShortcutLabel() + &quot;_sinediffT&quot;);</span></a>
+<a name="279"><span class="lineNum">     279 </span>            :     // Compute the off diagonal elements</a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">          7 :     ActionWithValue* avs=plumed.getActionSet().selectWithLabel&lt;ActionWithValue*&gt;( getShortcutLabel() + &quot;_sinediffT&quot; );</span></a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">          7 :     plumed_assert( avs &amp;&amp; avs-&gt;getNumberOfComponents()==1 );</span></a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">          7 :     if( (avs-&gt;copyOutput(0))-&gt;getRank()==1 ) {</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_matvec: MATRIX_VECTOR_PRODUCT ARG=&quot; + metstr + &quot;,&quot; + getShortcutLabel() +&quot;_sinediffT&quot;);</span></a>
+<a name="284"><span class="lineNum">     284 </span>            :     } else {</a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">         14 :       readInputLine( getShortcutLabel() + &quot;_matvec: MATRIX_PRODUCT ARG=&quot; + getShortcutLabel() + &quot;_offdiagmet,&quot; + getShortcutLabel() +&quot;_sinediffT&quot;);</span></a>
+<a name="286"><span class="lineNum">     286 </span>            :     }</a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_offdiag: MATRIX_PRODUCT_DIAGONAL ARG=&quot; + getShortcutLabel() + &quot;_sinediff,&quot; + getShortcutLabel() +&quot;_matvec&quot;);</span></a>
+<a name="288"><span class="lineNum">     288 </span>            :     // Sort out the metric for the diagonal elements</a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">          7 :     std::string metstr2 = getShortcutLabel() + &quot;_diagmet&quot;;</span></a>
+<a name="290"><span class="lineNum">     290 </span>            :     // If this is a matrix we need create a matrix to multiply by</a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">          7 :     if( av-&gt;copyOutput(0)-&gt;getShape()[0]&gt;1 ) {</span></a>
+<a name="292"><span class="lineNum">     292 </span>            :       // Create some ones</a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">          7 :       std::string ones=&quot; VALUES=1&quot;;</span></a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">         21 :       for(unsigned i=1; i&lt;av-&gt;copyOutput(0)-&gt;getShape()[0]; ++i ) {</span></a>
+<a name="295"><span class="lineNum">     295 </span>            :         ones += &quot;,1&quot;;</a>
+<a name="296"><span class="lineNum">     296 </span>            :       }</a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">         14 :       readInputLine( getShortcutLabel() + &quot;_ones: CONSTANT &quot; + ones );</span></a>
+<a name="298"><span class="lineNum">     298 </span>            :       // Now do some multiplication to create a matrix that can be multiplied by our &quot;inverse variance&quot; vector</a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">         14 :       readInputLine( getShortcutLabel() + &quot;_&quot; + metstr + &quot;: OUTER_PRODUCT ARG=&quot; + metstr2 + &quot;,&quot; + getShortcutLabel() + &quot;_ones&quot;);</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">         14 :       metstr2 = getShortcutLabel() + &quot;_&quot; + metstr;</span></a>
+<a name="301"><span class="lineNum">     301 </span>            :     }</a>
+<a name="302"><span class="lineNum">     302 </span>            :     // Compute the diagonal elements</a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_prod: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_scaled,&quot; + metstr2 + &quot; FUNC=2*(1-cos(x))*y PERIODIC=NO&quot;);</span></a>
+<a name="304"><span class="lineNum">     304 </span>            :     std::string ncstr;</a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">          7 :     Tools::convert( nrows, ncstr );</span></a>
+<a name="306"><span class="lineNum">     306 </span><span class="lineCov">          7 :     Tools::convert( av-&gt;copyOutput(0)-&gt;getShape()[0], nrstr );</span></a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">          7 :     std::string ones=&quot; VALUES=1&quot;;</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">         42 :     for(unsigned i=1; i&lt;av-&gt;copyOutput(0)-&gt;getNumberOfValues(); ++i) {</span></a>
+<a name="309"><span class="lineNum">     309 </span>            :       ones += &quot;,1&quot;;</a>
+<a name="310"><span class="lineNum">     310 </span>            :     }</a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_matones: CONSTANT NROWS=&quot; + nrstr + &quot; NCOLS=&quot; + ncstr + ones );</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineCov">         14 :     readInputLine( getShortcutLabel() + &quot;_diag: MATRIX_PRODUCT_DIAGONAL ARG=&quot; + getShortcutLabel() + &quot;_matones,&quot; + getShortcutLabel() + &quot;_prod&quot;);</span></a>
+<a name="313"><span class="lineNum">     313 </span>            :     // Sum everything</a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">          7 :     if( !squared ) {</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;_2: COMBINE ARG=&quot; + getShortcutLabel() + &quot;_offdiag,&quot; + getShortcutLabel() + &quot;_diag PERIODIC=NO&quot;);</span></a>
+<a name="316"><span class="lineNum">     316 </span>            :     } else {</a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">         14 :       readInputLine( getShortcutLabel() + &quot;: COMBINE ARG=&quot; + getShortcutLabel() + &quot;_offdiag,&quot; + getShortcutLabel() + &quot;_diag PERIODIC=NO&quot;);</span></a>
+<a name="318"><span class="lineNum">     318 </span>            :     }</a>
+<a name="319"><span class="lineNum">     319 </span>            :   } else {</a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">          5 :     ActionWithValue* av=plumed.getActionSet().selectWithLabel&lt;ActionWithValue*&gt;( getShortcutLabel() + &quot;_diffT&quot; );</span></a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">          5 :     plumed_assert( av &amp;&amp; av-&gt;getNumberOfComponents()==1 );</span></a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">          5 :     if( (av-&gt;copyOutput(0))-&gt;getRank()==1 ) {</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineCov">          8 :       readInputLine( getShortcutLabel() + &quot;_matvec: MATRIX_VECTOR_PRODUCT ARG=&quot; + metstr + &quot;,&quot; + getShortcutLabel() +&quot;_diffT&quot;);</span></a>
+<a name="324"><span class="lineNum">     324 </span>            :     } else {</a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">          2 :       readInputLine( getShortcutLabel() + &quot;_matvec: MATRIX_PRODUCT ARG=&quot; + metstr + &quot;,&quot; + getShortcutLabel() +&quot;_diffT&quot;);</span></a>
+<a name="326"><span class="lineNum">     326 </span>            :     }</a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">          5 :     std::string olab = getShortcutLabel();</span></a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">          5 :     if( !squared ) {</span></a>
+<a name="329"><span class="lineNum">     329 </span>            :       olab += &quot;_2&quot;;</a>
+<a name="330"><span class="lineNum">     330 </span>            :     }</a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">         10 :     readInputLine( olab + &quot;: MATRIX_PRODUCT_DIAGONAL ARG=&quot; + getShortcutLabel() + &quot;_diff,&quot; + getShortcutLabel() +&quot;_matvec&quot;);</span></a>
+<a name="332"><span class="lineNum">     332 </span>            :   }</a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">         12 :   if( !squared ) {</span></a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineCov">         10 :     readInputLine( getShortcutLabel() + &quot;: CUSTOM ARG=&quot; + getShortcutLabel() + &quot;_2 FUNC=sqrt(x) PERIODIC=NO&quot;);</span></a>
+<a name="335"><span class="lineNum">     335 </span>            :   }</a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">         12 : }</span></a>
+<a name="337"><span class="lineNum">     337 </span>            : </a>
+<a name="338"><span class="lineNum">     338 </span>            : }</a>
+<a name="339"><span class="lineNum">     339 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

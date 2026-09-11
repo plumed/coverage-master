@@ -1,0 +1,780 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - gridtools/KDE.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">gridtools</a> - KDE.cpp<span style="font-size: 80%;"> (source / <a href="KDE.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">208</td>
+            <td class="headerCovTableEntry">284</td>
+            <td class="headerCovTableEntryLo">73.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-09-11 11:00:23</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">34</td>
+            <td class="headerCovTableEntry">45</td>
+            <td class="headerCovTableEntryMed">75.6 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2015-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;KDE.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/ActionShortcut.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span>            : //+PLUMEDOC ANALYSIS KDE</a>
+<a name="27"><span class="lineNum">      27 </span>            : /*</a>
+<a name="28"><span class="lineNum">      28 </span>            : Create a histogram from the input scalar/vector/matrix using KDE</a>
+<a name="29"><span class="lineNum">      29 </span>            : </a>
+<a name="30"><span class="lineNum">      30 </span>            : This action can be used to construct instantaneous distributions for quantities by using [kernel density esstimation](https://en.wikipedia.org/wiki/Kernel_density_estimation).</a>
+<a name="31"><span class="lineNum">      31 </span>            : The input arguments must all have the same rank and size but you can use a scalar, vector or matrix in input.  The distribution</a>
+<a name="32"><span class="lineNum">      32 </span>            : of this quantity on a grid is then computed using kernel density estimation.</a>
+<a name="33"><span class="lineNum">      33 </span>            : </a>
+<a name="34"><span class="lineNum">      34 </span>            : The following example demonstrates how this action can be used with a scalar as input:</a>
+<a name="35"><span class="lineNum">      35 </span>            : </a>
+<a name="36"><span class="lineNum">      36 </span>            : ```plumed</a>
+<a name="37"><span class="lineNum">      37 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="38"><span class="lineNum">      38 </span>            : kde: KDE ARG=d1 GRID_MIN=0.0 GRID_MAX=1.0 GRID_BIN=100 BANDWIDTH=0.2</a>
+<a name="39"><span class="lineNum">      39 </span>            : DUMPGRID ARG=kde STRIDE=1 FILE=kde.grid</a>
+<a name="40"><span class="lineNum">      40 </span>            : ```</a>
+<a name="41"><span class="lineNum">      41 </span>            : </a>
+<a name="42"><span class="lineNum">      42 </span>            : This input outputs a different file on every time step. These files contain a function stored on a grid.  The function output in this case</a>
+<a name="43"><span class="lineNum">      43 </span>            : consists of a single Gaussian with $\sigma=0.2$ that is centered on the instantaneous value of the distance between atoms 1 and 2.  Obviously,</a>
+<a name="44"><span class="lineNum">      44 </span>            : you are unlikely to use an input like the one above. The more usual thing to do would be to accumulate the histogram over the course of a</a>
+<a name="45"><span class="lineNum">      45 </span>            : few trajectory frames using the [ACCUMULATE](ACCUMULATE.md) command as has been done in the input below, which estimates a histogram as a function</a>
+<a name="46"><span class="lineNum">      46 </span>            : of two collective variables:</a>
+<a name="47"><span class="lineNum">      47 </span>            : </a>
+<a name="48"><span class="lineNum">      48 </span>            : ```plumed</a>
+<a name="49"><span class="lineNum">      49 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="50"><span class="lineNum">      50 </span>            : d2: DISTANCE ATOMS=1,2</a>
+<a name="51"><span class="lineNum">      51 </span>            : kde: KDE ARG=d1,d2 GRID_MIN=0.0,0.0 GRID_MAX=1.0,1.0 GRID_BIN=100,100 BANDWIDTH=0.2,0.2</a>
+<a name="52"><span class="lineNum">      52 </span>            : histo: ACCUMULATE ARG=kde STRIDE=1</a>
+<a name="53"><span class="lineNum">      53 </span>            : DUMPGRID ARG=histo FILE=histo.grid STRIDE=10000</a>
+<a name="54"><span class="lineNum">      54 </span>            : ```</a>
+<a name="55"><span class="lineNum">      55 </span>            : </a>
+<a name="56"><span class="lineNum">      56 </span>            : Notice, that you can also achieve something similar by using the [HISTOGRAM](HISTOGRAM.md) shortcut.</a>
+<a name="57"><span class="lineNum">      57 </span>            : </a>
+<a name="58"><span class="lineNum">      58 </span>            : ## Controlloing the grid</a>
+<a name="59"><span class="lineNum">      59 </span>            : </a>
+<a name="60"><span class="lineNum">      60 </span>            : If you prefer to specify the grid spacing rather than the number of bins you can do so using the GRID_SPACING keyword as shown below:</a>
+<a name="61"><span class="lineNum">      61 </span>            : </a>
+<a name="62"><span class="lineNum">      62 </span>            : ```plumed</a>
+<a name="63"><span class="lineNum">      63 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="64"><span class="lineNum">      64 </span>            : kde: KDE ARG=d1 GRID_MIN=0.0 GRID_MAX=1.0 GRID_SPACING=0.01 BANDWIDTH=0.2</a>
+<a name="65"><span class="lineNum">      65 </span>            : DUMPGRID ARG=kde STRIDE=1 FILE=kde.grid</a>
+<a name="66"><span class="lineNum">      66 </span>            : ```</a>
+<a name="67"><span class="lineNum">      67 </span>            : </a>
+<a name="68"><span class="lineNum">      68 </span>            : If $x$ is one of the input arguments to the KDE action and $x&lt;g_{min}$ or $x&gt;g_{max}$, where $g_{min}$ and $g_{max}$ are the minimum</a>
+<a name="69"><span class="lineNum">      69 </span>            : and maximum values on the grid for that argument that were specified using GRID_MIN and GRID_MAX, then by PLUMED will crash.</a>
+<a name="70"><span class="lineNum">      70 </span>            : </a>
+<a name="71"><span class="lineNum">      71 </span>            : Notice also that when you use Gaussian kernels to accumulate a denisty as in the input above you need to define a cutoff beyond, which the</a>
+<a name="72"><span class="lineNum">      72 </span>            : Gaussian (which is a function with infinite support) is assumed not to contribute to the accumulated density.  When setting this cutoff you</a>
+<a name="73"><span class="lineNum">      73 </span>            : set the value of $x$ in the following expression $\sigma \sqrt{2*x}$, where $\sigma$ is the bandwidth.  By default $x$ is set equal to 6.25 but</a>
+<a name="74"><span class="lineNum">      74 </span>            : you can change this value by using the CUTOFF keyword as shown below:</a>
+<a name="75"><span class="lineNum">      75 </span>            : </a>
+<a name="76"><span class="lineNum">      76 </span>            : ```plumed</a>
+<a name="77"><span class="lineNum">      77 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="78"><span class="lineNum">      78 </span>            : kde: KDE ARG=d1 GRID_MIN=0.0 GRID_MAX=1.0 GRID_SPACING=0.01 BANDWIDTH=0.2 CUTOFF=6.25</a>
+<a name="79"><span class="lineNum">      79 </span>            : DUMPGRID ARG=kde STRIDE=1 FILE=kde.grid</a>
+<a name="80"><span class="lineNum">      80 </span>            : ```</a>
+<a name="81"><span class="lineNum">      81 </span>            : </a>
+<a name="82"><span class="lineNum">      82 </span>            : ## Constructing the density</a>
+<a name="83"><span class="lineNum">      83 </span>            : </a>
+<a name="84"><span class="lineNum">      84 </span>            : If you are performing a simulation in the NVT ensemble and wish to look at the density as a function of position in the cell you can use an input like the one shown below:</a>
+<a name="85"><span class="lineNum">      85 </span>            : </a>
+<a name="86"><span class="lineNum">      86 </span>            : ```plumed</a>
+<a name="87"><span class="lineNum">      87 </span>            : a: FIXEDATOM AT=0,0,0</a>
+<a name="88"><span class="lineNum">      88 </span>            : dens: DISTANCES ATOMS=1-100 ORIGIN=a COMPONENTS</a>
+<a name="89"><span class="lineNum">      89 </span>            : kde: KDE ARG=dens.x,dens.y,dens.z GRID_BIN=100,100,100 BANDWIDTH=0.05,0.05,0.05</a>
+<a name="90"><span class="lineNum">      90 </span>            : DUMPGRID ARG=kde STRIDE=1 FILE=density</a>
+<a name="91"><span class="lineNum">      91 </span>            : ```</a>
+<a name="92"><span class="lineNum">      92 </span>            : </a>
+<a name="93"><span class="lineNum">      93 </span>            : Notice that you do not need to specify GRID_MIN and GRID_MAX values with this input. In this case PLUMED gets the extent of the grid from the cell vectors during the first</a>
+<a name="94"><span class="lineNum">      94 </span>            : step of the simulation.</a>
+<a name="95"><span class="lineNum">      95 </span>            : </a>
+<a name="96"><span class="lineNum">      96 </span>            : ## Specifying a non diagonal bandwidth</a>
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<a name="98"><span class="lineNum">      98 </span>            : If for any reason you want to use a bandwidth that is not diagonal when doing kensity density estimation you can do by using an input similar to the one shown below:</a>
+<a name="99"><span class="lineNum">      99 </span>            : </a>
+<a name="100"><span class="lineNum">     100 </span>            : ```plumed</a>
+<a name="101"><span class="lineNum">     101 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="102"><span class="lineNum">     102 </span>            : d2: DISTANCE ATOMS=1,2</a>
+<a name="103"><span class="lineNum">     103 </span>            : kde: KDE ...</a>
+<a name="104"><span class="lineNum">     104 </span>            :   ARG=d1,d2 GRID_MIN=0.0,0.0</a>
+<a name="105"><span class="lineNum">     105 </span>            :   GRID_MAX=1.0,1.0 GRID_BIN=100,100</a>
+<a name="106"><span class="lineNum">     106 </span>            :   BANDWIDTH=0.2,0.1,0.1,0.2 HEIGHTS=1</a>
+<a name="107"><span class="lineNum">     107 </span>            : ...</a>
+<a name="108"><span class="lineNum">     108 </span>            : histo: ACCUMULATE ARG=kde STRIDE=1</a>
+<a name="109"><span class="lineNum">     109 </span>            : DUMPGRID ARG=histo FILE=histo.grid STRIDE=10000</a>
+<a name="110"><span class="lineNum">     110 </span>            : ```</a>
+<a name="111"><span class="lineNum">     111 </span>            : </a>
+<a name="112"><span class="lineNum">     112 </span>            : As there are two arguments for this KDE action the four numbers passed in the bandwdith parameter are interepretted as a $2\times 2$ matrix.</a>
+<a name="113"><span class="lineNum">     113 </span>            : Notice that you can also pass the information for the bandwidth in from another argument as has been done here:</a>
+<a name="114"><span class="lineNum">     114 </span>            : </a>
+<a name="115"><span class="lineNum">     115 </span>            : ```plumed</a>
+<a name="116"><span class="lineNum">     116 </span>            : m: CONSTANT VALUES=0.2,0.1,0.1,0.2 NROWS=2 NCOLS=2</a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span>            : d1: DISTANCE ATOMS=1,2</a>
+<a name="119"><span class="lineNum">     119 </span>            : d2: DISTANCE ATOMS=1,2</a>
+<a name="120"><span class="lineNum">     120 </span>            : kde: KDE ...</a>
+<a name="121"><span class="lineNum">     121 </span>            :   ARG=d1,d2 GRID_MIN=0.0,0.0</a>
+<a name="122"><span class="lineNum">     122 </span>            :   GRID_MAX=1.0,1.0 GRID_BIN=100,100</a>
+<a name="123"><span class="lineNum">     123 </span>            :   BANDWIDTH=m HEIGHTS=1</a>
+<a name="124"><span class="lineNum">     124 </span>            : ...</a>
+<a name="125"><span class="lineNum">     125 </span>            : histo: ACCUMULATE ARG=kde STRIDE=1</a>
+<a name="126"><span class="lineNum">     126 </span>            : DUMPGRID ARG=histo FILE=histo.grid STRIDE=10000</a>
+<a name="127"><span class="lineNum">     127 </span>            : ```</a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span>            : In this case the input is equivalent to the first input above and the bandwidth is a constant.  You could, however, also use a non-constant value as input to the BANDWIDTH keyword.</a>
+<a name="130"><span class="lineNum">     130 </span>            : </a>
+<a name="131"><span class="lineNum">     131 </span>            : ## Working with vectors and scalars</a>
+<a name="132"><span class="lineNum">     132 </span>            : </a>
+<a name="133"><span class="lineNum">     133 </span>            : If the input to your KDE action is a set of scalars it appears odd to separate the process of computing the KDE from the process of accumulating the histogram. However, if</a>
+<a name="134"><span class="lineNum">     134 </span>            : you are using vectors as in the example below, this division can be helpful.</a>
+<a name="135"><span class="lineNum">     135 </span>            : </a>
+<a name="136"><span class="lineNum">     136 </span>            : ```plumed</a>
+<a name="137"><span class="lineNum">     137 </span>            : d1: DISTANCE ATOMS1=1,2 ATOMS2=3,4 ATOMS3=5,6 ATOMS4=7,8 ATOMS5=9,10</a>
+<a name="138"><span class="lineNum">     138 </span>            : kde: KDE ARG=d1 GRID_MIN=0.0 GRID_MAX=1.0 GRID_BIN=100 BANDWIDTH=0.2</a>
+<a name="139"><span class="lineNum">     139 </span>            : ```</a>
+<a name="140"><span class="lineNum">     140 </span>            : </a>
+<a name="141"><span class="lineNum">     141 </span>            : In the papea cited in the bibliography below, the [KL_ENTROPY](KL_ENTROPY.md) between the instantaneous distribution of CVs and a reference distribution was introduced</a>
+<a name="142"><span class="lineNum">     142 </span>            : as a collective variable. As is detailed in the documentation for that action, the ability to calculate the instaneous histogram from an input vector is essential to</a>
+<a name="143"><span class="lineNum">     143 </span>            : reproducing these calculations.</a>
+<a name="144"><span class="lineNum">     144 </span>            : </a>
+<a name="145"><span class="lineNum">     145 </span>            : Notice that you can also use a one or multiple matrices in the input for a KDE object.  The example below uses the angles between the z axis and set of bonds aroud two</a>
+<a name="146"><span class="lineNum">     146 </span>            : atoms:</a>
+<a name="147"><span class="lineNum">     147 </span>            : </a>
+<a name="148"><span class="lineNum">     148 </span>            : ```plumed</a>
+<a name="149"><span class="lineNum">     149 </span>            : d1: DISTANCE_MATRIX GROUPA=1,2 GROUPB=3-10 COMPONENTS</a>
+<a name="150"><span class="lineNum">     150 </span>            : phi: CUSTOM ARG=d1.z,d1.w FUNC=acos(x/y) PERIODIC=NO</a>
+<a name="151"><span class="lineNum">     151 </span>            : kde: KDE ARG=phi GRID_MIN=0 GRID_MAX=pi GRID_BIN=200 BANDWIDTH=0.1</a>
+<a name="152"><span class="lineNum">     152 </span>            : ```</a>
+<a name="153"><span class="lineNum">     153 </span>            : </a>
+<a name="154"><span class="lineNum">     154 </span>            : ## Using different weights</a>
+<a name="155"><span class="lineNum">     155 </span>            : </a>
+<a name="156"><span class="lineNum">     156 </span>            : In all the inputs above the kernels that are added to the grid on each step are Gaussians with that are normalised so that their integral over all space is one. If you want your</a>
+<a name="157"><span class="lineNum">     157 </span>            : Gaussians to have a particular height you can use the HEIGHT keyword as illustrated below:</a>
+<a name="158"><span class="lineNum">     158 </span>            : </a>
+<a name="159"><span class="lineNum">     159 </span>            : ```plumed</a>
+<a name="160"><span class="lineNum">     160 </span>            : d1: CONTACT_MATRIX GROUPA=1,2 GROUPB=3-10 SWITCH={RATIONAL R_0=0.1} COMPONENTS</a>
+<a name="161"><span class="lineNum">     161 </span>            : mag: CUSTOM ARG=d1.x,d1.y,d1.z FUNC=x*x+y*y+z*z PERIODIC=NO</a>
+<a name="162"><span class="lineNum">     162 </span>            : phi: CUSTOM ARG=d1.z,mag FUNC=acos(x/sqrt(y)) PERIODIC=NO</a>
+<a name="163"><span class="lineNum">     163 </span>            : kde: KDE ARG=phi GRID_MIN=0 GRID_MAX=pi HEIGHTS=d1.w GRID_BIN=200 BANDWIDTH=0.1</a>
+<a name="164"><span class="lineNum">     164 </span>            : ```</a>
+<a name="165"><span class="lineNum">     165 </span>            : </a>
+<a name="166"><span class="lineNum">     166 </span>            : As indicated above, the HEIGHTS keyword should be passed a Value that has the same rank and size as the arguments that are passed using the ARG keyword. Each of the Gaussian kernels</a>
+<a name="167"><span class="lineNum">     167 </span>            : that are added to the grid in this case have a value equal to the weight at the maximum of the function.</a>
+<a name="168"><span class="lineNum">     168 </span>            : </a>
+<a name="169"><span class="lineNum">     169 </span>            : Notice that you can also use the VOLUMES keyword in a similar way as shown below:</a>
+<a name="170"><span class="lineNum">     170 </span>            : </a>
+<a name="171"><span class="lineNum">     171 </span>            : ```plumed</a>
+<a name="172"><span class="lineNum">     172 </span>            : d1: CONTACT_MATRIX GROUPA=1,2 GROUPB=3-10 SWITCH={RATIONAL R_0=0.1} COMPONENTS</a>
+<a name="173"><span class="lineNum">     173 </span>            : mag: CUSTOM ARG=d1.x,d1.y,d1.z FUNC=x*x+y*y+z*z PERIODIC=NO</a>
+<a name="174"><span class="lineNum">     174 </span>            : phi: CUSTOM ARG=d1.z,mag FUNC=acos(x/sqrt(y)) PERIODIC=NO</a>
+<a name="175"><span class="lineNum">     175 </span>            : kde: KDE ARG=phi GRID_MIN=0 GRID_MAX=pi VOLUMES=d1.w GRID_BIN=200 BANDWIDTH=0.1</a>
+<a name="176"><span class="lineNum">     176 </span>            : ```</a>
+<a name="177"><span class="lineNum">     177 </span>            : </a>
+<a name="178"><span class="lineNum">     178 </span>            : Now, however, the integral of the Gaussians over all space are equal to the elements of d1.w.</a>
+<a name="179"><span class="lineNum">     179 </span>            : </a>
+<a name="180"><span class="lineNum">     180 </span>            : */</a>
+<a name="181"><span class="lineNum">     181 </span>            : //+ENDPLUMEDOC</a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span>            : //+PLUMEDOC ANALYSIS SPHERICAL_KDE</a>
+<a name="184"><span class="lineNum">     184 </span>            : /*</a>
+<a name="185"><span class="lineNum">     185 </span>            : Create a histogram from the input scalar/vector/matrix using SPHERICAL_KDE</a>
+<a name="186"><span class="lineNum">     186 </span>            : </a>
+<a name="187"><span class="lineNum">     187 </span>            : This action operates similarly to [KDE](KDE.md) but it is designed to be used for investigating [directional statistics]().</a>
+<a name="188"><span class="lineNum">     188 </span>            : It is particularly useful if you are looking at the distribution of bond vectors as illustrated in the input below:</a>
+<a name="189"><span class="lineNum">     189 </span>            : </a>
+<a name="190"><span class="lineNum">     190 </span>            : ```plumed</a>
+<a name="191"><span class="lineNum">     191 </span>            : # Calculate all the bond vectors</a>
+<a name="192"><span class="lineNum">     192 </span>            : d1: CONTACT_MATRIX GROUP=1-100 SWITCH={RATIONAL R_0=0.1} COMPONENTS</a>
+<a name="193"><span class="lineNum">     193 </span>            : # Normalise the bond vectors</a>
+<a name="194"><span class="lineNum">     194 </span>            : mag: CUSTOM ARG=d1.x,d1.y,d1.z FUNC=sqrt(x*x+y*y+z*z) PERIODIC=NO</a>
+<a name="195"><span class="lineNum">     195 </span>            : d1x: CUSTOM ARG=d1.x,mag FUNC=x/y PERIODIC=NO</a>
+<a name="196"><span class="lineNum">     196 </span>            : d1y: CUSTOM ARG=d1.y,mag FUNC=x/y PERIODIC=NO</a>
+<a name="197"><span class="lineNum">     197 </span>            : d1z: CUSTOM ARG=d1.z,mag FUNC=x/y PERIODIC=NO</a>
+<a name="198"><span class="lineNum">     198 </span>            : # And construct the KDE</a>
+<a name="199"><span class="lineNum">     199 </span>            : kde: SPHERICAL_KDE ARG=d1x,d1y,d1z HEIGHTS=d1.w CONCENTRATION=100 GRID_BIN=144</a>
+<a name="200"><span class="lineNum">     200 </span>            : ```</a>
+<a name="201"><span class="lineNum">     201 </span>            : </a>
+<a name="202"><span class="lineNum">     202 </span>            : Each bond vector here contributes a [Fisher von-Mises kernel](https://en.wikipedia.org/wiki/Von_Mises–Fisher_distribution) to the spherical grid.  This spherical grid is constructed</a>
+<a name="203"><span class="lineNum">     203 </span>            : using a [Fibonnacci sphere algorithm](https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere) so the number of specified using the GRID_BIN keyword must be a Fibonacci number.</a>
+<a name="204"><span class="lineNum">     204 </span>            : </a>
+<a name="205"><span class="lineNum">     205 </span>            : */</a>
+<a name="206"><span class="lineNum">     206 </span>            : //+ENDPLUMEDOC</a>
+<a name="207"><span class="lineNum">     207 </span>            : </a>
+<a name="208"><span class="lineNum">     208 </span>            : namespace PLMD {</a>
+<a name="209"><span class="lineNum">     209 </span>            : namespace gridtools {</a>
+<a name="210"><span class="lineNum">     210 </span>            : </a>
+<a name="211"><span class="lineNum">     211 </span>            : template &lt;class K, class P&gt;</a>
+<a name="212"><span class="lineNum">     212 </span>            : class KDEGridTools {</a>
+<a name="213"><span class="lineNum">     213 </span>            : public:</a>
+<a name="214"><span class="lineNum">     214 </span>            :   double dp2cutoff;</a>
+<a name="215"><span class="lineNum">     215 </span>            :   std::vector&lt;double&gt; gspacing;</a>
+<a name="216"><span class="lineNum">     216 </span>            :   std::vector&lt;std::size_t&gt; nbin;</a>
+<a name="217"><span class="lineNum">     217 </span>            :   std::vector&lt;std::string&gt; gmin, gmax;</a>
+<a name="218"><span class="lineNum">     218 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="219"><span class="lineNum">     219 </span>            :   static void readHeightKeyword( bool canusevol, std::size_t nargs, const std::vector&lt;std::string&gt;&amp; bw, ActionWithArguments* action );</a>
+<a name="220"><span class="lineNum">     220 </span>            :   static void readBandwidth( std::size_t nargs, ActionWithArguments* action, std::vector&lt;std::string&gt;&amp; bw );</a>
+<a name="221"><span class="lineNum">     221 </span>            :   static void readBandwidthKeyword( std::size_t nargs, ActionWithArguments* action, std::vector&lt;std::string&gt;&amp; bw, std::vector&lt;Value*&gt;&amp; bwargs );</a>
+<a name="222"><span class="lineNum">     222 </span>            :   static void readBandwidthAndHeight( const P&amp; params, ActionWithArguments* action );</a>
+<a name="223"><span class="lineNum">     223 </span>            :   static void convertHeightsToVolumes( const std::size_t&amp; nargs, const std::vector&lt;std::string&gt;&amp; bw, const std::string&amp; volstr, ActionWithArguments* action );</a>
+<a name="224"><span class="lineNum">     224 </span>            :   static void readGridParameters( KDEGridTools&lt;K,P&gt;&amp; g, ActionWithArguments* action, GridCoordinatesObject&amp; gridobject, std::vector&lt;std::size_t&gt;&amp; shape );</a>
+<a name="225"><span class="lineNum">     225 </span>            :   static void setupGridBounds( KDEGridTools&lt;K,P&gt;&amp; g, const Tensor&amp; box, GridCoordinatesObject&amp; gridobject, const std::vector&lt;Value*&gt;&amp; args, Value* myval );</a>
+<a name="226"><span class="lineNum">     226 </span>            :   static void getDiscreteSupport( const KDEGridTools&lt;K,P&gt;&amp; g, P&amp; p, const K&amp; kp, std::vector&lt;unsigned&gt;&amp; nneigh, GridCoordinatesObject&amp; gridobject );</a>
+<a name="227"><span class="lineNum">     227 </span>            :   static void getNeighbors( const P&amp; p, K&amp; kp, const GridCoordinatesObject&amp; gridobject, const std::vector&lt;unsigned&gt;&amp; nneigh, unsigned&amp; num_neighbors, std::vector&lt;unsigned&gt;&amp; neighbors );</a>
+<a name="228"><span class="lineNum">     228 </span>            : };</a>
+<a name="229"><span class="lineNum">     229 </span>            : </a>
+<a name="230"><span class="lineNum">     230 </span>            : template &lt;class K, class P&gt;</a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">        325 : void KDEGridTools&lt;K,P&gt;::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="232"><span class="lineNum">     232 </span><span class="lineCov">        325 :   keys.add(&quot;optional&quot;,&quot;BANDWIDTH&quot;,&quot;the bandwidths for kernel density esimtation&quot;);</span></a>
+<a name="233"><span class="lineNum">     233 </span><span class="lineCov">        325 :   keys.add(&quot;optional&quot;,&quot;VOLUMES&quot;,&quot;this keyword take the label of an action that calculates a vector of values.  The elements of this vector &quot;</span></a>
+<a name="234"><span class="lineNum">     234 </span>            :            &quot;divided by the volume of the Gaussian are used as weights for the Gaussians&quot;);</a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">        325 :   keys.add(&quot;optional&quot;,&quot;HEIGHTS&quot;,&quot;this keyword takes the label of an action that calculates a vector of values. The elements of this vector &quot;</span></a>
+<a name="236"><span class="lineNum">     236 </span>            :            &quot;are used as weights for the Gaussians.&quot;);</a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">        325 :   keys.add(&quot;compulsory&quot;,&quot;GRID_MIN&quot;,&quot;auto&quot;,&quot;the lower bounds for the grid&quot;);</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">        325 :   keys.add(&quot;compulsory&quot;,&quot;GRID_MAX&quot;,&quot;auto&quot;,&quot;the upper bounds for the grid&quot;);</span></a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">        325 :   keys.add(&quot;compulsory&quot;,&quot;CUTOFF&quot;,&quot;6.25&quot;,&quot;the cutoff at which to stop evaluating the kernel functions is set equal to sqrt(2*x)*bandwidth in each direction where x is this number&quot;);</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">        325 :   keys.add(&quot;optional&quot;,&quot;GRID_SPACING&quot;,&quot;the approximate grid spacing (to be used as an alternative or together with GRID_BIN)&quot;);</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">        325 :   keys.add(&quot;optional&quot;,&quot;GRID_BIN&quot;,&quot;the number of bins for the grid&quot;);</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">        325 : }</span></a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span>            : template &lt;class K, class P&gt;</a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">         66 : void KDEGridTools&lt;K,P&gt;::readHeightKeyword( bool canusevol, std::size_t nargs, const std::vector&lt;std::string&gt;&amp; bw, ActionWithArguments* action ) {</span></a>
+<a name="246"><span class="lineNum">     246 </span>            :   std::string weight_str;</a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">        132 :   action-&gt;parse(&quot;HEIGHTS&quot;,weight_str);</span></a>
+<a name="248"><span class="lineNum">     248 </span>            :   std::string str_nvals;</a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">         66 :   if( (action-&gt;getPntrToArgument(0))-&gt;getRank()==2 ) {</span></a>
+<a name="250"><span class="lineNum">     250 </span>            :     std::string nr, nc;</a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">          3 :     Tools::convert( (action-&gt;getPntrToArgument(0))-&gt;getShape()[0], nr );</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">          3 :     Tools::convert( (action-&gt;getPntrToArgument(0))-&gt;getShape()[1], nc );</span></a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">          6 :     str_nvals = nr + &quot;,&quot; + nc;</span></a>
+<a name="254"><span class="lineNum">     254 </span>            :   } else {</a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">         63 :     Tools::convert( (action-&gt;getPntrToArgument(0))-&gt;getNumberOfValues(), str_nvals );</span></a>
+<a name="256"><span class="lineNum">     256 </span>            :   }</a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">         66 :   if( weight_str.length()&gt;0 ) {</span></a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineCov">         34 :     KDEHelper&lt;K,P,KDEGridTools&lt;K,P&gt;&gt;::readKernelParameters( weight_str, action, &quot;_heights&quot;, true );</span></a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">         49 :   } else if( canusevol ) {</span></a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">         29 :     action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_volumes: ONES SIZE=&quot; + str_nvals ), false );</span></a>
+<a name="261"><span class="lineNum">     261 </span><span class="lineCov">         58 :     KDEGridTools&lt;K,P&gt;::convertHeightsToVolumes(nargs,bw,action-&gt;getLabel() + &quot;_volumes&quot;,action);</span></a>
+<a name="262"><span class="lineNum">     262 </span>            :   } else {</a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineCov">         20 :     action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_heights: ONES SIZE=&quot; + str_nvals ), false );</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">         40 :     KDEHelper&lt;K,P,KDEGridTools&lt;K,P&gt;&gt;::addArgument( action-&gt;getLabel() + &quot;_heights&quot;, action );</span></a>
+<a name="265"><span class="lineNum">     265 </span>            :   }</a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">         66 : }</span></a>
+<a name="267"><span class="lineNum">     267 </span>            : </a>
+<a name="268"><span class="lineNum">     268 </span>            : template &lt;&gt;</a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineCov">         14 : void KDEGridTools&lt;DiagonalKernelParams,DiscreteKernel&gt;::readBandwidthAndHeight( const DiscreteKernel&amp; params, ActionWithArguments* action ) {</span></a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">         14 :   std::size_t nargs = action-&gt;getNumberOfArguments();</span></a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineCov">         14 :   KDEGridTools&lt;DiagonalKernelParams,DiscreteKernel&gt;::readHeightKeyword( false, nargs, std::vector&lt;std::string&gt;(), action );</span></a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineCov">         14 : }</span></a>
+<a name="273"><span class="lineNum">     273 </span>            : </a>
+<a name="274"><span class="lineNum">     274 </span>            : template&lt;class K, class P&gt;</a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">         66 : void KDEGridTools&lt;K, P&gt;::readBandwidthKeyword( std::size_t nargs, ActionWithArguments* action, std::vector&lt;std::string&gt;&amp; bw, std::vector&lt;Value*&gt;&amp; bwargs ) {</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">         66 :   action-&gt;parseVector(&quot;BANDWIDTH&quot;,bw);</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">         66 :   if( nargs&gt;1 &amp;&amp; bw.size()==1 ) {</span></a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineNoCov">          0 :     ActionWithArguments::interpretArgumentList( bw, action-&gt;plumed.getActionSet(), action, bwargs );</span></a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineNoCov">          0 :     if( bwargs.size()!=1 ) {</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineNoCov">          0 :       action-&gt;error(&quot;invalid bandwidth found&quot;);</span></a>
+<a name="281"><span class="lineNum">     281 </span>            :     }</a>
+<a name="282"><span class="lineNum">     282 </span>            :     // Create a vector of ones with the right size</a>
+<a name="283"><span class="lineNum">     283 </span>            :     std::string nvals;</a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineNoCov">          0 :     if( (action-&gt;getPntrToArgument(0))-&gt;getRank()==2 ) {</span></a>
+<a name="285"><span class="lineNum">     285 </span>            :       std::string nr, nc;</a>
+<a name="286"><span class="lineNum">     286 </span><span class="lineNoCov">          0 :       Tools::convert( (action-&gt;getPntrToArgument(0))-&gt;getShape()[0], nr );</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineNoCov">          0 :       Tools::convert( (action-&gt;getPntrToArgument(0))-&gt;getShape()[1], nc );</span></a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineNoCov">          0 :       nvals = nr + &quot;,&quot; + nc;</span></a>
+<a name="289"><span class="lineNum">     289 </span>            :     } else {</a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineNoCov">          0 :       Tools::convert( (action-&gt;getPntrToArgument(0))-&gt;getNumberOfValues(), nvals );</span></a>
+<a name="291"><span class="lineNum">     291 </span>            :     }</a>
+<a name="292"><span class="lineNum">     292 </span><span class="lineNoCov">          0 :     action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_bwones: ONES SIZE=&quot; + nvals ), false );</span></a>
+<a name="293"><span class="lineNum">     293 </span>            :   }</a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">         66 : }</span></a>
+<a name="295"><span class="lineNum">     295 </span>            : </a>
+<a name="296"><span class="lineNum">     296 </span>            : template &lt;class K, class P&gt;</a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">         66 : void KDEGridTools&lt;K,P&gt;::readBandwidth( std::size_t nargs, ActionWithArguments* action, std::vector&lt;std::string&gt;&amp; bw ) {</span></a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">         66 :   plumed_assert( typeid(K)==typeid(DiagonalKernelParams) );</span></a>
+<a name="299"><span class="lineNum">     299 </span>            :   std::vector&lt;Value*&gt; bwargs;</a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">         66 :   readBandwidthKeyword( nargs, action, bw, bwargs );</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">         66 :   if( nargs&gt;1 &amp;&amp; bw.size()==1 ) {</span></a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineNoCov">          0 :     if( bwargs[0]-&gt;getRank()!=1 || bwargs[0]-&gt;getNumberOfValues()!=nargs ) {</span></a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineNoCov">          0 :       action-&gt;error(&quot;invalid input for bandwidth parameter&quot;);</span></a>
+<a name="304"><span class="lineNum">     304 </span>            :     }</a>
+<a name="305"><span class="lineNum">     305 </span>            :     std::string str_i;</a>
+<a name="306"><span class="lineNum">     306 </span><span class="lineNoCov">          0 :     bw.resize( nargs );</span></a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineNoCov">          0 :     for(unsigned i=0; i&lt;nargs; ++i) {</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineNoCov">          0 :       Tools::convert( i+1, str_i );</span></a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineNoCov">          0 :       action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_scalar_bw&quot; + str_i + &quot;: SELECT_COMPONENTS ARG=&quot; + bwargs[0]-&gt;getName() + &quot; COMPONENTS=&quot; + str_i ), false );</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineNoCov">          0 :       bw[i] = action-&gt;getLabel() + &quot;_bw&quot; + str_i;</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineNoCov">          0 :       action-&gt;plumed.readInputWords( Tools::getWords( bw[i] + &quot;: CUSTOM ARG=&quot; + action-&gt;getLabel() + &quot;_bwones,&quot; + action-&gt;getLabel() + &quot;_scalar_bw&quot; + str_i + &quot; FUNC=x*y PERIODIC=NO&quot;), false );</span></a>
+<a name="312"><span class="lineNum">     312 </span>            :     }</a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">         66 :   } else if( bw.size()==nargs ) {</span></a>
+<a name="314"><span class="lineNum">     314 </span>            :     double bwval;</a>
+<a name="315"><span class="lineNum">     315 </span>            :     std::string str_i;</a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">        164 :     for(unsigned i=0; i&lt;nargs; ++i) {</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">         98 :       Tools::convert( i+1, str_i );</span></a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineCov">         98 :       if( Tools::convertNoexcept( bw[i], bwval ) &amp;&amp; fabs(bwval)&lt;epsilon ) {</span></a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineCov">          4 :         KDEHelper&lt;K,P,KDEGridTools&lt;K,P&gt;&gt;::readKernelParameters( bw[i], action, &quot;_bwz&quot; + str_i, true );</span></a>
+<a name="320"><span class="lineNum">     320 </span>            :       } else {</a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">        192 :         KDEHelper&lt;K,P,KDEGridTools&lt;K,P&gt;&gt;::readKernelParameters( bw[i], action, &quot;_bw&quot; + str_i, true );</span></a>
+<a name="322"><span class="lineNum">     322 </span>            :       }</a>
+<a name="323"><span class="lineNum">     323 </span>            :     }</a>
+<a name="324"><span class="lineNum">     324 </span>            :   } else {</a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineNoCov">          0 :     action-&gt;error(&quot;wrong number of arguments specified in input to bandwidth parameter&quot;);</span></a>
+<a name="326"><span class="lineNum">     326 </span>            :   }</a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">         66 : }</span></a>
+<a name="328"><span class="lineNum">     328 </span>            : </a>
+<a name="329"><span class="lineNum">     329 </span>            : template &lt;&gt;</a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">         18 : void KDEGridTools&lt;DiagonalKernelParams,HistogramBeadKernel&gt;::readBandwidthAndHeight( const HistogramBeadKernel&amp; params, ActionWithArguments* action ) {</span></a>
+<a name="331"><span class="lineNum">     331 </span>            :   std::vector&lt;std::string&gt; bw;</a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">         18 :   std::size_t nargs = action-&gt;getNumberOfArguments();</span></a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">         18 :   readBandwidth( nargs, action, bw );</span></a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineCov">         18 :   KDEGridTools&lt;DiagonalKernelParams,HistogramBeadKernel&gt;::readHeightKeyword( false, nargs, bw, action );</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">         18 : }</span></a>
+<a name="336"><span class="lineNum">     336 </span>            : </a>
+<a name="337"><span class="lineNum">     337 </span>            : template &lt;&gt;</a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineCov">         48 : void KDEGridTools&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;&gt;::readBandwidthAndHeight( const RegularKernel&lt;DiagonalKernelParams&gt;&amp; params, ActionWithArguments* action ) {</span></a>
+<a name="339"><span class="lineNum">     339 </span>            :   std::vector&lt;Value*&gt; bwargs;</a>
+<a name="340"><span class="lineNum">     340 </span>            :   std::vector&lt;std::string&gt; bw;</a>
+<a name="341"><span class="lineNum">     341 </span><span class="lineCov">         48 :   std::size_t nargs = action-&gt;getNumberOfArguments();</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">         48 :   readBandwidth( nargs, action, bw );</span></a>
+<a name="343"><span class="lineNum">     343 </span>            :   std::string volstr;</a>
+<a name="344"><span class="lineNum">     344 </span><span class="lineCov">         96 :   action-&gt;parse(&quot;VOLUMES&quot;,volstr);</span></a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineCov">         48 :   if( volstr.length()&gt;0 ) {</span></a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">         14 :     if( !params.canusevol ) {</span></a>
+<a name="347"><span class="lineNum">     347 </span><span class="lineNoCov">          0 :       action-&gt;error(&quot;cannot use normalized kernels with selected kernel type&quot;);</span></a>
+<a name="348"><span class="lineNum">     348 </span>            :     }</a>
+<a name="349"><span class="lineNum">     349 </span>            :     // Check if we are using Gaussian kernels</a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineCov">         14 :     KDEHelper&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;,KDEGridTools&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;&gt;&gt;::readKernelParameters( volstr, action, &quot;_volumes&quot;, false );</span></a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineCov">         14 :     convertHeightsToVolumes(nargs, bw, volstr, action);</span></a>
+<a name="352"><span class="lineNum">     352 </span>            :   } else {</a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineCov">         34 :     KDEGridTools&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;&gt;::readHeightKeyword( params.canusevol, nargs, bw, action );</span></a>
+<a name="354"><span class="lineNum">     354 </span>            :   }</a>
+<a name="355"><span class="lineNum">     355 </span><span class="lineCov">         96 : }</span></a>
+<a name="356"><span class="lineNum">     356 </span>            : </a>
+<a name="357"><span class="lineNum">     357 </span>            : template &lt;&gt;</a>
+<a name="358"><span class="lineNum">     358 </span><span class="lineNoCov">          0 : void KDEGridTools&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;&gt;::readBandwidthAndHeight( const RegularKernel&lt;NonDiagonalKernelParams&gt;&amp; params, ActionWithArguments* action ) {</span></a>
+<a name="359"><span class="lineNum">     359 </span>            :   std::vector&lt;Value*&gt; bwargs;</a>
+<a name="360"><span class="lineNum">     360 </span>            :   std::vector&lt;std::string&gt; bw;</a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineNoCov">          0 :   std::size_t nargs = action-&gt;getNumberOfArguments();</span></a>
+<a name="362"><span class="lineNum">     362 </span><span class="lineNoCov">          0 :   readBandwidthKeyword( nargs, action, bw, bwargs );</span></a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineNoCov">          0 :   if( nargs&gt;1 &amp;&amp; bw.size()==1 ) {</span></a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineNoCov">          0 :     if( bwargs[0]-&gt;getRank()!=2 || bwargs[0]-&gt;getShape()[0]!=nargs || bwargs[0]-&gt;getShape()[1]!=nargs  ) {</span></a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineNoCov">          0 :       action-&gt;error(&quot;invalid input for bandwidth parameter&quot;);</span></a>
+<a name="366"><span class="lineNum">     366 </span>            :     }</a>
+<a name="367"><span class="lineNum">     367 </span>            :     std::string str_i, str_j;</a>
+<a name="368"><span class="lineNum">     368 </span><span class="lineNoCov">          0 :     bw.resize( nargs*nargs );</span></a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineNoCov">          0 :     for(unsigned i=0; i&lt;nargs; ++i) {</span></a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineNoCov">          0 :       Tools::convert( i+1, str_i );</span></a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineNoCov">          0 :       for(unsigned j=0; j&lt;nargs; ++j) {</span></a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineNoCov">          0 :         Tools::convert( j+1, str_j );</span></a>
+<a name="373"><span class="lineNum">     373 </span><span class="lineNoCov">          0 :         action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_scalar_bw&quot; + str_i + &quot;_&quot; + str_j + &quot;: SELECT_COMPONENTS ARG=&quot; + bwargs[0]-&gt;getName() + &quot; COMPONENTS=&quot; + str_i + &quot;.&quot; + str_j ), false );</span></a>
+<a name="374"><span class="lineNum">     374 </span><span class="lineNoCov">          0 :         bw[i*nargs+j] = action-&gt;getLabel() + &quot;_bw&quot; + str_i + &quot;_&quot; + str_j;</span></a>
+<a name="375"><span class="lineNum">     375 </span><span class="lineNoCov">          0 :         action-&gt;plumed.readInputWords( Tools::getWords( bw[i*nargs+j] + &quot;: CUSTOM ARG=&quot; + action-&gt;getLabel() + &quot;_bwones,&quot; + action-&gt;getLabel() + &quot;_scalar_bw&quot; + str_i + &quot;_&quot; + str_j + &quot; FUNC=x*y PERIODIC=NO&quot;), false );</span></a>
+<a name="376"><span class="lineNum">     376 </span>            :       }</a>
+<a name="377"><span class="lineNum">     377 </span>            :     }</a>
+<a name="378"><span class="lineNum">     378 </span><span class="lineNoCov">          0 :   } else if( bw.size()==nargs*nargs ) {</span></a>
+<a name="379"><span class="lineNum">     379 </span>            :     std::string str_i, str_j;</a>
+<a name="380"><span class="lineNum">     380 </span><span class="lineNoCov">          0 :     for(unsigned i=0; i&lt;nargs; ++i) {</span></a>
+<a name="381"><span class="lineNum">     381 </span><span class="lineNoCov">          0 :       Tools::convert( i+1, str_i );</span></a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineNoCov">          0 :       for(unsigned j=0; j&lt;nargs; ++j) {</span></a>
+<a name="383"><span class="lineNum">     383 </span><span class="lineNoCov">          0 :         Tools::convert( j+1, str_j );</span></a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineNoCov">          0 :         KDEHelper&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;,KDEGridTools&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;&gt;&gt;::readKernelParameters( bw[i*nargs+j], action, &quot;_bw&quot; + str_i + &quot;_&quot; + str_j, true );</span></a>
+<a name="385"><span class="lineNum">     385 </span>            :       }</a>
+<a name="386"><span class="lineNum">     386 </span>            :     }</a>
+<a name="387"><span class="lineNum">     387 </span>            :   } else {</a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineNoCov">          0 :     action-&gt;error(&quot;wrong number of arguments specified in input to bandwidth parameter&quot;);</span></a>
+<a name="389"><span class="lineNum">     389 </span>            :   }</a>
+<a name="390"><span class="lineNum">     390 </span>            :   std::string volstr;</a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineNoCov">          0 :   action-&gt;parse(&quot;VOLUMES&quot;,volstr);</span></a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineNoCov">          0 :   if( volstr.length()&gt;0 ) {</span></a>
+<a name="393"><span class="lineNum">     393 </span><span class="lineNoCov">          0 :     if( !params.canusevol ) {</span></a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineNoCov">          0 :       action-&gt;error(&quot;cannot use normalized kernels with selected kernel type&quot;);</span></a>
+<a name="395"><span class="lineNum">     395 </span>            :     }</a>
+<a name="396"><span class="lineNum">     396 </span>            :     // Check if we are using Gaussian kernels</a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineNoCov">          0 :     KDEHelper&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;,KDEGridTools&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;&gt;&gt;::readKernelParameters( volstr, action, &quot;_volumes&quot;, false );</span></a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineNoCov">          0 :     convertHeightsToVolumes(nargs, bw, volstr, action);</span></a>
+<a name="399"><span class="lineNum">     399 </span>            :   } else {</a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineNoCov">          0 :     KDEGridTools&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;&gt;::readHeightKeyword( params.canusevol, nargs, bw, action );</span></a>
+<a name="401"><span class="lineNum">     401 </span>            :   }</a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="403"><span class="lineNum">     403 </span>            : </a>
+<a name="404"><span class="lineNum">     404 </span>            : template &lt;class K, class P&gt;</a>
+<a name="405"><span class="lineNum">     405 </span><span class="lineCov">         43 : void KDEGridTools&lt;K, P&gt;::convertHeightsToVolumes( const std::size_t&amp; nargs, const std::vector&lt;std::string&gt;&amp; bw, const std::string&amp; volstr, ActionWithArguments* action ) {</span></a>
+<a name="406"><span class="lineNum">     406 </span><span class="lineCov">         43 :   if( bw.size()==nargs ) {</span></a>
+<a name="407"><span class="lineNum">     407 </span><span class="lineCov">         43 :     unsigned nonzeroargs=0;</span></a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">        110 :     for(unsigned i=0; i&lt;nargs; ++i) {</span></a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">         67 :       if( bw[i].find(&quot;_bwz&quot;)==std::string::npos ) {</span></a>
+<a name="410"><span class="lineNum">     410 </span><span class="lineCov">         65 :         nonzeroargs++;</span></a>
+<a name="411"><span class="lineNum">     411 </span>            :       }</a>
+<a name="412"><span class="lineNum">     412 </span>            :     }</a>
+<a name="413"><span class="lineNum">     413 </span>            :     std::string str_i, nargs_str;</a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">         43 :     Tools::convert( nonzeroargs, nargs_str );</span></a>
+<a name="415"><span class="lineNum">     415 </span><span class="lineCov">         86 :     std::string varstr = &quot;VAR=h&quot;, funcstr = &quot;FUNC=h/(sqrt((2*pi)^&quot; + nargs_str + &quot;)&quot;, argstr = &quot;ARG=&quot; + volstr;</span></a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineCov">        110 :     for(unsigned i=0; i&lt;nargs; ++i) {</span></a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">         67 :       if( bw[i].find(&quot;_bwz&quot;)!=std::string::npos ) {</span></a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">          2 :         continue;</span></a>
+<a name="419"><span class="lineNum">     419 </span>            :       }</a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineCov">         65 :       Tools::convert( i+1, str_i );</span></a>
+<a name="421"><span class="lineNum">     421 </span><span class="lineCov">         65 :       varstr += &quot;,b&quot; + str_i;</span></a>
+<a name="422"><span class="lineNum">     422 </span><span class="lineCov">        130 :       funcstr += &quot;*b&quot; + str_i;</span></a>
+<a name="423"><span class="lineNum">     423 </span><span class="lineCov">        130 :       argstr += &quot;,&quot; + bw[i];</span></a>
+<a name="424"><span class="lineNum">     424 </span>            :     }</a>
+<a name="425"><span class="lineNum">     425 </span>            :     funcstr += &quot;)&quot;;</a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">         43 :     if( (action-&gt;getPntrToArgument(0))-&gt;getNumberOfValues()==1 ) {</span></a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineCov">         27 :       action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_heights: CUSTOM PERIODIC=NO &quot; + argstr + &quot; &quot; + varstr + &quot; &quot; + funcstr), false );</span></a>
+<a name="428"><span class="lineNum">     428 </span>            :     } else {</a>
+<a name="429"><span class="lineNum">     429 </span><span class="lineCov">         16 :       action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_heights: CUSTOM PERIODIC=NO &quot; + argstr + &quot; &quot; + varstr + &quot; &quot; + funcstr + &quot; MASK=&quot; + volstr), false );</span></a>
+<a name="430"><span class="lineNum">     430 </span>            :     }</a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">         86 :     KDEHelper&lt;K,P,KDEGridTools&lt;K,P&gt;&gt;::addArgument( action-&gt;getLabel() + &quot;_heights&quot;, action );</span></a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineNoCov">          0 :   } else if( bw.size()==nargs*nargs ) {</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineNoCov">          0 :     action-&gt;error(&quot;have not implemented normalization parameter for non-diagonal kernels&quot;);</span></a>
+<a name="434"><span class="lineNum">     434 </span>            :   }</a>
+<a name="435"><span class="lineNum">     435 </span>            : </a>
+<a name="436"><span class="lineNum">     436 </span><span class="lineCov">         43 : }</span></a>
+<a name="437"><span class="lineNum">     437 </span>            : </a>
+<a name="438"><span class="lineNum">     438 </span>            : template &lt;class K, class P&gt;</a>
+<a name="439"><span class="lineNum">     439 </span><span class="lineCov">         80 : void KDEGridTools&lt;K,P&gt;::readGridParameters( KDEGridTools&lt;K,P&gt;&amp; g, ActionWithArguments* action, GridCoordinatesObject&amp; gridobject, std::vector&lt;std::size_t&gt;&amp; shape ) {</span></a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">         80 :   g.gmin.resize( shape.size() );</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">         80 :   g.gmax.resize( shape.size() );</span></a>
+<a name="442"><span class="lineNum">     442 </span><span class="lineCov">         80 :   action-&gt;parseVector(&quot;GRID_MIN&quot;,g.gmin);</span></a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">         80 :   action-&gt;parseVector(&quot;GRID_MAX&quot;,g.gmax);</span></a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineCov">        193 :   for(unsigned i=0; i&lt;g.gmin.size(); ++i) {</span></a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineCov">        113 :     if( g.gmin[i]==&quot;auto&quot; ) {</span></a>
+<a name="446"><span class="lineNum">     446 </span><span class="lineCov">         52 :       action-&gt;log.printf(&quot;  for %dth coordinate min and max are set automatically \n&quot;, (i+1) );</span></a>
+<a name="447"><span class="lineNum">     447 </span><span class="lineCov">         52 :       if( g.gmax[i]!=&quot;auto&quot; ) {</span></a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineNoCov">          0 :         action-&gt;error(&quot;if gmin is set automatically gmax must also be set automatically&quot;);</span></a>
+<a name="449"><span class="lineNum">     449 </span>            :       }</a>
+<a name="450"><span class="lineNum">     450 </span>            :       Value* myarg = action-&gt;getPntrToArgument(i);</a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineCov">         52 :       if( myarg-&gt;isPeriodic() ) {</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineNoCov">          0 :         if( g.gmin[i]==&quot;auto&quot; ) {</span></a>
+<a name="453"><span class="lineNum">     453 </span><span class="lineNoCov">          0 :           myarg-&gt;getDomain( g.gmin[i], g.gmax[i] );</span></a>
+<a name="454"><span class="lineNum">     454 </span>            :         } else {</a>
+<a name="455"><span class="lineNum">     455 </span>            :           std::string str_min, str_max;</a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineNoCov">          0 :           myarg-&gt;getDomain( str_min, str_max );</span></a>
+<a name="457"><span class="lineNum">     457 </span><span class="lineNoCov">          0 :           if( str_min!=g.gmin[i] || str_max!=g.gmax[i] ) {</span></a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineNoCov">          0 :             action-&gt;error(&quot;all periodic arguments should have the same domain&quot;);</span></a>
+<a name="459"><span class="lineNum">     459 </span>            :           }</a>
+<a name="460"><span class="lineNum">     460 </span>            :         }</a>
+<a name="461"><span class="lineNum">     461 </span><span class="lineCov">         52 :       } else if( myarg-&gt;getName().find(&quot;.&quot;)!=std::string::npos ) {</span></a>
+<a name="462"><span class="lineNum">     462 </span><span class="lineCov">         52 :         std::size_t dot = myarg-&gt;getName().find_first_of(&quot;.&quot;);</span></a>
+<a name="463"><span class="lineNum">     463 </span><span class="lineCov">         52 :         std::string name = myarg-&gt;getName().substr(dot+1);</span></a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineCov">         90 :         if( name!=&quot;x&quot; &amp;&amp; name!=&quot;y&quot; &amp;&amp; name!=&quot;z&quot; ) {</span></a>
+<a name="465"><span class="lineNum">     465 </span><span class="lineNoCov">          0 :           action-&gt;error(&quot;cannot set GRID_MIN and GRID_MAX automatically if input argument is not component of distance&quot;);</span></a>
+<a name="466"><span class="lineNum">     466 </span>            :         }</a>
+<a name="467"><span class="lineNum">     467 </span>            :       } else {</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineNoCov">          0 :         action-&gt;error(&quot;cannot set GRID_MIN and GRID_MAX automatically if input argument is not component of distance&quot;);</span></a>
+<a name="469"><span class="lineNum">     469 </span>            :       }</a>
+<a name="470"><span class="lineNum">     470 </span>            :     } else {</a>
+<a name="471"><span class="lineNum">     471 </span><span class="lineCov">         61 :       action-&gt;log.printf(&quot;  for %dth coordinate min is set to %s and max is set to %s \n&quot;, (i+1), g.gmin[i].c_str(), g.gmax[i].c_str() );</span></a>
+<a name="472"><span class="lineNum">     472 </span>            :     }</a>
+<a name="473"><span class="lineNum">     473 </span>            :   }</a>
+<a name="474"><span class="lineNum">     474 </span>            : </a>
+<a name="475"><span class="lineNum">     475 </span><span class="lineCov">         80 :   action-&gt;parseVector(&quot;GRID_BIN&quot;,g.nbin);</span></a>
+<a name="476"><span class="lineNum">     476 </span><span class="lineCov">         80 :   action-&gt;parseVector(&quot;GRID_SPACING&quot;,g.gspacing);</span></a>
+<a name="477"><span class="lineNum">     477 </span><span class="lineCov">        160 :   action-&gt;parse(&quot;CUTOFF&quot;,g.dp2cutoff);</span></a>
+<a name="478"><span class="lineNum">     478 </span>            : </a>
+<a name="479"><span class="lineNum">     479 </span><span class="lineCov">         80 :   if( g.nbin.size()!=shape.size() &amp;&amp; g.gspacing.size()!=shape.size() ) {</span></a>
+<a name="480"><span class="lineNum">     480 </span><span class="lineNoCov">          0 :     action-&gt;error(&quot;GRID_BIN or GRID_SPACING must be set&quot;);</span></a>
+<a name="481"><span class="lineNum">     481 </span>            :   }</a>
+<a name="482"><span class="lineNum">     482 </span>            :   // Create a value</a>
+<a name="483"><span class="lineNum">     483 </span><span class="lineCov">         80 :   std::vector&lt;bool&gt; ipbc( shape.size() );</span></a>
+<a name="484"><span class="lineNum">     484 </span><span class="lineCov">        193 :   for(unsigned i=0; i&lt;shape.size(); ++i) {</span></a>
+<a name="485"><span class="lineNum">     485 </span><span class="lineCov">        212 :     if( (action-&gt;getPntrToArgument( i ))-&gt;isPeriodic() || g.gmin[i]==&quot;auto&quot; ) {</span></a>
+<a name="486"><span class="lineNum">     486 </span>            :       ipbc[i]=true;</a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">         66 :       if( g.nbin.size()==shape.size() ) {</span></a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineCov">         66 :         shape[i] = g.nbin[i];</span></a>
+<a name="489"><span class="lineNum">     489 </span>            :       }</a>
+<a name="490"><span class="lineNum">     490 </span>            :     } else {</a>
+<a name="491"><span class="lineNum">     491 </span>            :       ipbc[i]=false;</a>
+<a name="492"><span class="lineNum">     492 </span><span class="lineCov">         47 :       if( g.nbin.size()==shape.size() ) {</span></a>
+<a name="493"><span class="lineNum">     493 </span><span class="lineCov">         47 :         shape[i] = g.nbin[i]+1;</span></a>
+<a name="494"><span class="lineNum">     494 </span>            :       }</a>
+<a name="495"><span class="lineNum">     495 </span>            :     }</a>
+<a name="496"><span class="lineNum">     496 </span>            :   }</a>
+<a name="497"><span class="lineNum">     497 </span><span class="lineCov">        160 :   gridobject.setup( &quot;flat&quot;, ipbc, 0, 0.0 );</span></a>
+<a name="498"><span class="lineNum">     498 </span><span class="lineCov">         80 : }</span></a>
+<a name="499"><span class="lineNum">     499 </span>            : </a>
+<a name="500"><span class="lineNum">     500 </span>            : template &lt;class K, class P&gt;</a>
+<a name="501"><span class="lineNum">     501 </span><span class="lineCov">         77 : void KDEGridTools&lt;K,P&gt;::setupGridBounds( KDEGridTools&lt;K,P&gt;&amp; g, const Tensor&amp; box, GridCoordinatesObject&amp; gridobject, const std::vector&lt;Value*&gt;&amp; args, Value* myval ) {</span></a>
+<a name="502"><span class="lineNum">     502 </span><span class="lineCov">        183 :   for(unsigned i=0; i&lt;gridobject.getDimension(); ++i) {</span></a>
+<a name="503"><span class="lineNum">     503 </span><span class="lineCov">        106 :     if( g.gmin[i]==&quot;auto&quot; ) {</span></a>
+<a name="504"><span class="lineNum">     504 </span>            :       double lcoord, ucoord;</a>
+<a name="505"><span class="lineNum">     505 </span><span class="lineCov">         46 :       std::size_t dot = args[i]-&gt;getName().find_first_of(&quot;.&quot;);</span></a>
+<a name="506"><span class="lineNum">     506 </span><span class="lineCov">         46 :       std::string name = args[i]-&gt;getName().substr(dot+1);</span></a>
+<a name="507"><span class="lineNum">     507 </span><span class="lineCov">         46 :       if( name==&quot;x&quot; ) {</span></a>
+<a name="508"><span class="lineNum">     508 </span><span class="lineCov">         24 :         lcoord=-0.5*box(0,0);</span></a>
+<a name="509"><span class="lineNum">     509 </span><span class="lineCov">         24 :         ucoord=0.5*box(0,0);</span></a>
+<a name="510"><span class="lineNum">     510 </span><span class="lineCov">         22 :       } else if( name==&quot;y&quot; ) {</span></a>
+<a name="511"><span class="lineNum">     511 </span><span class="lineCov">         12 :         lcoord=-0.5*box(1,1);</span></a>
+<a name="512"><span class="lineNum">     512 </span><span class="lineCov">         12 :         ucoord=0.5*box(1,1);</span></a>
+<a name="513"><span class="lineNum">     513 </span><span class="lineCov">         10 :       } else if( name==&quot;z&quot; ) {</span></a>
+<a name="514"><span class="lineNum">     514 </span><span class="lineCov">         10 :         lcoord=-0.5*box(2,2);</span></a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineCov">         10 :         ucoord=0.5*box(2,2);</span></a>
+<a name="516"><span class="lineNum">     516 </span>            :       } else {</a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineNoCov">          0 :         plumed_error();</span></a>
+<a name="518"><span class="lineNum">     518 </span>            :       }</a>
+<a name="519"><span class="lineNum">     519 </span>            :       // And convert to strings for bin and bmax</a>
+<a name="520"><span class="lineNum">     520 </span><span class="lineCov">         46 :       Tools::convert( lcoord, g.gmin[i] );</span></a>
+<a name="521"><span class="lineNum">     521 </span><span class="lineCov">         46 :       Tools::convert( ucoord, g.gmax[i] );</span></a>
+<a name="522"><span class="lineNum">     522 </span>            :     }</a>
+<a name="523"><span class="lineNum">     523 </span>            :   }</a>
+<a name="524"><span class="lineNum">     524 </span>            :   // And setup the grid object</a>
+<a name="525"><span class="lineNum">     525 </span><span class="lineCov">         77 :   gridobject.setBounds( g.gmin, g.gmax, g.nbin, g.gspacing );</span></a>
+<a name="526"><span class="lineNum">     526 </span><span class="lineCov">         77 :   myval-&gt;setShape( gridobject.getNbin(true) );</span></a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineCov">         77 : }</span></a>
+<a name="528"><span class="lineNum">     528 </span>            : </a>
+<a name="529"><span class="lineNum">     529 </span>            : template &lt;class K, class P&gt;</a>
+<a name="530"><span class="lineNum">     530 </span><span class="lineCov">         64 : void KDEGridTools&lt;K, P&gt;::getDiscreteSupport( const KDEGridTools&lt;K,P&gt;&amp; g, P&amp; p, const K&amp; kp, std::vector&lt;unsigned&gt;&amp; nneigh, GridCoordinatesObject&amp; gridobject ) {</span></a>
+<a name="531"><span class="lineNum">     531 </span><span class="lineCov">         64 :   std::size_t ng = gridobject.getDimension();</span></a>
+<a name="532"><span class="lineNum">     532 </span><span class="lineCov">         64 :   plumed_assert( nneigh.size()==ng );</span></a>
+<a name="533"><span class="lineNum">     533 </span><span class="lineCov">         64 :   std::vector&lt;double&gt; support( ng );</span></a>
+<a name="534"><span class="lineNum">     534 </span><span class="lineCov">         64 :   P::getSupport( p, kp, g.dp2cutoff, support );</span></a>
+<a name="535"><span class="lineNum">     535 </span><span class="lineCov">        156 :   for(unsigned i=0; i&lt;ng; ++i) {</span></a>
+<a name="536"><span class="lineNum">     536 </span><span class="lineCov">         92 :     nneigh[i] = static_cast&lt;unsigned&gt;( ceil( support[i]/gridobject.getGridSpacing()[i] ));</span></a>
+<a name="537"><span class="lineNum">     537 </span>            :   }</a>
+<a name="538"><span class="lineNum">     538 </span><span class="lineCov">         64 : }</span></a>
+<a name="539"><span class="lineNum">     539 </span>            : </a>
+<a name="540"><span class="lineNum">     540 </span>            : template &lt;&gt;</a>
+<a name="541"><span class="lineNum">     541 </span><span class="lineCov">         13 : void KDEGridTools&lt;DiagonalKernelParams,DiscreteKernel&gt;::getDiscreteSupport( const KDEGridTools&lt;DiagonalKernelParams,DiscreteKernel&gt;&amp; g, DiscreteKernel&amp; p, const DiagonalKernelParams&amp; kp, std::vector&lt;unsigned&gt;&amp; nneigh, GridCoordinatesObject&amp; gridobject ) {</span></a>
+<a name="542"><span class="lineNum">     542 </span><span class="lineCov">         13 :   return;</span></a>
+<a name="543"><span class="lineNum">     543 </span>            : }</a>
+<a name="544"><span class="lineNum">     544 </span>            : </a>
+<a name="545"><span class="lineNum">     545 </span>            : template &lt;class K, class P&gt;</a>
+<a name="546"><span class="lineNum">     546 </span><span class="lineCov">     191342 : void KDEGridTools&lt;K,P&gt;::getNeighbors( const P&amp; p, K&amp; kp, const GridCoordinatesObject&amp; gridobject, const std::vector&lt;unsigned&gt;&amp; nneigh, unsigned&amp; num_neighbors, std::vector&lt;unsigned&gt;&amp; neighbors ) {</span></a>
+<a name="547"><span class="lineNum">     547 </span><span class="lineCov">     191342 :   gridobject.getNeighbors( kp.at, nneigh, num_neighbors, neighbors );</span></a>
+<a name="548"><span class="lineNum">     548 </span><span class="lineCov">     191342 : }</span></a>
+<a name="549"><span class="lineNum">     549 </span>            : </a>
+<a name="550"><span class="lineNum">     550 </span>            : template &lt;&gt;</a>
+<a name="551"><span class="lineNum">     551 </span><span class="lineCov">      32294 : void KDEGridTools&lt;DiagonalKernelParams,DiscreteKernel&gt;::getNeighbors( const DiscreteKernel&amp; p, DiagonalKernelParams&amp; kp, const GridCoordinatesObject&amp; gridobject, const std::vector&lt;unsigned&gt;&amp; nneigh, unsigned&amp; num_neighbors, std::vector&lt;unsigned&gt;&amp; neighbors ) {</span></a>
+<a name="552"><span class="lineNum">     552 </span><span class="lineCov">      32294 :   num_neighbors=1;</span></a>
+<a name="553"><span class="lineNum">     553 </span><span class="lineCov">      32294 :   neighbors.resize(1);</span></a>
+<a name="554"><span class="lineNum">     554 </span><span class="lineCov">      65372 :   for(unsigned i=0; i&lt;kp.at.size(); ++i) {</span></a>
+<a name="555"><span class="lineNum">     555 </span><span class="lineCov">      33078 :     kp.at[i] += 0.5*gridobject.getGridSpacing()[i];</span></a>
+<a name="556"><span class="lineNum">     556 </span>            :   }</a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineCov">      32294 :   neighbors[0]=gridobject.getIndex( kp.at );</span></a>
+<a name="558"><span class="lineNum">     558 </span><span class="lineCov">      32294 : }</span></a>
+<a name="559"><span class="lineNum">     559 </span>            : </a>
+<a name="560"><span class="lineNum">     560 </span>            : class SphericalKDEGridTools {</a>
+<a name="561"><span class="lineNum">     561 </span>            : public:</a>
+<a name="562"><span class="lineNum">     562 </span>            :   std::size_t nbins;</a>
+<a name="563"><span class="lineNum">     563 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="564"><span class="lineNum">     564 </span>            :   static void readBandwidthAndHeight( const UniversalVonMisses&amp; params, ActionWithArguments* action );</a>
+<a name="565"><span class="lineNum">     565 </span>            :   static void readGridParameters( SphericalKDEGridTools&amp; g, ActionWithArguments* action, GridCoordinatesObject&amp; gridobject, std::vector&lt;std::size_t&gt;&amp; shape );</a>
+<a name="566"><span class="lineNum">     566 </span>            :   static void setupGridBounds( SphericalKDEGridTools&amp; g, const Tensor&amp; box, GridCoordinatesObject&amp; gridobject, const std::vector&lt;Value*&gt;&amp; args, Value* myval ) {}</a>
+<a name="567"><span class="lineNum">     567 </span>            :   static void getDiscreteSupport( const SphericalKDEGridTools&amp; g, const UniversalVonMisses&amp; p, const VonMissesKernelParams&amp; kp, std::vector&lt;unsigned&gt;&amp; nneigh, GridCoordinatesObject&amp; gridobject );</a>
+<a name="568"><span class="lineNum">     568 </span>            :   static void getNeighbors( const UniversalVonMisses&amp; p, const VonMissesKernelParams&amp; kp, const GridCoordinatesObject&amp; gridobject, const std::vector&lt;unsigned&gt;&amp; nneigh, unsigned&amp; num_neighbors, std::vector&lt;unsigned&gt;&amp; neighbors );</a>
+<a name="569"><span class="lineNum">     569 </span>            : };</a>
+<a name="570"><span class="lineNum">     570 </span>            : </a>
+<a name="571"><span class="lineNum">     571 </span><span class="lineCov">         15 : void SphericalKDEGridTools::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="572"><span class="lineNum">     572 </span><span class="lineCov">         15 :   keys.add(&quot;compulsory&quot;,&quot;CONCENTRATION&quot;,&quot;the concentration parameter for the Von Mises-Fisher distributions&quot;);</span></a>
+<a name="573"><span class="lineNum">     573 </span><span class="lineCov">         15 :   keys.add(&quot;compulsory&quot;,&quot;HEIGHTS&quot;,&quot;1.0&quot;,&quot;this keyword takes the label of an action that calculates a vector of values. The elements of this vector &quot;</span></a>
+<a name="574"><span class="lineNum">     574 </span>            :            &quot;are used as weights for the Gaussians.&quot;);</a>
+<a name="575"><span class="lineNum">     575 </span><span class="lineCov">         15 :   keys.add(&quot;compulsory&quot;,&quot;GRID_BIN&quot;,&quot;the number of points on the fibonacci sphere at which the density should be evaluated&quot;);</span></a>
+<a name="576"><span class="lineNum">     576 </span><span class="lineCov">         15 : }</span></a>
+<a name="577"><span class="lineNum">     577 </span>            : </a>
+<a name="578"><span class="lineNum">     578 </span><span class="lineCov">         11 : void SphericalKDEGridTools::readBandwidthAndHeight( const UniversalVonMisses&amp; params, ActionWithArguments* action ) {</span></a>
+<a name="579"><span class="lineNum">     579 </span>            :   // Read in the concentration parameters</a>
+<a name="580"><span class="lineNum">     580 </span>            :   std::string von_misses_concentration;</a>
+<a name="581"><span class="lineNum">     581 </span><span class="lineCov">         11 :   action-&gt;parse(&quot;CONCENTRATION&quot;,von_misses_concentration);</span></a>
+<a name="582"><span class="lineNum">     582 </span><span class="lineCov">         11 :   KDEHelper&lt;VonMissesKernelParams,UniversalVonMisses,SphericalKDEGridTools&gt;::readKernelParameters( von_misses_concentration, action, &quot;_vmconcentration&quot;, true );</span></a>
+<a name="583"><span class="lineNum">     583 </span><span class="lineCov">         11 :   action-&gt;log.printf(&quot;  getting concentration parameters from %s \n&quot;, von_misses_concentration.c_str() );</span></a>
+<a name="584"><span class="lineNum">     584 </span>            :   // Read in the heights</a>
+<a name="585"><span class="lineNum">     585 </span>            :   std::string weight_str;</a>
+<a name="586"><span class="lineNum">     586 </span><span class="lineCov">         11 :   action-&gt;parse(&quot;HEIGHTS&quot;,weight_str);</span></a>
+<a name="587"><span class="lineNum">     587 </span><span class="lineCov">         22 :   KDEHelper&lt;VonMissesKernelParams,UniversalVonMisses,SphericalKDEGridTools&gt;::readKernelParameters( weight_str, action, &quot;_volumes&quot;, false );</span></a>
+<a name="588"><span class="lineNum">     588 </span><span class="lineCov">         11 :   if( (action-&gt;getPntrToArgument(0))-&gt;getNumberOfValues()==1 ) {</span></a>
+<a name="589"><span class="lineNum">     589 </span><span class="lineNoCov">          0 :     action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_heights: CUSTOM PERIODIC=NO ARG=&quot; + weight_str + &quot;,&quot; + action-&gt;getLabel() + &quot;_vmconcentration FUNC=x*y/(4*pi*sinh(y))&quot; ), false );</span></a>
+<a name="590"><span class="lineNum">     590 </span>            :   } else {</a>
+<a name="591"><span class="lineNum">     591 </span><span class="lineCov">         11 :     action-&gt;plumed.readInputWords( Tools::getWords(action-&gt;getLabel() + &quot;_heights: CUSTOM PERIODIC=NO ARG=&quot; + weight_str + &quot;,&quot; + action-&gt;getLabel() + &quot;_vmconcentration FUNC=x*y/(4*pi*sinh(y)) MASK=&quot; + weight_str ), false );</span></a>
+<a name="592"><span class="lineNum">     592 </span>            :   }</a>
+<a name="593"><span class="lineNum">     593 </span><span class="lineCov">         11 :   KDEHelper&lt;VonMissesKernelParams,UniversalVonMisses,SphericalKDEGridTools&gt;::addArgument( action-&gt;getLabel() + &quot;_heights&quot;, action );</span></a>
+<a name="594"><span class="lineNum">     594 </span><span class="lineCov">         11 :   action-&gt;log.printf(&quot;  getting heights from %s \n&quot;, weight_str.c_str() );</span></a>
+<a name="595"><span class="lineNum">     595 </span><span class="lineCov">         11 : }</span></a>
+<a name="596"><span class="lineNum">     596 </span>            : </a>
+<a name="597"><span class="lineNum">     597 </span><span class="lineCov">         11 : void SphericalKDEGridTools::readGridParameters( SphericalKDEGridTools&amp; g, ActionWithArguments* action, GridCoordinatesObject&amp; gridobject, std::vector&lt;std::size_t&gt;&amp; shape ) {</span></a>
+<a name="598"><span class="lineNum">     598 </span><span class="lineCov">         11 :   if( shape.size()!=3 ) {</span></a>
+<a name="599"><span class="lineNum">     599 </span><span class="lineNoCov">          0 :     action-&gt;error(&quot;should have three coordinates in input to this action&quot;);</span></a>
+<a name="600"><span class="lineNum">     600 </span>            :   }</a>
+<a name="601"><span class="lineNum">     601 </span><span class="lineCov">         11 :   action-&gt;parse(&quot;GRID_BIN&quot;,g.nbins);</span></a>
+<a name="602"><span class="lineNum">     602 </span><span class="lineCov">         11 :   action-&gt;log.printf(&quot;  setting number of bins to %zu \n&quot;, g.nbins );</span></a>
+<a name="603"><span class="lineNum">     603 </span><span class="lineCov">         11 :   std::vector&lt;bool&gt; ipbc( 3, false );</span></a>
+<a name="604"><span class="lineNum">     604 </span><span class="lineCov">         11 :   gridobject.setup( &quot;fibonacci&quot;, ipbc, g.nbins, 0 );</span></a>
+<a name="605"><span class="lineNum">     605 </span><span class="lineCov">         11 :   shape[0]=g.nbins;</span></a>
+<a name="606"><span class="lineNum">     606 </span><span class="lineCov">         11 :   shape[1]=shape[2]=1;</span></a>
+<a name="607"><span class="lineNum">     607 </span><span class="lineCov">         11 : }</span></a>
+<a name="608"><span class="lineNum">     608 </span>            : </a>
+<a name="609"><span class="lineNum">     609 </span><span class="lineCov">         11 : void SphericalKDEGridTools::getDiscreteSupport( const SphericalKDEGridTools&amp; g, const UniversalVonMisses&amp; p, const VonMissesKernelParams&amp; kp, std::vector&lt;unsigned&gt;&amp; nneigh, GridCoordinatesObject&amp; gridobject ) {</span></a>
+<a name="610"><span class="lineNum">     610 </span><span class="lineCov">         11 :   plumed_assert( nneigh.size()==gridobject.getDimension() );</span></a>
+<a name="611"><span class="lineNum">     611 </span><span class="lineCov">         11 :   std::vector&lt;bool&gt; ipbc( 3, false );</span></a>
+<a name="612"><span class="lineNum">     612 </span><span class="lineCov">         11 :   double fib_cutoff = std::log( epsilon / (kp.concentration/(4*pi*sinh(kp.concentration))) ) / kp.concentration;</span></a>
+<a name="613"><span class="lineNum">     613 </span><span class="lineCov">         22 :   gridobject.setup( &quot;fibonacci&quot;, ipbc, gridobject.getNumberOfPoints(), fib_cutoff );</span></a>
+<a name="614"><span class="lineNum">     614 </span><span class="lineCov">         11 : }</span></a>
+<a name="615"><span class="lineNum">     615 </span>            : </a>
+<a name="616"><span class="lineNum">     616 </span><span class="lineCov">    1065988 : void SphericalKDEGridTools::getNeighbors( const UniversalVonMisses&amp; p, const VonMissesKernelParams&amp; kp, const GridCoordinatesObject&amp; gridobject, const std::vector&lt;unsigned&gt;&amp; nneigh, unsigned&amp; num_neighbors, std::vector&lt;unsigned&gt;&amp; neighbors ) {</span></a>
+<a name="617"><span class="lineNum">     617 </span><span class="lineCov">    1065988 :   gridobject.getNeighbors( kp.at, nneigh, num_neighbors, neighbors );</span></a>
+<a name="618"><span class="lineNum">     618 </span><span class="lineCov">    1065988 : }</span></a>
+<a name="619"><span class="lineNum">     619 </span>            : </a>
+<a name="620"><span class="lineNum">     620 </span>            : typedef KDE&lt;DiagonalKernelParams,DiscreteKernel,KDEGridTools&lt;DiagonalKernelParams,DiscreteKernel&gt;&gt; discretekde;</a>
+<a name="621"><span class="lineNum">     621 </span>            : PLUMED_REGISTER_ACTION(discretekde,&quot;KDE_DISCRETE&quot;)</a>
+<a name="622"><span class="lineNum">     622 </span>            : typedef KDE&lt;DiagonalKernelParams,HistogramBeadKernel,KDEGridTools&lt;DiagonalKernelParams,HistogramBeadKernel&gt;&gt; beadkde;</a>
+<a name="623"><span class="lineNum">     623 </span>            : PLUMED_REGISTER_ACTION(beadkde,&quot;KDE_BEADS&quot;)</a>
+<a name="624"><span class="lineNum">     624 </span>            : typedef KDE&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;,KDEGridTools&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;&gt;&gt; flatkde;</a>
+<a name="625"><span class="lineNum">     625 </span>            : PLUMED_REGISTER_ACTION(flatkde,&quot;KDE_KERNELS&quot;)</a>
+<a name="626"><span class="lineNum">     626 </span>            : typedef KDE&lt;VonMissesKernelParams,UniversalVonMisses,SphericalKDEGridTools&gt; sphericalkde;</a>
+<a name="627"><span class="lineNum">     627 </span>            : PLUMED_REGISTER_ACTION(sphericalkde,&quot;SPHERICAL_KDE&quot;)</a>
+<a name="628"><span class="lineNum">     628 </span>            : typedef KDE&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;,KDEGridTools&lt;NonDiagonalKernelParams,RegularKernel&lt;NonDiagonalKernelParams&gt;&gt;&gt; flatfkde;</a>
+<a name="629"><span class="lineNum">     629 </span>            : PLUMED_REGISTER_ACTION(flatfkde,&quot;KDE_FULLCOVAR&quot;)</a>
+<a name="630"><span class="lineNum">     630 </span>            : </a>
+<a name="631"><span class="lineNum">     631 </span>            : </a>
+<a name="632"><span class="lineNum">     632 </span>            : class KDEShortcut : public ActionShortcut {</a>
+<a name="633"><span class="lineNum">     633 </span>            : public:</a>
+<a name="634"><span class="lineNum">     634 </span>            :   static void registerKeywords(Keywords&amp; keys);</a>
+<a name="635"><span class="lineNum">     635 </span>            :   explicit KDEShortcut(const ActionOptions&amp;);</a>
+<a name="636"><span class="lineNum">     636 </span>            : };</a>
+<a name="637"><span class="lineNum">     637 </span>            : </a>
+<a name="638"><span class="lineNum">     638 </span>            : PLUMED_REGISTER_ACTION(KDEShortcut,&quot;KDE&quot;)</a>
+<a name="639"><span class="lineNum">     639 </span>            : </a>
+<a name="640"><span class="lineNum">     640 </span><span class="lineCov">        146 : void KDEShortcut::registerKeywords(Keywords&amp; keys) {</span></a>
+<a name="641"><span class="lineNum">     641 </span><span class="lineCov">        146 :   KDE&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;,KDEGridTools&lt;DiagonalKernelParams,RegularKernel&lt;DiagonalKernelParams&gt;&gt;&gt;::registerKeywords( keys );</span></a>
+<a name="642"><span class="lineNum">     642 </span><span class="lineCov">        146 :   keys.addActionNameSuffix(&quot;_DISCRETE&quot;);</span></a>
+<a name="643"><span class="lineNum">     643 </span><span class="lineCov">        146 :   keys.addActionNameSuffix(&quot;_KERNELS&quot;);</span></a>
+<a name="644"><span class="lineNum">     644 </span><span class="lineCov">        146 :   keys.addActionNameSuffix(&quot;_BEADS&quot;);</span></a>
+<a name="645"><span class="lineNum">     645 </span><span class="lineCov">        146 :   keys.addActionNameSuffix(&quot;_FULLCOVAR&quot;);</span></a>
+<a name="646"><span class="lineNum">     646 </span><span class="lineCov">        146 : }</span></a>
+<a name="647"><span class="lineNum">     647 </span>            : </a>
+<a name="648"><span class="lineNum">     648 </span><span class="lineCov">         80 : KDEShortcut::KDEShortcut(const ActionOptions&amp;ao):</span></a>
+<a name="649"><span class="lineNum">     649 </span>            :   Action(ao),</a>
+<a name="650"><span class="lineNum">     650 </span><span class="lineCov">         80 :   ActionShortcut(ao) {</span></a>
+<a name="651"><span class="lineNum">     651 </span>            :   std::string kerneltype;</a>
+<a name="652"><span class="lineNum">     652 </span><span class="lineCov">        160 :   parse(&quot;KERNEL&quot;,kerneltype);</span></a>
+<a name="653"><span class="lineNum">     653 </span><span class="lineCov">         80 :   if( kerneltype==&quot;DISCRETE&quot; ) {</span></a>
+<a name="654"><span class="lineNum">     654 </span><span class="lineCov">         28 :     readInputLine( getShortcutLabel() + &quot;: KDE_DISCRETE &quot; + convertInputLineToString() );</span></a>
+<a name="655"><span class="lineNum">     655 </span>            :     return;</a>
+<a name="656"><span class="lineNum">     656 </span>            :   }</a>
+<a name="657"><span class="lineNum">     657 </span>            :   std::vector&lt;std::string&gt; args;</a>
+<a name="658"><span class="lineNum">     658 </span><span class="lineCov">        132 :   parseVector(&quot;ARG&quot;, args );</span></a>
+<a name="659"><span class="lineNum">     659 </span>            :   std::vector&lt;Value*&gt; argvals;</a>
+<a name="660"><span class="lineNum">     660 </span><span class="lineCov">         66 :   ActionWithArguments::interpretArgumentList( args, plumed.getActionSet(), this, argvals );</span></a>
+<a name="661"><span class="lineNum">     661 </span><span class="lineCov">         66 :   std::string argstr = &quot; ARG=&quot; + argvals[0]-&gt;getName();</span></a>
+<a name="662"><span class="lineNum">     662 </span><span class="lineCov">         98 :   for(unsigned i=1; i&lt;argvals.size(); ++i) {</span></a>
+<a name="663"><span class="lineNum">     663 </span><span class="lineCov">         64 :     argstr += &quot;,&quot; + argvals[i]-&gt;getName();</span></a>
+<a name="664"><span class="lineNum">     664 </span>            :   }</a>
+<a name="665"><span class="lineNum">     665 </span>            :   std::vector&lt;std::string&gt; bw;</a>
+<a name="666"><span class="lineNum">     666 </span><span class="lineCov">        132 :   parseVector(&quot;BANDWIDTH&quot;,bw);</span></a>
+<a name="667"><span class="lineNum">     667 </span><span class="lineCov">         66 :   std::string bwstr = &quot; BANDWIDTH=&quot; + bw[0];</span></a>
+<a name="668"><span class="lineNum">     668 </span><span class="lineCov">         98 :   for(unsigned i=1; i&lt;bw.size(); ++i) {</span></a>
+<a name="669"><span class="lineNum">     669 </span><span class="lineCov">         64 :     bwstr += &quot;,&quot; + bw[i];</span></a>
+<a name="670"><span class="lineNum">     670 </span>            :   }</a>
+<a name="671"><span class="lineNum">     671 </span><span class="lineCov">         66 :   if( bw.size() == 1 &amp;&amp; argvals.size()&gt;1 ) {</span></a>
+<a name="672"><span class="lineNum">     672 </span>            :     std::vector&lt;Value*&gt; bwargs;</a>
+<a name="673"><span class="lineNum">     673 </span><span class="lineNoCov">          0 :     ActionWithArguments::interpretArgumentList( bw, plumed.getActionSet(), this, bwargs );</span></a>
+<a name="674"><span class="lineNum">     674 </span><span class="lineNoCov">          0 :     if( bwargs.size()!=1 ) {</span></a>
+<a name="675"><span class="lineNum">     675 </span><span class="lineNoCov">          0 :       error(&quot;invalid input for bandwidth parameter&quot;);</span></a>
+<a name="676"><span class="lineNum">     676 </span><span class="lineNoCov">          0 :     } else if( bwargs[0]-&gt;getRank()&lt;=1 ) {</span></a>
+<a name="677"><span class="lineNum">     677 </span><span class="lineNoCov">          0 :       if( kerneltype.find(&quot;bin&quot;)==std::string::npos ) {</span></a>
+<a name="678"><span class="lineNum">     678 </span><span class="lineNoCov">          0 :         readInputLine( getShortcutLabel() + &quot;: KDE_KERNELS &quot; + argstr + &quot; &quot; + bwstr + &quot; KERNEL=&quot; + kerneltype + &quot; &quot; + convertInputLineToString() );</span></a>
+<a name="679"><span class="lineNum">     679 </span>            :       } else {</a>
+<a name="680"><span class="lineNum">     680 </span><span class="lineNoCov">          0 :         std::size_t dd = kerneltype.find(&quot;-bin&quot;);</span></a>
+<a name="681"><span class="lineNum">     681 </span><span class="lineNoCov">          0 :         readInputLine( getShortcutLabel() + &quot;: KDE_BEADS &quot; + argstr + &quot; &quot; + bwstr + &quot; KERNEL=&quot; + kerneltype.substr(0,dd) + &quot; &quot; + convertInputLineToString() );</span></a>
+<a name="682"><span class="lineNum">     682 </span>            :       }</a>
+<a name="683"><span class="lineNum">     683 </span><span class="lineNoCov">          0 :     } else if( bwargs[0]-&gt;getRank()==2 ) {</span></a>
+<a name="684"><span class="lineNum">     684 </span><span class="lineNoCov">          0 :       readInputLine( getShortcutLabel() + &quot;: KDE_FULLCOVAR&quot; + argstr + &quot; &quot; + bwstr + &quot; KERNEL=&quot; + kerneltype + &quot; &quot; + convertInputLineToString() );</span></a>
+<a name="685"><span class="lineNum">     685 </span>            :     } else {</a>
+<a name="686"><span class="lineNum">     686 </span><span class="lineNoCov">          0 :       error(&quot;found strange rank for bandwidth parameter&quot;);</span></a>
+<a name="687"><span class="lineNum">     687 </span>            :     }</a>
+<a name="688"><span class="lineNum">     688 </span><span class="lineCov">         66 :   } else if( bw.size()==argvals.size() ) {</span></a>
+<a name="689"><span class="lineNum">     689 </span><span class="lineCov">         66 :     if( kerneltype.find(&quot;bin&quot;)==std::string::npos ) {</span></a>
+<a name="690"><span class="lineNum">     690 </span><span class="lineCov">         96 :       readInputLine( getShortcutLabel() + &quot;: KDE_KERNELS &quot; + argstr + &quot; &quot; + bwstr + &quot; KERNEL=&quot; + kerneltype + &quot; &quot; + convertInputLineToString() );</span></a>
+<a name="691"><span class="lineNum">     691 </span>            :     } else {</a>
+<a name="692"><span class="lineNum">     692 </span><span class="lineCov">         18 :       std::size_t dd = kerneltype.find(&quot;-bin&quot;);</span></a>
+<a name="693"><span class="lineNum">     693 </span><span class="lineCov">         36 :       readInputLine( getShortcutLabel() + &quot;: KDE_BEADS &quot; + argstr + &quot; &quot; + bwstr + &quot; KERNEL=&quot; + kerneltype.substr(0,dd) + &quot; &quot; + convertInputLineToString() );</span></a>
+<a name="694"><span class="lineNum">     694 </span>            :     }</a>
+<a name="695"><span class="lineNum">     695 </span><span class="lineNoCov">          0 :   } else if( bw.size()==argvals.size()*argvals.size() ) {</span></a>
+<a name="696"><span class="lineNum">     696 </span><span class="lineNoCov">          0 :     readInputLine( getShortcutLabel() + &quot;: KDE_FULLCOVAR&quot; + argstr + &quot; &quot; + bwstr + &quot; KERNEL=&quot; + kerneltype + &quot; &quot; + convertInputLineToString() );</span></a>
+<a name="697"><span class="lineNum">     697 </span>            :   } else {</a>
+<a name="698"><span class="lineNum">     698 </span><span class="lineNoCov">          0 :     error(&quot;invalid input for bandwidth&quot;);</span></a>
+<a name="699"><span class="lineNum">     699 </span>            :   }</a>
+<a name="700"><span class="lineNum">     700 </span><span class="lineCov">        132 : }</span></a>
+<a name="701"><span class="lineNum">     701 </span>            : </a>
+<a name="702"><span class="lineNum">     702 </span>            : }</a>
+<a name="703"><span class="lineNum">     703 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

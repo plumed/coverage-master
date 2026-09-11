@@ -1,0 +1,291 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - secondarystructure/SecondaryStructureRMSD.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">secondarystructure</a> - SecondaryStructureRMSD.cpp<span style="font-size: 80%;"> (source / <a href="SecondaryStructureRMSD.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">34</td>
+            <td class="headerCovTableEntry">34</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-09-11 11:00:23</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2017-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;SecondaryStructureBase.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;tools/RMSD.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span>            : //+PLUMEDOC MCOLVAR SECONDARY_STRUCTURE_RMSD</a>
+<a name="27"><span class="lineNum">      27 </span>            : /*</a>
+<a name="28"><span class="lineNum">      28 </span>            : Calclulate the RMSD between segments of a protein and a reference structure of interest</a>
+<a name="29"><span class="lineNum">      29 </span>            : </a>
+<a name="30"><span class="lineNum">      30 </span>            : This action is used in the shortcuts [ALPHARMSD](ALPHARMSD.md), [ANTIBETARMSD](ANTIBETARMSD.md) and [PARABETARMSD](PARABETARMSD.md).  It calculates a</a>
+<a name="31"><span class="lineNum">      31 </span>            : vector of [RMSD](RMSD.md) values between a single reference multiple configurations and the instantaneous</a>
+<a name="32"><span class="lineNum">      32 </span>            : positions of various groups of atoms.  For example, in the following input we define a single set of reference</a>
+<a name="33"><span class="lineNum">      33 </span>            : set of coordinates for 3 atoms.</a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span>            : ```plumed</a>
+<a name="36"><span class="lineNum">      36 </span>            : c1: SECONDARY_STRUCTURE_RMSD ...</a>
+<a name="37"><span class="lineNum">      37 </span>            :     ATOMS=13-24</a>
+<a name="38"><span class="lineNum">      38 </span>            :     STRUCTURE1=1,0,0,0,1,0,0,0,1</a>
+<a name="39"><span class="lineNum">      39 </span>            :     SEGMENT1=0,1,2 SEGMENT2=3,4,5</a>
+<a name="40"><span class="lineNum">      40 </span>            :     SEGMENT3=6,7,8 SEGMENT4=9,10,11</a>
+<a name="41"><span class="lineNum">      41 </span>            :     TYPE=OPTIMAL</a>
+<a name="42"><span class="lineNum">      42 </span>            : ...</a>
+<a name="43"><span class="lineNum">      43 </span>            : PRINT ARG=c1 FILE=colvar</a>
+<a name="44"><span class="lineNum">      44 </span>            : ```</a>
+<a name="45"><span class="lineNum">      45 </span>            : </a>
+<a name="46"><span class="lineNum">      46 </span>            : A four dimensional vector is then returned that contains the RMSD distances between the 4 sets of 3 atoms that were specified using the `SEGMENT` keywords</a>
+<a name="47"><span class="lineNum">      47 </span>            : and the reference coordinates.  Notice that you can use multiple instances of the `STRUCTURE` keyword.  In general the the number of vectors output</a>
+<a name="48"><span class="lineNum">      48 </span>            : is equal to the number of times the `STRUCTURE` keyword is used.  Further note that the indices specified to the SEGMENT keywords give the indices in the list</a>
+<a name="49"><span class="lineNum">      49 </span>            : of atoms specified by the ATOMS keyword.  `SEGMENT1=0,1,2` in the above input is measuring the distance between the instaneous positions of atoms 13, 14 and 15</a>
+<a name="50"><span class="lineNum">      50 </span>            : and the reference structure.</a>
+<a name="51"><span class="lineNum">      51 </span>            : </a>
+<a name="52"><span class="lineNum">      52 </span>            : ## Periodic boundary conditions</a>
+<a name="53"><span class="lineNum">      53 </span>            : </a>
+<a name="54"><span class="lineNum">      54 </span>            : If you turn off periodic boundary conditions by using the NOPBC flag as shown below:</a>
+<a name="55"><span class="lineNum">      55 </span>            : </a>
+<a name="56"><span class="lineNum">      56 </span>            : ```plumed</a>
+<a name="57"><span class="lineNum">      57 </span>            : c1: SECONDARY_STRUCTURE_RMSD ...</a>
+<a name="58"><span class="lineNum">      58 </span>            :     ATOMS=13-24 NOPBC</a>
+<a name="59"><span class="lineNum">      59 </span>            :     STRUCTURE1=1,0,0,0,1,0,0,0,1</a>
+<a name="60"><span class="lineNum">      60 </span>            :     SEGMENT1=0,1,2 SEGMENT2=3,4,5</a>
+<a name="61"><span class="lineNum">      61 </span>            :     SEGMENT3=6,7,8 SEGMENT4=9,10,11</a>
+<a name="62"><span class="lineNum">      62 </span>            :     TYPE=SIMPLE</a>
+<a name="63"><span class="lineNum">      63 </span>            : ...</a>
+<a name="64"><span class="lineNum">      64 </span>            : PRINT ARG=c1 FILE=colvar</a>
+<a name="65"><span class="lineNum">      65 </span>            : ```</a>
+<a name="66"><span class="lineNum">      66 </span>            : </a>
+<a name="67"><span class="lineNum">      67 </span>            : the distances between in the instaneous structure are evaluated in a way that does not take the periodic boundary conditions</a>
+<a name="68"><span class="lineNum">      68 </span>            : into account.  Whenver this flag is __not__ present the distances in the instaneous structure are evaluated in a way that takes the periodic boundary conditions</a>
+<a name="69"><span class="lineNum">      69 </span>            : into account.</a>
+<a name="70"><span class="lineNum">      70 </span>            : </a>
+<a name="71"><span class="lineNum">      71 </span>            : If you use the `ALIGN_STRANDS` flag to evaluate the distances in a way that takes the periodic boundary conditions into accounts means that</a>
+<a name="72"><span class="lineNum">      72 </span>            : calculating the distance between the positions of the 7th and 22nd atoms ($\mathbf{x}_7$ and $\mathbf{x}_{22}$) of the instanenous structures</a>
+<a name="73"><span class="lineNum">      73 </span>            : using the periodic boundary conditions.  The 22 atom is the repositioned at:</a>
+<a name="74"><span class="lineNum">      74 </span>            : </a>
+<a name="75"><span class="lineNum">      75 </span>            : $$</a>
+<a name="76"><span class="lineNum">      76 </span>            : \mathbf{x}_{22} = \mathbf{x}_7 + ( \mathbf{x}_{22} - \mathbf{x}_7 )</a>
+<a name="77"><span class="lineNum">      77 </span>            : $$</a>
+<a name="78"><span class="lineNum">      78 </span>            : </a>
+<a name="79"><span class="lineNum">      79 </span>            : where the difference in the second term on the right of the equality sign is evaluated using the periodic boundary conditions. New positions are then determined</a>
+<a name="80"><span class="lineNum">      80 </span>            : for atoms 16 through 30 by adding the difference (evaluated without PBC) between the new position for atom 22 after the above transformation has been perfomed and the</a>
+<a name="81"><span class="lineNum">      81 </span>            : original position of this atom.  This treatment is designed for making sure that the two strands of the [ANTIBETARMSD](ANTIBETARMSD.md) and [PARABETARMSD](PARABETARMSD.md)</a>
+<a name="82"><span class="lineNum">      82 </span>            : sheets are not broken by the periodic boundaries.</a>
+<a name="83"><span class="lineNum">      83 </span>            : </a>
+<a name="84"><span class="lineNum">      84 </span>            : ## Working with beta sheet like structures</a>
+<a name="85"><span class="lineNum">      85 </span>            : </a>
+<a name="86"><span class="lineNum">      86 </span>            : As discussed in the documentation for [ANTIBETARMSD](ANTIBETARMSD.md) and [PARABETARMSD](PARABETARMSD.md) using the STRANDS_KEYWORD cutoff can speed up the calculation</a>
+<a name="87"><span class="lineNum">      87 </span>            : dramatically.  The reason this keyword gives such dramatric speed ups is illustrated by the example input:</a>
+<a name="88"><span class="lineNum">      88 </span>            : </a>
+<a name="89"><span class="lineNum">      89 </span>            : ```plumed</a>
+<a name="90"><span class="lineNum">      90 </span>            : ab_cut_dists: DISTANCE ...</a>
+<a name="91"><span class="lineNum">      91 </span>            :   ATOMS1=19,69 ATOMS2=19,79</a>
+<a name="92"><span class="lineNum">      92 </span>            :   ATOMS3=19,89 ATOMS4=19,99</a>
+<a name="93"><span class="lineNum">      93 </span>            :   ATOMS5=19,109</a>
+<a name="94"><span class="lineNum">      94 </span>            : ...</a>
+<a name="95"><span class="lineNum">      95 </span>            : ab_cut: CUSTOM ARG=ab_cut_dists FUNC=step(1-x) PERIODIC=NO</a>
+<a name="96"><span class="lineNum">      96 </span>            : ab_rmsd: SECONDARY_STRUCTURE_RMSD ...</a>
+<a name="97"><span class="lineNum">      97 </span>            :    TYPE=OPTIMAL ALIGN_STRANDS MASK=ab_cut</a>
+<a name="98"><span class="lineNum">      98 </span>            :    ATOMS=7,9,11,15,16,17,19,21,25,26,27,29,31,35,36,37,39,41,45,46,47,49,51,55,56,57,59,61,65,66,67,69,71,75,76,77,79,81,85,86,87,89,91,95,96,97,99,101,105,106,107,109,111,115,116,117,119,121,125,126</a>
+<a name="99"><span class="lineNum">      99 </span>            :    SEGMENT1=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39</a>
+<a name="100"><span class="lineNum">     100 </span>            :    SEGMENT2=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44</a>
+<a name="101"><span class="lineNum">     101 </span>            :    SEGMENT3=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49</a>
+<a name="102"><span class="lineNum">     102 </span>            :    SEGMENT4=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54</a>
+<a name="103"><span class="lineNum">     103 </span>            :    SEGMENT5=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59</a>
+<a name="104"><span class="lineNum">     104 </span>            :    STRUCTURE1=2.263,-3.795,1.722,2.493,-2.426,2.263,3.847,-1.838,1.761,1.301,-1.517,1.921,0.852,-1.504,0.739,0.818,-0.738,2.917,-0.299,0.243,2.748,-1.421,-0.076,3.757,0.273,1.68,2.854,0.902,1.993,3.888,0.119,2.532,1.813,0.683,3.916,1.68,1.58,3.94,0.395,-0.394,5.011,1.63,-1.459,4.814,0.982,-2.962,3.559,-1.359,-2.439,2.526,-2.287,-1.189,3.006,-3.087,-2.081,1.231,-1.52,-1.524,1.324,-0.409,-2.326,0.037,-2.095,-1.858,-1.269,-1.554,-3.053,-2.199,-1.291,-0.869,-1.949,-2.512,-1.255,-2.07,-3.71,0.326,-2.363,-2.072,1.405,-2.992,-2.872,2.699,-2.129,-2.917,1.745,-4.399,-2.33,1.899,-4.545,-1.102</a>
+<a name="105"><span class="lineNum">     105 </span>            : ...</a>
+<a name="106"><span class="lineNum">     106 </span>            : ab_ltu: LESS_THAN ARG=ab_rmsd SWITCH={RATIONAL R_0=0.1 D_0=0.0 NN=8 MM=12} MASK=ab_cut</a>
+<a name="107"><span class="lineNum">     107 </span>            : ab_lt: CUSTOM ARG=ab_ltu,ab_cut FUNC=x*y PERIODIC=NO</a>
+<a name="108"><span class="lineNum">     108 </span>            : ab: SUM ARG=ab_lt PERIODIC=NO</a>
+<a name="109"><span class="lineNum">     109 </span>            : PRINT ARG=ab FILE=colvar</a>
+<a name="110"><span class="lineNum">     110 </span>            : ```</a>
+<a name="111"><span class="lineNum">     111 </span>            : </a>
+<a name="112"><span class="lineNum">     112 </span>            : The input above illustrates the input that is used by the shortcut that computes the [ANTIBETARMSD](ANTIBETARMSD.md). You can see that the distances between the atoms on the two strands of the</a>
+<a name="113"><span class="lineNum">     113 </span>            : beta sheet are computed in a [DISTANCE](DISTANCE.md) action before we computed the SECONDARY_STRUCTURE_RMSD values.  These distances are then transformed by a Heavyside function that is 1 if</a>
+<a name="114"><span class="lineNum">     114 </span>            : the distance is less than 1 nm and zero otherwise.  This vector of ones and zeros is then fed into the SECONDARY_STRUCTURE_RMSD action as a mask.  By doing this we ensure that SECONDARY_STRUCTURE_RMSD</a>
+<a name="115"><span class="lineNum">     115 </span>            : values are only computed for parts of the strand that are close together. This avoids performing unecessarily expensive calculations and is also a reasonable thing to do as if the two strands are more than</a>
+<a name="116"><span class="lineNum">     116 </span>            : 1 nm appart the residues in question are not at all similar to a beta sheet structure.</a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span>            : */</a>
+<a name="119"><span class="lineNum">     119 </span>            : //+ENDPLUMEDOC</a>
+<a name="120"><span class="lineNum">     120 </span>            : </a>
+<a name="121"><span class="lineNum">     121 </span>            : namespace PLMD {</a>
+<a name="122"><span class="lineNum">     122 </span>            : namespace secondarystructure {</a>
+<a name="123"><span class="lineNum">     123 </span>            : </a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">         21 : class SecondaryStructureRMSDInput {</span></a>
+<a name="125"><span class="lineNum">     125 </span>            : /// The list of reference configurations</a>
+<a name="126"><span class="lineNum">     126 </span>            :   std::vector&lt;RMSD&gt; myrmsd;</a>
+<a name="127"><span class="lineNum">     127 </span>            : public:</a>
+<a name="128"><span class="lineNum">     128 </span><span class="lineCov">         46 :   static void registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="129"><span class="lineNum">     129 </span><span class="lineCov">         46 :     keys.setDisplayName(&quot;SECONDARY_STRUCTURE_RMSD&quot;);</span></a>
+<a name="130"><span class="lineNum">     130 </span><span class="lineCov">         46 :   }</span></a>
+<a name="131"><span class="lineNum">     131 </span>            :   static constexpr bool needsType=true;</a>
+<a name="132"><span class="lineNum">     132 </span>            : /// The number of atoms</a>
+<a name="133"><span class="lineNum">     133 </span>            :   std::size_t natoms;</a>
+<a name="134"><span class="lineNum">     134 </span>            : /// The number of structures</a>
+<a name="135"><span class="lineNum">     135 </span>            :   std::size_t nstructures;</a>
+<a name="136"><span class="lineNum">     136 </span>            : /// The number of indices per task</a>
+<a name="137"><span class="lineNum">     137 </span>            :   std::size_t nindices_per_task;</a>
+<a name="138"><span class="lineNum">     138 </span>            : /// Are we operating without periodic boundary conditions</a>
+<a name="139"><span class="lineNum">     139 </span>            :   bool nopbc;</a>
+<a name="140"><span class="lineNum">     140 </span>            : /// Variables for strands cutoff</a>
+<a name="141"><span class="lineNum">     141 </span>            :   bool align_strands;</a>
+<a name="142"><span class="lineNum">     142 </span>            : /// The atoms involved in each of the secondary structure segments</a>
+<a name="143"><span class="lineNum">     143 </span>            :   Matrix&lt;unsigned&gt; colvar_atoms;</a>
+<a name="144"><span class="lineNum">     144 </span>            : //   void toACCDevice()const {</a>
+<a name="145"><span class="lineNum">     145 </span>            : // #pragma acc enter data copyin(this[0:1], myrmsd[0:nstructures],natoms,nstructures,nopbc,align_strands)</a>
+<a name="146"><span class="lineNum">     146 </span>            : //     colvar_atoms.toACCDevice();</a>
+<a name="147"><span class="lineNum">     147 </span>            : //   }</a>
+<a name="148"><span class="lineNum">     148 </span>            : //   void removeFromACCDevice() const {</a>
+<a name="149"><span class="lineNum">     149 </span>            : //     colvar_atoms.removeFromACCDevice();</a>
+<a name="150"><span class="lineNum">     150 </span>            : // #pragma acc exit data delete(align_strands,nopbc,nstructures,natoms,myrmsd[0:nstructures],this[0:1])</a>
+<a name="151"><span class="lineNum">     151 </span>            : </a>
+<a name="152"><span class="lineNum">     152 </span>            : //   }</a>
+<a name="153"><span class="lineNum">     153 </span>            :   static void calculateDistance( unsigned n, bool noderiv, const SecondaryStructureRMSDInput&amp; actiondata, View&lt;Vector&gt; pos, ColvarOutput&lt;double&gt;&amp; output );</a>
+<a name="154"><span class="lineNum">     154 </span>            :   void setReferenceStructure( const std::string&amp; type, double bondlength, std::vector&lt;Vector&gt;&amp; structure );</a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">         21 :   SecondaryStructureRMSDInput&amp; operator=( const SecondaryStructureRMSDInput&amp; m ) {</span></a>
+<a name="156"><span class="lineNum">     156 </span><span class="lineCov">         21 :     natoms = m.natoms;</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">         21 :     nstructures = m.nstructures;</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">         21 :     nindices_per_task = m.nindices_per_task;</span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">         21 :     nopbc = m.nopbc;</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">         21 :     align_strands = m.align_strands;</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">         21 :     colvar_atoms=m.colvar_atoms;</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">         52 :     for(unsigned i=0; i&lt;m.myrmsd.size(); ++i) {</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">         31 :       std::vector&lt;Vector&gt; mystruct( m.myrmsd[i].getReference() );</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">         62 :       setReferenceStructure( m.myrmsd[i].getMethod(), 0.0, mystruct );</span></a>
+<a name="165"><span class="lineNum">     165 </span>            :     }</a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">         21 :     return *this;</span></a>
+<a name="167"><span class="lineNum">     167 </span>            :   }</a>
+<a name="168"><span class="lineNum">     168 </span>            : };</a>
+<a name="169"><span class="lineNum">     169 </span>            : </a>
+<a name="170"><span class="lineNum">     170 </span>            : typedef SecondaryStructureBase&lt;SecondaryStructureRMSDInput&gt; colv;</a>
+<a name="171"><span class="lineNum">     171 </span>            : PLUMED_REGISTER_ACTION(colv,&quot;SECONDARY_STRUCTURE_RMSD&quot;)</a>
+<a name="172"><span class="lineNum">     172 </span>            : //_REGISTER_ACTION(colv,&quot;SECONDARY_STRUCTURE_RMSD_CPU&quot;);</a>
+<a name="173"><span class="lineNum">     173 </span>            : //typedef AccelerableShortcut&lt;colv&gt; shortcut;</a>
+<a name="174"><span class="lineNum">     174 </span>            : //_REGISTER_ACTION(shortcut,&quot;SECONDARY_STRUCTURE_RMSD&quot;);</a>
+<a name="175"><span class="lineNum">     175 </span>            : </a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">         62 : void SecondaryStructureRMSDInput::setReferenceStructure( const std::string&amp; type, double bondlength, std::vector&lt;Vector&gt;&amp; structure ) {</span></a>
+<a name="177"><span class="lineNum">     177 </span>            :   Vector center;</a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">         62 :   std::vector&lt;double&gt; align( structure.size(), 1.0 ), displace( structure.size(), 1.0 );</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">       1922 :   for(unsigned i=0; i&lt;structure.size(); ++i) {</span></a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">       1860 :     center+=structure[i]*align[i];</span></a>
+<a name="181"><span class="lineNum">     181 </span>            :   }</a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineCov">       1922 :   for(unsigned i=0; i&lt;structure.size(); ++i) {</span></a>
+<a name="183"><span class="lineNum">     183 </span>            :     structure[i] -= center;</a>
+<a name="184"><span class="lineNum">     184 </span>            :   }</a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineCov">         62 :   RMSD newrmsd;</span></a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">         62 :   newrmsd.clear();</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">         62 :   newrmsd.set(align,displace,structure,type,true,true);</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">         62 :   myrmsd.push_back( newrmsd );</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">         62 :   nstructures=myrmsd.size();</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">         62 :   natoms=structure.size();</span></a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">        124 : }</span></a>
+<a name="192"><span class="lineNum">     192 </span>            : </a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">     145592 : void SecondaryStructureRMSDInput::calculateDistance( unsigned n,</span></a>
+<a name="194"><span class="lineNum">     194 </span>            :     bool noderiv,</a>
+<a name="195"><span class="lineNum">     195 </span>            :     const SecondaryStructureRMSDInput&amp; actiondata,</a>
+<a name="196"><span class="lineNum">     196 </span>            :     const View&lt;Vector&gt; pos,</a>
+<a name="197"><span class="lineNum">     197 </span>            :     ColvarOutput&lt;double&gt;&amp; output ) {</a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">     145592 :   std::vector&lt;Vector&gt; myderivs( actiondata.natoms );</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">     145592 :   output.values[n] = actiondata.myrmsd[n].calculate( pos, myderivs, false );</span></a>
+<a name="200"><span class="lineNum">     200 </span>            : </a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">     145592 :   if( noderiv ) {</span></a>
+<a name="202"><span class="lineNum">     202 </span>            :     return;</a>
+<a name="203"><span class="lineNum">     203 </span>            :   }</a>
+<a name="204"><span class="lineNum">     204 </span>            :   Tensor v;</a>
+<a name="205"><span class="lineNum">     205 </span>            :   v.zero();</a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">    2256676 :   for(unsigned j=0; j&lt;pos.size(); ++j) {</span></a>
+<a name="207"><span class="lineNum">     207 </span>            :     output.derivs[n][j] = myderivs[j];</a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">    4367760 :     v +=  (-1.0*Tensor( pos[j], myderivs[j] ));</span></a>
+<a name="209"><span class="lineNum">     209 </span>            :   }</a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">      72796 :   output.virial.set( n, v );</span></a>
+<a name="211"><span class="lineNum">     211 </span>            : }</a>
+<a name="212"><span class="lineNum">     212 </span>            : </a>
+<a name="213"><span class="lineNum">     213 </span>            : }</a>
+<a name="214"><span class="lineNum">     214 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
