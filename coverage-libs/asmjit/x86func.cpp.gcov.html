@@ -1,0 +1,583 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage (other modules) - asmjit/x86func.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">asmjit</a> - x86func.cpp<span style="font-size: 80%;"> (source / <a href="x86func.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage (other modules)</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">51</td>
+            <td class="headerCovTableEntry">120</td>
+            <td class="headerCovTableEntryLo">42.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-10-31 16:48:53</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #ifdef __PLUMED_HAS_ASMJIT</a>
+<a name="2"><span class="lineNum">       2 </span>            : // This file is part of AsmJit project &lt;https://asmjit.com&gt;</a>
+<a name="3"><span class="lineNum">       3 </span>            : //</a>
+<a name="4"><span class="lineNum">       4 </span>            : // See asmjit.h or LICENSE.md for license and copyright information</a>
+<a name="5"><span class="lineNum">       5 </span>            : // SPDX-License-Identifier: Zlib</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            : #include &quot;api-build_p.h&quot;</a>
+<a name="8"><span class="lineNum">       8 </span>            : #if !defined(ASMJIT_NO_X86)</a>
+<a name="9"><span class="lineNum">       9 </span>            : </a>
+<a name="10"><span class="lineNum">      10 </span>            : #include &quot;x86func_p.h&quot;</a>
+<a name="11"><span class="lineNum">      11 </span>            : #include &quot;x86emithelper_p.h&quot;</a>
+<a name="12"><span class="lineNum">      12 </span>            : #include &quot;x86operand.h&quot;</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            : ASMJIT_BEGIN_SUB_NAMESPACE(x86)</a>
+<a name="15"><span class="lineNum">      15 </span>            : </a>
+<a name="16"><span class="lineNum">      16 </span>            : namespace FuncInternal {</a>
+<a name="17"><span class="lineNum">      17 </span>            : </a>
+<a name="18"><span class="lineNum">      18 </span><span class="lineCov">      46072 : static inline bool shouldThreatAsCDeclIn64BitMode(CallConvId ccId) noexcept {</span></a>
+<a name="19"><span class="lineNum">      19 </span><span class="lineCov">      46072 :   return ccId == CallConvId::kCDecl ||</span></a>
+<a name="20"><span class="lineNum">      20 </span><span class="lineCov">      46072 :          ccId == CallConvId::kStdCall ||</span></a>
+<a name="21"><span class="lineNum">      21 </span><span class="lineCov">      46072 :          ccId == CallConvId::kThisCall ||</span></a>
+<a name="22"><span class="lineNum">      22 </span>            :          ccId == CallConvId::kFastCall ||</a>
+<a name="23"><span class="lineNum">      23 </span>            :          ccId == CallConvId::kRegParm1 ||</a>
+<a name="24"><span class="lineNum">      24 </span>            :          ccId == CallConvId::kRegParm2 ||</a>
+<a name="25"><span class="lineNum">      25 </span><span class="lineCov">      46072 :          ccId == CallConvId::kRegParm3;</span></a>
+<a name="26"><span class="lineNum">      26 </span>            : }</a>
+<a name="27"><span class="lineNum">      27 </span>            : </a>
+<a name="28"><span class="lineNum">      28 </span><span class="lineCov">      46072 : ASMJIT_FAVOR_SIZE Error initCallConv(CallConv&amp; cc, CallConvId ccId, const Environment&amp; environment) noexcept {</span></a>
+<a name="29"><span class="lineNum">      29 </span>            :   constexpr uint32_t kZax = Gp::kIdAx;</a>
+<a name="30"><span class="lineNum">      30 </span>            :   constexpr uint32_t kZbx = Gp::kIdBx;</a>
+<a name="31"><span class="lineNum">      31 </span>            :   constexpr uint32_t kZcx = Gp::kIdCx;</a>
+<a name="32"><span class="lineNum">      32 </span>            :   constexpr uint32_t kZdx = Gp::kIdDx;</a>
+<a name="33"><span class="lineNum">      33 </span>            :   constexpr uint32_t kZsp = Gp::kIdSp;</a>
+<a name="34"><span class="lineNum">      34 </span>            :   constexpr uint32_t kZbp = Gp::kIdBp;</a>
+<a name="35"><span class="lineNum">      35 </span>            :   constexpr uint32_t kZsi = Gp::kIdSi;</a>
+<a name="36"><span class="lineNum">      36 </span>            :   constexpr uint32_t kZdi = Gp::kIdDi;</a>
+<a name="37"><span class="lineNum">      37 </span>            : </a>
+<a name="38"><span class="lineNum">      38 </span><span class="lineCov">      46072 :   bool winABI = environment.isPlatformWindows() || environment.isMSVC();</span></a>
+<a name="39"><span class="lineNum">      39 </span>            : </a>
+<a name="40"><span class="lineNum">      40 </span>            :   cc.setArch(environment.arch());</a>
+<a name="41"><span class="lineNum">      41 </span>            :   cc.setSaveRestoreRegSize(RegGroup::kVec, 16);</a>
+<a name="42"><span class="lineNum">      42 </span>            :   cc.setSaveRestoreRegSize(RegGroup::kX86_MM, 8);</a>
+<a name="43"><span class="lineNum">      43 </span>            :   cc.setSaveRestoreRegSize(RegGroup::kX86_K, 8);</a>
+<a name="44"><span class="lineNum">      44 </span>            :   cc.setSaveRestoreAlignment(RegGroup::kVec, 16);</a>
+<a name="45"><span class="lineNum">      45 </span>            :   cc.setSaveRestoreAlignment(RegGroup::kX86_MM, 8);</a>
+<a name="46"><span class="lineNum">      46 </span>            :   cc.setSaveRestoreAlignment(RegGroup::kX86_K, 8);</a>
+<a name="47"><span class="lineNum">      47 </span>            : </a>
+<a name="48"><span class="lineNum">      48 </span><span class="lineCov">      46072 :   if (environment.is32Bit()) {</span></a>
+<a name="49"><span class="lineNum">      49 </span>            :     bool isStandardCallConv = true;</a>
+<a name="50"><span class="lineNum">      50 </span>            : </a>
+<a name="51"><span class="lineNum">      51 </span>            :     cc.setSaveRestoreRegSize(RegGroup::kGp, 4);</a>
+<a name="52"><span class="lineNum">      52 </span>            :     cc.setSaveRestoreAlignment(RegGroup::kGp, 4);</a>
+<a name="53"><span class="lineNum">      53 </span>            : </a>
+<a name="54"><span class="lineNum">      54 </span>            :     cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(Gp::kIdBx, Gp::kIdSp, Gp::kIdBp, Gp::kIdSi, Gp::kIdDi));</a>
+<a name="55"><span class="lineNum">      55 </span>            :     cc.setNaturalStackAlignment(4);</a>
+<a name="56"><span class="lineNum">      56 </span>            : </a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineNoCov">          0 :     switch (ccId) {</span></a>
+<a name="58"><span class="lineNum">      58 </span>            :       case CallConvId::kCDecl:</a>
+<a name="59"><span class="lineNum">      59 </span>            :         break;</a>
+<a name="60"><span class="lineNum">      60 </span>            : </a>
+<a name="61"><span class="lineNum">      61 </span>            :       case CallConvId::kStdCall:</a>
+<a name="62"><span class="lineNum">      62 </span>            :         cc.setFlags(CallConvFlags::kCalleePopsStack);</a>
+<a name="63"><span class="lineNum">      63 </span>            :         break;</a>
+<a name="64"><span class="lineNum">      64 </span>            : </a>
+<a name="65"><span class="lineNum">      65 </span>            :       case CallConvId::kFastCall:</a>
+<a name="66"><span class="lineNum">      66 </span>            :         cc.setFlags(CallConvFlags::kCalleePopsStack);</a>
+<a name="67"><span class="lineNum">      67 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZcx, kZdx);</a>
+<a name="68"><span class="lineNum">      68 </span>            :         break;</a>
+<a name="69"><span class="lineNum">      69 </span>            : </a>
+<a name="70"><span class="lineNum">      70 </span>            :       case CallConvId::kVectorCall:</a>
+<a name="71"><span class="lineNum">      71 </span>            :         cc.setFlags(CallConvFlags::kCalleePopsStack);</a>
+<a name="72"><span class="lineNum">      72 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZcx, kZdx);</a>
+<a name="73"><span class="lineNum">      73 </span>            :         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5);</a>
+<a name="74"><span class="lineNum">      74 </span>            :         break;</a>
+<a name="75"><span class="lineNum">      75 </span>            : </a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineNoCov">          0 :       case CallConvId::kThisCall:</span></a>
+<a name="77"><span class="lineNum">      77 </span>            :         // NOTE: Even MINGW (starting with GCC 4.7.0) now uses __thiscall on MS Windows, so we won't bail to any</a>
+<a name="78"><span class="lineNum">      78 </span>            :         // other calling convention if __thiscall was specified.</a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineNoCov">          0 :         if (winABI) {</span></a>
+<a name="80"><span class="lineNum">      80 </span>            :           cc.setFlags(CallConvFlags::kCalleePopsStack);</a>
+<a name="81"><span class="lineNum">      81 </span>            :           cc.setPassedOrder(RegGroup::kGp, kZcx);</a>
+<a name="82"><span class="lineNum">      82 </span>            :         }</a>
+<a name="83"><span class="lineNum">      83 </span>            :         else {</a>
+<a name="84"><span class="lineNum">      84 </span>            :           ccId = CallConvId::kCDecl;</a>
+<a name="85"><span class="lineNum">      85 </span>            :         }</a>
+<a name="86"><span class="lineNum">      86 </span>            :         break;</a>
+<a name="87"><span class="lineNum">      87 </span>            : </a>
+<a name="88"><span class="lineNum">      88 </span>            :       case CallConvId::kRegParm1:</a>
+<a name="89"><span class="lineNum">      89 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZax);</a>
+<a name="90"><span class="lineNum">      90 </span>            :         break;</a>
+<a name="91"><span class="lineNum">      91 </span>            : </a>
+<a name="92"><span class="lineNum">      92 </span>            :       case CallConvId::kRegParm2:</a>
+<a name="93"><span class="lineNum">      93 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZax, kZdx);</a>
+<a name="94"><span class="lineNum">      94 </span>            :         break;</a>
+<a name="95"><span class="lineNum">      95 </span>            : </a>
+<a name="96"><span class="lineNum">      96 </span>            :       case CallConvId::kRegParm3:</a>
+<a name="97"><span class="lineNum">      97 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZax, kZdx, kZcx);</a>
+<a name="98"><span class="lineNum">      98 </span>            :         break;</a>
+<a name="99"><span class="lineNum">      99 </span>            : </a>
+<a name="100"><span class="lineNum">     100 </span><span class="lineNoCov">          0 :       case CallConvId::kLightCall2:</span></a>
+<a name="101"><span class="lineNum">     101 </span>            :       case CallConvId::kLightCall3:</a>
+<a name="102"><span class="lineNum">     102 </span>            :       case CallConvId::kLightCall4: {</a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineNoCov">          0 :         uint32_t n = uint32_t(ccId) - uint32_t(CallConvId::kLightCall2) + 2;</span></a>
+<a name="104"><span class="lineNum">     104 </span>            : </a>
+<a name="105"><span class="lineNum">     105 </span>            :         cc.setFlags(CallConvFlags::kPassFloatsByVec);</a>
+<a name="106"><span class="lineNum">     106 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZax, kZdx, kZcx, kZsi, kZdi);</a>
+<a name="107"><span class="lineNum">     107 </span>            :         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="108"><span class="lineNum">     108 </span>            :         cc.setPassedOrder(RegGroup::kX86_K, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="109"><span class="lineNum">     109 </span>            :         cc.setPassedOrder(RegGroup::kX86_MM, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="110"><span class="lineNum">     110 </span>            :         cc.setPreservedRegs(RegGroup::kGp, Support::lsbMask&lt;uint32_t&gt;(8));</a>
+<a name="111"><span class="lineNum">     111 </span><span class="lineNoCov">          0 :         cc.setPreservedRegs(RegGroup::kVec, Support::lsbMask&lt;uint32_t&gt;(8) &amp; ~Support::lsbMask&lt;uint32_t&gt;(n));</span></a>
+<a name="112"><span class="lineNum">     112 </span>            : </a>
+<a name="113"><span class="lineNum">     113 </span>            :         cc.setNaturalStackAlignment(16);</a>
+<a name="114"><span class="lineNum">     114 </span>            :         isStandardCallConv = false;</a>
+<a name="115"><span class="lineNum">     115 </span>            :         break;</a>
+<a name="116"><span class="lineNum">     116 </span>            :       }</a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span>            :       default:</a>
+<a name="119"><span class="lineNum">     119 </span>            :         return DebugUtils::errored(kErrorInvalidArgument);</a>
+<a name="120"><span class="lineNum">     120 </span>            :     }</a>
+<a name="121"><span class="lineNum">     121 </span>            : </a>
+<a name="122"><span class="lineNum">     122 </span>            :     if (isStandardCallConv) {</a>
+<a name="123"><span class="lineNum">     123 </span>            :       // MMX arguments is something where compiler vendors disagree. For example GCC and MSVC would pass first three</a>
+<a name="124"><span class="lineNum">     124 </span>            :       // via registers and the rest via stack, however Clang passes all via stack. Returning MMX registers is even</a>
+<a name="125"><span class="lineNum">     125 </span>            :       // more fun, where GCC uses MM0, but Clang uses EAX:EDX pair. I'm not sure it's something we should be worried</a>
+<a name="126"><span class="lineNum">     126 </span>            :       // about as MMX is deprecated anyway.</a>
+<a name="127"><span class="lineNum">     127 </span>            :       cc.setPassedOrder(RegGroup::kX86_MM, 0, 1, 2);</a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span>            :       // Vector arguments (XMM|YMM|ZMM) are passed via registers. However, if the function is variadic then they have</a>
+<a name="130"><span class="lineNum">     130 </span>            :       // to be passed via stack.</a>
+<a name="131"><span class="lineNum">     131 </span>            :       cc.setPassedOrder(RegGroup::kVec, 0, 1, 2);</a>
+<a name="132"><span class="lineNum">     132 </span>            : </a>
+<a name="133"><span class="lineNum">     133 </span>            :       // Functions with variable arguments always use stack for MM and vector arguments.</a>
+<a name="134"><span class="lineNum">     134 </span>            :       cc.addFlags(CallConvFlags::kPassVecByStackIfVA);</a>
+<a name="135"><span class="lineNum">     135 </span>            :     }</a>
+<a name="136"><span class="lineNum">     136 </span>            : </a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineNoCov">          0 :     if (ccId == CallConvId::kCDecl) {</span></a>
+<a name="138"><span class="lineNum">     138 </span>            :       cc.addFlags(CallConvFlags::kVarArgCompatible);</a>
+<a name="139"><span class="lineNum">     139 </span>            :     }</a>
+<a name="140"><span class="lineNum">     140 </span>            :   }</a>
+<a name="141"><span class="lineNum">     141 </span>            :   else {</a>
+<a name="142"><span class="lineNum">     142 </span>            :     cc.setSaveRestoreRegSize(RegGroup::kGp, 8);</a>
+<a name="143"><span class="lineNum">     143 </span>            :     cc.setSaveRestoreAlignment(RegGroup::kGp, 8);</a>
+<a name="144"><span class="lineNum">     144 </span>            : </a>
+<a name="145"><span class="lineNum">     145 </span>            :     // Preprocess the calling convention into a common id as many conventions are normally ignored even by C/C++</a>
+<a name="146"><span class="lineNum">     146 </span>            :     // compilers and treated as `__cdecl`.</a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">      46072 :     if (shouldThreatAsCDeclIn64BitMode(ccId))</span></a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineCov">      46072 :       ccId = winABI ? CallConvId::kX64Windows : CallConvId::kX64SystemV;</span></a>
+<a name="149"><span class="lineNum">     149 </span>            : </a>
+<a name="150"><span class="lineNum">     150 </span><span class="lineNoCov">          0 :     switch (ccId) {</span></a>
+<a name="151"><span class="lineNum">     151 </span>            :       case CallConvId::kX64SystemV: {</a>
+<a name="152"><span class="lineNum">     152 </span>            :         cc.setFlags(CallConvFlags::kPassFloatsByVec |</a>
+<a name="153"><span class="lineNum">     153 </span>            :                     CallConvFlags::kPassMmxByXmm    |</a>
+<a name="154"><span class="lineNum">     154 </span>            :                     CallConvFlags::kVarArgCompatible);</a>
+<a name="155"><span class="lineNum">     155 </span>            :         cc.setNaturalStackAlignment(16);</a>
+<a name="156"><span class="lineNum">     156 </span>            :         cc.setRedZoneSize(128);</a>
+<a name="157"><span class="lineNum">     157 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZdi, kZsi, kZdx, kZcx, 8, 9);</a>
+<a name="158"><span class="lineNum">     158 </span>            :         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="159"><span class="lineNum">     159 </span>            :         cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(kZbx, kZsp, kZbp, 12, 13, 14, 15));</a>
+<a name="160"><span class="lineNum">     160 </span>            :         break;</a>
+<a name="161"><span class="lineNum">     161 </span>            :       }</a>
+<a name="162"><span class="lineNum">     162 </span>            : </a>
+<a name="163"><span class="lineNum">     163 </span>            :       case CallConvId::kX64Windows: {</a>
+<a name="164"><span class="lineNum">     164 </span>            :         cc.setStrategy(CallConvStrategy::kX64Windows);</a>
+<a name="165"><span class="lineNum">     165 </span>            :         cc.setFlags(CallConvFlags::kPassFloatsByVec |</a>
+<a name="166"><span class="lineNum">     166 </span>            :                     CallConvFlags::kIndirectVecArgs |</a>
+<a name="167"><span class="lineNum">     167 </span>            :                     CallConvFlags::kPassMmxByGp     |</a>
+<a name="168"><span class="lineNum">     168 </span>            :                     CallConvFlags::kVarArgCompatible);</a>
+<a name="169"><span class="lineNum">     169 </span>            :         cc.setNaturalStackAlignment(16);</a>
+<a name="170"><span class="lineNum">     170 </span>            :         // Maximum 4 arguments in registers, each adds 8 bytes to the spill zone.</a>
+<a name="171"><span class="lineNum">     171 </span>            :         cc.setSpillZoneSize(4 * 8);</a>
+<a name="172"><span class="lineNum">     172 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZcx, kZdx, 8, 9);</a>
+<a name="173"><span class="lineNum">     173 </span>            :         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3);</a>
+<a name="174"><span class="lineNum">     174 </span>            :         cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));</a>
+<a name="175"><span class="lineNum">     175 </span>            :         cc.setPreservedRegs(RegGroup::kVec, Support::bitMask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));</a>
+<a name="176"><span class="lineNum">     176 </span>            :         break;</a>
+<a name="177"><span class="lineNum">     177 </span>            :       }</a>
+<a name="178"><span class="lineNum">     178 </span>            : </a>
+<a name="179"><span class="lineNum">     179 </span>            :       case CallConvId::kVectorCall: {</a>
+<a name="180"><span class="lineNum">     180 </span>            :         cc.setStrategy(CallConvStrategy::kX64VectorCall);</a>
+<a name="181"><span class="lineNum">     181 </span>            :         cc.setFlags(CallConvFlags::kPassFloatsByVec |</a>
+<a name="182"><span class="lineNum">     182 </span>            :                     CallConvFlags::kPassMmxByGp     );</a>
+<a name="183"><span class="lineNum">     183 </span>            :         cc.setNaturalStackAlignment(16);</a>
+<a name="184"><span class="lineNum">     184 </span>            :         // Maximum 6 arguments in registers, each adds 8 bytes to the spill zone.</a>
+<a name="185"><span class="lineNum">     185 </span>            :         cc.setSpillZoneSize(6 * 8);</a>
+<a name="186"><span class="lineNum">     186 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZcx, kZdx, 8, 9);</a>
+<a name="187"><span class="lineNum">     187 </span>            :         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5);</a>
+<a name="188"><span class="lineNum">     188 </span>            :         cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));</a>
+<a name="189"><span class="lineNum">     189 </span>            :         cc.setPreservedRegs(RegGroup::kVec, Support::bitMask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));</a>
+<a name="190"><span class="lineNum">     190 </span>            :         break;</a>
+<a name="191"><span class="lineNum">     191 </span>            :       }</a>
+<a name="192"><span class="lineNum">     192 </span>            : </a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineNoCov">          0 :       case CallConvId::kLightCall2:</span></a>
+<a name="194"><span class="lineNum">     194 </span>            :       case CallConvId::kLightCall3:</a>
+<a name="195"><span class="lineNum">     195 </span>            :       case CallConvId::kLightCall4: {</a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineNoCov">          0 :         uint32_t n = uint32_t(ccId) - uint32_t(CallConvId::kLightCall2) + 2;</span></a>
+<a name="197"><span class="lineNum">     197 </span>            : </a>
+<a name="198"><span class="lineNum">     198 </span>            :         cc.setFlags(CallConvFlags::kPassFloatsByVec);</a>
+<a name="199"><span class="lineNum">     199 </span>            :         cc.setNaturalStackAlignment(16);</a>
+<a name="200"><span class="lineNum">     200 </span>            :         cc.setPassedOrder(RegGroup::kGp, kZax, kZdx, kZcx, kZsi, kZdi);</a>
+<a name="201"><span class="lineNum">     201 </span>            :         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="202"><span class="lineNum">     202 </span>            :         cc.setPassedOrder(RegGroup::kX86_K, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="203"><span class="lineNum">     203 </span>            :         cc.setPassedOrder(RegGroup::kX86_MM, 0, 1, 2, 3, 4, 5, 6, 7);</a>
+<a name="204"><span class="lineNum">     204 </span>            : </a>
+<a name="205"><span class="lineNum">     205 </span>            :         cc.setPreservedRegs(RegGroup::kGp, Support::lsbMask&lt;uint32_t&gt;(16));</a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineNoCov">          0 :         cc.setPreservedRegs(RegGroup::kVec, ~Support::lsbMask&lt;uint32_t&gt;(n));</span></a>
+<a name="207"><span class="lineNum">     207 </span>            :         break;</a>
+<a name="208"><span class="lineNum">     208 </span>            :       }</a>
+<a name="209"><span class="lineNum">     209 </span>            : </a>
+<a name="210"><span class="lineNum">     210 </span>            :       default:</a>
+<a name="211"><span class="lineNum">     211 </span>            :         return DebugUtils::errored(kErrorInvalidArgument);</a>
+<a name="212"><span class="lineNum">     212 </span>            :     }</a>
+<a name="213"><span class="lineNum">     213 </span>            :   }</a>
+<a name="214"><span class="lineNum">     214 </span>            : </a>
+<a name="215"><span class="lineNum">     215 </span>            :   cc.setId(ccId);</a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">      46072 :   return kErrorOk;</span></a>
+<a name="217"><span class="lineNum">     217 </span>            : }</a>
+<a name="218"><span class="lineNum">     218 </span>            : </a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">      58806 : ASMJIT_FAVOR_SIZE void unpackValues(FuncDetail&amp; func, FuncValuePack&amp; pack) noexcept {</span></a>
+<a name="220"><span class="lineNum">     220 </span>            :   TypeId typeId = pack[0].typeId();</a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">      58806 :   switch (typeId) {</span></a>
+<a name="222"><span class="lineNum">     222 </span>            :     case TypeId::kInt64:</a>
+<a name="223"><span class="lineNum">     223 </span>            :     case TypeId::kUInt64: {</a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineCov">        246 :       if (Environment::is32Bit(func.callConv().arch())) {</span></a>
+<a name="225"><span class="lineNum">     225 </span>            :         // Convert a 64-bit return value to two 32-bit return values.</a>
+<a name="226"><span class="lineNum">     226 </span>            :         pack[0].initTypeId(TypeId::kUInt32);</a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineNoCov">          0 :         pack[1].initTypeId(TypeId(uint32_t(typeId) - 2));</span></a>
+<a name="228"><span class="lineNum">     228 </span>            :         break;</a>
+<a name="229"><span class="lineNum">     229 </span>            :       }</a>
+<a name="230"><span class="lineNum">     230 </span>            :       break;</a>
+<a name="231"><span class="lineNum">     231 </span>            :     }</a>
+<a name="232"><span class="lineNum">     232 </span>            : </a>
+<a name="233"><span class="lineNum">     233 </span>            :     default: {</a>
+<a name="234"><span class="lineNum">     234 </span>            :       break;</a>
+<a name="235"><span class="lineNum">     235 </span>            :     }</a>
+<a name="236"><span class="lineNum">     236 </span>            :   }</a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">      58806 : }</span></a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">      46072 : ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail&amp; func, const FuncSignature&amp; signature, uint32_t registerSize) noexcept {</span></a>
+<a name="240"><span class="lineNum">     240 </span>            :   const CallConv&amp; cc = func.callConv();</a>
+<a name="241"><span class="lineNum">     241 </span>            :   Arch arch = cc.arch();</a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">      46072 :   uint32_t stackOffset = cc._spillZoneSize;</span></a>
+<a name="243"><span class="lineNum">     243 </span>            :   uint32_t argCount = func.argCount();</a>
+<a name="244"><span class="lineNum">     244 </span>            : </a>
+<a name="245"><span class="lineNum">     245 </span>            :   // Up to two return values can be returned in GP registers.</a>
+<a name="246"><span class="lineNum">     246 </span>            :   static const uint8_t gpReturnIndexes[4] = {</a>
+<a name="247"><span class="lineNum">     247 </span>            :     uint8_t(Gp::kIdAx),</a>
+<a name="248"><span class="lineNum">     248 </span>            :     uint8_t(Gp::kIdDx),</a>
+<a name="249"><span class="lineNum">     249 </span>            :     uint8_t(BaseReg::kIdBad),</a>
+<a name="250"><span class="lineNum">     250 </span>            :     uint8_t(BaseReg::kIdBad)</a>
+<a name="251"><span class="lineNum">     251 </span>            :   };</a>
+<a name="252"><span class="lineNum">     252 </span>            : </a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">      46072 :   if (func.hasRet()) {</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineCov">      46072 :     unpackValues(func, func._rets);</span></a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">      92144 :     for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="256"><span class="lineNum">     256 </span><span class="lineCov">      92144 :       TypeId typeId = func._rets[valueIndex].typeId();</span></a>
+<a name="257"><span class="lineNum">     257 </span>            : </a>
+<a name="258"><span class="lineNum">     258 </span>            :       // Terminate at the first void type (end of the pack).</a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">      92144 :       if (typeId == TypeId::kVoid)</span></a>
+<a name="260"><span class="lineNum">     260 </span>            :         break;</a>
+<a name="261"><span class="lineNum">     261 </span>            : </a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">      46072 :       switch (typeId) {</span></a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineNoCov">          0 :         case TypeId::kInt64:</span></a>
+<a name="264"><span class="lineNum">     264 </span>            :         case TypeId::kUInt64: {</a>
+<a name="265"><span class="lineNum">     265 </span><span class="lineNoCov">          0 :           if (gpReturnIndexes[valueIndex] != BaseReg::kIdBad)</span></a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineNoCov">          0 :             func._rets[valueIndex].initReg(RegType::kX86_Gpq, gpReturnIndexes[valueIndex], typeId);</span></a>
+<a name="267"><span class="lineNum">     267 </span>            :           else</a>
+<a name="268"><span class="lineNum">     268 </span>            :             return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="269"><span class="lineNum">     269 </span>            :           break;</a>
+<a name="270"><span class="lineNum">     270 </span>            :         }</a>
+<a name="271"><span class="lineNum">     271 </span>            : </a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineNoCov">          0 :         case TypeId::kInt8:</span></a>
+<a name="273"><span class="lineNum">     273 </span>            :         case TypeId::kInt16:</a>
+<a name="274"><span class="lineNum">     274 </span>            :         case TypeId::kInt32: {</a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineNoCov">          0 :           if (gpReturnIndexes[valueIndex] != BaseReg::kIdBad)</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineNoCov">          0 :             func._rets[valueIndex].initReg(RegType::kX86_Gpd, gpReturnIndexes[valueIndex], TypeId::kInt32);</span></a>
+<a name="277"><span class="lineNum">     277 </span>            :           else</a>
+<a name="278"><span class="lineNum">     278 </span>            :             return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="279"><span class="lineNum">     279 </span>            :           break;</a>
+<a name="280"><span class="lineNum">     280 </span>            :         }</a>
+<a name="281"><span class="lineNum">     281 </span>            : </a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineNoCov">          0 :         case TypeId::kUInt8:</span></a>
+<a name="283"><span class="lineNum">     283 </span>            :         case TypeId::kUInt16:</a>
+<a name="284"><span class="lineNum">     284 </span>            :         case TypeId::kUInt32: {</a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineNoCov">          0 :           if (gpReturnIndexes[valueIndex] != BaseReg::kIdBad)</span></a>
+<a name="286"><span class="lineNum">     286 </span><span class="lineNoCov">          0 :             func._rets[valueIndex].initReg(RegType::kX86_Gpd, gpReturnIndexes[valueIndex], TypeId::kUInt32);</span></a>
+<a name="287"><span class="lineNum">     287 </span>            :           else</a>
+<a name="288"><span class="lineNum">     288 </span>            :             return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="289"><span class="lineNum">     289 </span>            :           break;</a>
+<a name="290"><span class="lineNum">     290 </span>            :         }</a>
+<a name="291"><span class="lineNum">     291 </span>            : </a>
+<a name="292"><span class="lineNum">     292 </span>            :         case TypeId::kFloat32:</a>
+<a name="293"><span class="lineNum">     293 </span>            :         case TypeId::kFloat64: {</a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">      46072 :           RegType regType = Environment::is32Bit(arch) ? RegType::kX86_St : RegType::kX86_Xmm;</span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">      46072 :           func._rets[valueIndex].initReg(regType, valueIndex, typeId);</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">      46072 :           break;</span></a>
+<a name="297"><span class="lineNum">     297 </span>            :         }</a>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineNoCov">          0 :         case TypeId::kFloat80: {</span></a>
+<a name="300"><span class="lineNum">     300 </span>            :           // 80-bit floats are always returned by FP0.</a>
+<a name="301"><span class="lineNum">     301 </span>            :           func._rets[valueIndex].initReg(RegType::kX86_St, valueIndex, typeId);</a>
+<a name="302"><span class="lineNum">     302 </span>            :           break;</a>
+<a name="303"><span class="lineNum">     303 </span>            :         }</a>
+<a name="304"><span class="lineNum">     304 </span>            : </a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineNoCov">          0 :         case TypeId::kMmx32:</span></a>
+<a name="306"><span class="lineNum">     306 </span>            :         case TypeId::kMmx64: {</a>
+<a name="307"><span class="lineNum">     307 </span>            :           // MM registers are returned through XMM (SystemV) or GPQ (Win64).</a>
+<a name="308"><span class="lineNum">     308 </span>            :           RegType regType = RegType::kX86_Mm;</a>
+<a name="309"><span class="lineNum">     309 </span>            :           uint32_t regIndex = valueIndex;</a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineNoCov">          0 :           if (Environment::is64Bit(arch)) {</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineNoCov">          0 :             regType = cc.strategy() == CallConvStrategy::kDefault ? RegType::kX86_Xmm : RegType::kX86_Gpq;</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineNoCov">          0 :             regIndex = cc.strategy() == CallConvStrategy::kDefault ? valueIndex : gpReturnIndexes[valueIndex];</span></a>
+<a name="313"><span class="lineNum">     313 </span>            : </a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineNoCov">          0 :             if (regIndex == BaseReg::kIdBad)</span></a>
+<a name="315"><span class="lineNum">     315 </span>            :               return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="316"><span class="lineNum">     316 </span>            :           }</a>
+<a name="317"><span class="lineNum">     317 </span>            : </a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineNoCov">          0 :           func._rets[valueIndex].initReg(regType, regIndex, typeId);</span></a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineNoCov">          0 :           break;</span></a>
+<a name="320"><span class="lineNum">     320 </span>            :         }</a>
+<a name="321"><span class="lineNum">     321 </span>            : </a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineNoCov">          0 :         default: {</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineNoCov">          0 :           func._rets[valueIndex].initReg(vecTypeIdToRegType(typeId), valueIndex, typeId);</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineNoCov">          0 :           break;</span></a>
+<a name="325"><span class="lineNum">     325 </span>            :         }</a>
+<a name="326"><span class="lineNum">     326 </span>            :       }</a>
+<a name="327"><span class="lineNum">     327 </span>            :     }</a>
+<a name="328"><span class="lineNum">     328 </span>            :   }</a>
+<a name="329"><span class="lineNum">     329 </span>            : </a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">      46072 :   switch (cc.strategy()) {</span></a>
+<a name="331"><span class="lineNum">     331 </span>            :     case CallConvStrategy::kDefault: {</a>
+<a name="332"><span class="lineNum">     332 </span>            :       uint32_t gpzPos = 0;</a>
+<a name="333"><span class="lineNum">     333 </span>            :       uint32_t vecPos = 0;</a>
+<a name="334"><span class="lineNum">     334 </span>            : </a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">      58806 :       for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">      12734 :         unpackValues(func, func._args[argIndex]);</span></a>
+<a name="337"><span class="lineNum">     337 </span>            : </a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineCov">      25468 :         for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineCov">      25468 :           FuncValue&amp; arg = func._args[argIndex][valueIndex];</span></a>
+<a name="340"><span class="lineNum">     340 </span>            : </a>
+<a name="341"><span class="lineNum">     341 </span>            :           // Terminate if there are no more arguments in the pack.</a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">      25468 :           if (!arg)</span></a>
+<a name="343"><span class="lineNum">     343 </span>            :             break;</a>
+<a name="344"><span class="lineNum">     344 </span>            : </a>
+<a name="345"><span class="lineNum">     345 </span>            :           TypeId typeId = arg.typeId();</a>
+<a name="346"><span class="lineNum">     346 </span>            : </a>
+<a name="347"><span class="lineNum">     347 </span><span class="lineCov">      12734 :           if (TypeUtils::isInt(typeId)) {</span></a>
+<a name="348"><span class="lineNum">     348 </span>            :             uint32_t regId = BaseReg::kIdBad;</a>
+<a name="349"><span class="lineNum">     349 </span>            : </a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineCov">        246 :             if (gpzPos &lt; CallConv::kMaxRegArgsPerGroup)</span></a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineCov">        246 :               regId = cc._passedOrder[RegGroup::kGp].id[gpzPos];</span></a>
+<a name="352"><span class="lineNum">     352 </span>            : </a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineCov">        246 :             if (regId != BaseReg::kIdBad) {</span></a>
+<a name="354"><span class="lineNum">     354 </span><span class="lineCov">        246 :               RegType regType = typeId &lt;= TypeId::kUInt32 ? RegType::kX86_Gpd : RegType::kX86_Gpq;</span></a>
+<a name="355"><span class="lineNum">     355 </span><span class="lineCov">        246 :               arg.assignRegData(regType, regId);</span></a>
+<a name="356"><span class="lineNum">     356 </span>            :               func.addUsedRegs(RegGroup::kGp, Support::bitMask(regId));</a>
+<a name="357"><span class="lineNum">     357 </span><span class="lineCov">        246 :               gpzPos++;</span></a>
+<a name="358"><span class="lineNum">     358 </span>            :             }</a>
+<a name="359"><span class="lineNum">     359 </span>            :             else {</a>
+<a name="360"><span class="lineNum">     360 </span>            :               uint32_t size = Support::max&lt;uint32_t&gt;(TypeUtils::sizeOf(typeId), registerSize);</a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineNoCov">          0 :               arg.assignStackOffset(int32_t(stackOffset));</span></a>
+<a name="362"><span class="lineNum">     362 </span><span class="lineNoCov">          0 :               stackOffset += size;</span></a>
+<a name="363"><span class="lineNum">     363 </span>            :             }</a>
+<a name="364"><span class="lineNum">     364 </span>            :             continue;</a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineCov">        246 :           }</span></a>
+<a name="366"><span class="lineNum">     366 </span>            : </a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineCov">      12488 :           if (TypeUtils::isFloat(typeId) || TypeUtils::isVec(typeId)) {</span></a>
+<a name="368"><span class="lineNum">     368 </span>            :             uint32_t regId = BaseReg::kIdBad;</a>
+<a name="369"><span class="lineNum">     369 </span>            : </a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineCov">      12488 :             if (vecPos &lt; CallConv::kMaxRegArgsPerGroup)</span></a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineCov">      12488 :               regId = cc._passedOrder[RegGroup::kVec].id[vecPos];</span></a>
+<a name="372"><span class="lineNum">     372 </span>            : </a>
+<a name="373"><span class="lineNum">     373 </span><span class="lineCov">      12488 :             if (TypeUtils::isFloat(typeId)) {</span></a>
+<a name="374"><span class="lineNum">     374 </span>            :               // If this is a float, but `kFlagPassFloatsByVec` is false, we have to use stack instead. This should</a>
+<a name="375"><span class="lineNum">     375 </span>            :               // be only used by 32-bit calling conventions.</a>
+<a name="376"><span class="lineNum">     376 </span><span class="lineCov">      12488 :               if (!cc.hasFlag(CallConvFlags::kPassFloatsByVec))</span></a>
+<a name="377"><span class="lineNum">     377 </span>            :                 regId = BaseReg::kIdBad;</a>
+<a name="378"><span class="lineNum">     378 </span>            :             }</a>
+<a name="379"><span class="lineNum">     379 </span>            :             else {</a>
+<a name="380"><span class="lineNum">     380 </span>            :               // Pass vector registers via stack if this is a variable arguments function. This should be only used</a>
+<a name="381"><span class="lineNum">     381 </span>            :               // by 32-bit calling conventions.</a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineNoCov">          0 :               if (signature.hasVarArgs() &amp;&amp; cc.hasFlag(CallConvFlags::kPassVecByStackIfVA))</span></a>
+<a name="383"><span class="lineNum">     383 </span>            :                 regId = BaseReg::kIdBad;</a>
+<a name="384"><span class="lineNum">     384 </span>            :             }</a>
+<a name="385"><span class="lineNum">     385 </span>            : </a>
+<a name="386"><span class="lineNum">     386 </span><span class="lineCov">      12488 :             if (regId != BaseReg::kIdBad) {</span></a>
+<a name="387"><span class="lineNum">     387 </span>            :               arg.initTypeId(typeId);</a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineCov">      12488 :               arg.assignRegData(vecTypeIdToRegType(typeId), regId);</span></a>
+<a name="389"><span class="lineNum">     389 </span>            :               func.addUsedRegs(RegGroup::kVec, Support::bitMask(regId));</a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">      12488 :               vecPos++;</span></a>
+<a name="391"><span class="lineNum">     391 </span>            :             }</a>
+<a name="392"><span class="lineNum">     392 </span>            :             else {</a>
+<a name="393"><span class="lineNum">     393 </span>            :               uint32_t size = TypeUtils::sizeOf(typeId);</a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineNoCov">          0 :               arg.assignStackOffset(int32_t(stackOffset));</span></a>
+<a name="395"><span class="lineNum">     395 </span><span class="lineNoCov">          0 :               stackOffset += size;</span></a>
+<a name="396"><span class="lineNum">     396 </span>            :             }</a>
+<a name="397"><span class="lineNum">     397 </span>            :             continue;</a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineCov">      12488 :           }</span></a>
+<a name="399"><span class="lineNum">     399 </span>            :         }</a>
+<a name="400"><span class="lineNum">     400 </span>            :       }</a>
+<a name="401"><span class="lineNum">     401 </span>            :       break;</a>
+<a name="402"><span class="lineNum">     402 </span>            :     }</a>
+<a name="403"><span class="lineNum">     403 </span>            : </a>
+<a name="404"><span class="lineNum">     404 </span>            :     case CallConvStrategy::kX64Windows:</a>
+<a name="405"><span class="lineNum">     405 </span>            :     case CallConvStrategy::kX64VectorCall: {</a>
+<a name="406"><span class="lineNum">     406 </span>            :       // Both X64 and VectorCall behave similarly - arguments are indexed from left to right. The position of the</a>
+<a name="407"><span class="lineNum">     407 </span>            :       // argument determines in which register the argument is allocated, so it's either GP or one of XMM/YMM/ZMM</a>
+<a name="408"><span class="lineNum">     408 </span>            :       // registers.</a>
+<a name="409"><span class="lineNum">     409 </span>            :       //</a>
+<a name="410"><span class="lineNum">     410 </span>            :       //       [       X64       ] [VecCall]</a>
+<a name="411"><span class="lineNum">     411 </span>            :       // Index: #0   #1   #2   #3   #4   #5</a>
+<a name="412"><span class="lineNum">     412 </span>            :       //</a>
+<a name="413"><span class="lineNum">     413 </span>            :       // GP   : RCX  RDX  R8   R9</a>
+<a name="414"><span class="lineNum">     414 </span>            :       // VEC  : XMM0 XMM1 XMM2 XMM3 XMM4 XMM5</a>
+<a name="415"><span class="lineNum">     415 </span>            :       //</a>
+<a name="416"><span class="lineNum">     416 </span>            :       // For example function `f(int a, double b, int c, double d)` will be:</a>
+<a name="417"><span class="lineNum">     417 </span>            :       //</a>
+<a name="418"><span class="lineNum">     418 </span>            :       //        (a)  (b)  (c)  (d)</a>
+<a name="419"><span class="lineNum">     419 </span>            :       //        RCX  XMM1 R8   XMM3</a>
+<a name="420"><span class="lineNum">     420 </span>            :       //</a>
+<a name="421"><span class="lineNum">     421 </span>            :       // Unused vector registers are used by HVA.</a>
+<a name="422"><span class="lineNum">     422 </span>            :       bool isVectorCall = (cc.strategy() == CallConvStrategy::kX64VectorCall);</a>
+<a name="423"><span class="lineNum">     423 </span>            : </a>
+<a name="424"><span class="lineNum">     424 </span><span class="lineNoCov">          0 :       for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineNoCov">          0 :         unpackValues(func, func._args[argIndex]);</span></a>
+<a name="426"><span class="lineNum">     426 </span>            : </a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineNoCov">          0 :         for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineNoCov">          0 :           FuncValue&amp; arg = func._args[argIndex][valueIndex];</span></a>
+<a name="429"><span class="lineNum">     429 </span>            : </a>
+<a name="430"><span class="lineNum">     430 </span>            :           // Terminate if there are no more arguments in the pack.</a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineNoCov">          0 :           if (!arg)</span></a>
+<a name="432"><span class="lineNum">     432 </span>            :             break;</a>
+<a name="433"><span class="lineNum">     433 </span>            : </a>
+<a name="434"><span class="lineNum">     434 </span>            :           TypeId typeId = arg.typeId();</a>
+<a name="435"><span class="lineNum">     435 </span>            :           uint32_t size = TypeUtils::sizeOf(typeId);</a>
+<a name="436"><span class="lineNum">     436 </span>            : </a>
+<a name="437"><span class="lineNum">     437 </span><span class="lineNoCov">          0 :           if (TypeUtils::isInt(typeId) || TypeUtils::isMmx(typeId)) {</span></a>
+<a name="438"><span class="lineNum">     438 </span>            :             uint32_t regId = BaseReg::kIdBad;</a>
+<a name="439"><span class="lineNum">     439 </span>            : </a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineNoCov">          0 :             if (argIndex &lt; CallConv::kMaxRegArgsPerGroup)</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineNoCov">          0 :               regId = cc._passedOrder[RegGroup::kGp].id[argIndex];</span></a>
+<a name="442"><span class="lineNum">     442 </span>            : </a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineNoCov">          0 :             if (regId != BaseReg::kIdBad) {</span></a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineNoCov">          0 :               RegType regType = size &lt;= 4 &amp;&amp; !TypeUtils::isMmx(typeId) ? RegType::kX86_Gpd : RegType::kX86_Gpq;</span></a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineNoCov">          0 :               arg.assignRegData(regType, regId);</span></a>
+<a name="446"><span class="lineNum">     446 </span>            :               func.addUsedRegs(RegGroup::kGp, Support::bitMask(regId));</a>
+<a name="447"><span class="lineNum">     447 </span>            :             }</a>
+<a name="448"><span class="lineNum">     448 </span>            :             else {</a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineNoCov">          0 :               arg.assignStackOffset(int32_t(stackOffset));</span></a>
+<a name="450"><span class="lineNum">     450 </span><span class="lineNoCov">          0 :               stackOffset += 8;</span></a>
+<a name="451"><span class="lineNum">     451 </span>            :             }</a>
+<a name="452"><span class="lineNum">     452 </span>            :             continue;</a>
+<a name="453"><span class="lineNum">     453 </span><span class="lineNoCov">          0 :           }</span></a>
+<a name="454"><span class="lineNum">     454 </span>            : </a>
+<a name="455"><span class="lineNum">     455 </span><span class="lineNoCov">          0 :           if (TypeUtils::isFloat(typeId) || TypeUtils::isVec(typeId)) {</span></a>
+<a name="456"><span class="lineNum">     456 </span>            :             uint32_t regId = BaseReg::kIdBad;</a>
+<a name="457"><span class="lineNum">     457 </span>            : </a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineNoCov">          0 :             if (argIndex &lt; CallConv::kMaxRegArgsPerGroup)</span></a>
+<a name="459"><span class="lineNum">     459 </span><span class="lineNoCov">          0 :               regId = cc._passedOrder[RegGroup::kVec].id[argIndex];</span></a>
+<a name="460"><span class="lineNum">     460 </span>            : </a>
+<a name="461"><span class="lineNum">     461 </span><span class="lineNoCov">          0 :             if (regId != BaseReg::kIdBad) {</span></a>
+<a name="462"><span class="lineNum">     462 </span>            :               // X64-ABI doesn't allow vector types (XMM|YMM|ZMM) to be passed via registers, however, VectorCall</a>
+<a name="463"><span class="lineNum">     463 </span>            :               // was designed for that purpose.</a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineNoCov">          0 :               if (TypeUtils::isFloat(typeId) || isVectorCall) {</span></a>
+<a name="465"><span class="lineNum">     465 </span><span class="lineNoCov">          0 :                 RegType regType = vecTypeIdToRegType(typeId);</span></a>
+<a name="466"><span class="lineNum">     466 </span><span class="lineNoCov">          0 :                 arg.assignRegData(regType, regId);</span></a>
+<a name="467"><span class="lineNum">     467 </span>            :                 func.addUsedRegs(RegGroup::kVec, Support::bitMask(regId));</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineNoCov">          0 :                 continue;</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineNoCov">          0 :               }</span></a>
+<a name="470"><span class="lineNum">     470 </span>            :             }</a>
+<a name="471"><span class="lineNum">     471 </span>            : </a>
+<a name="472"><span class="lineNum">     472 </span>            :             // Passed via stack if the argument is float/double or indirectly. The trap is - if the argument is</a>
+<a name="473"><span class="lineNum">     473 </span>            :             // passed indirectly, the address can be passed via register, if the argument's index has GP one.</a>
+<a name="474"><span class="lineNum">     474 </span><span class="lineNoCov">          0 :             if (TypeUtils::isFloat(typeId)) {</span></a>
+<a name="475"><span class="lineNum">     475 </span><span class="lineNoCov">          0 :               arg.assignStackOffset(int32_t(stackOffset));</span></a>
+<a name="476"><span class="lineNum">     476 </span>            :             }</a>
+<a name="477"><span class="lineNum">     477 </span>            :             else {</a>
+<a name="478"><span class="lineNum">     478 </span><span class="lineNoCov">          0 :               uint32_t gpRegId = cc._passedOrder[RegGroup::kGp].id[argIndex];</span></a>
+<a name="479"><span class="lineNum">     479 </span><span class="lineNoCov">          0 :               if (gpRegId != BaseReg::kIdBad)</span></a>
+<a name="480"><span class="lineNum">     480 </span><span class="lineNoCov">          0 :                 arg.assignRegData(RegType::kX86_Gpq, gpRegId);</span></a>
+<a name="481"><span class="lineNum">     481 </span>            :               else</a>
+<a name="482"><span class="lineNum">     482 </span><span class="lineNoCov">          0 :                 arg.assignStackOffset(int32_t(stackOffset));</span></a>
+<a name="483"><span class="lineNum">     483 </span>            :               arg.addFlags(FuncValue::kFlagIsIndirect);</a>
+<a name="484"><span class="lineNum">     484 </span>            :             }</a>
+<a name="485"><span class="lineNum">     485 </span>            : </a>
+<a name="486"><span class="lineNum">     486 </span>            :             // Always 8 bytes (float/double/pointer).</a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineNoCov">          0 :             stackOffset += 8;</span></a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineNoCov">          0 :             continue;</span></a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineNoCov">          0 :           }</span></a>
+<a name="490"><span class="lineNum">     490 </span>            :         }</a>
+<a name="491"><span class="lineNum">     491 </span>            :       }</a>
+<a name="492"><span class="lineNum">     492 </span>            :       break;</a>
+<a name="493"><span class="lineNum">     493 </span>            :     }</a>
+<a name="494"><span class="lineNum">     494 </span>            :   }</a>
+<a name="495"><span class="lineNum">     495 </span>            : </a>
+<a name="496"><span class="lineNum">     496 </span><span class="lineCov">      46072 :   func._argStackSize = stackOffset;</span></a>
+<a name="497"><span class="lineNum">     497 </span><span class="lineCov">      46072 :   return kErrorOk;</span></a>
+<a name="498"><span class="lineNum">     498 </span>            : }</a>
+<a name="499"><span class="lineNum">     499 </span>            : </a>
+<a name="500"><span class="lineNum">     500 </span>            : } // {FuncInternal}</a>
+<a name="501"><span class="lineNum">     501 </span>            : </a>
+<a name="502"><span class="lineNum">     502 </span>            : ASMJIT_END_SUB_NAMESPACE</a>
+<a name="503"><span class="lineNum">     503 </span>            : </a>
+<a name="504"><span class="lineNum">     504 </span>            : #endif // !ASMJIT_NO_X86</a>
+<a name="505"><span class="lineNum">     505 </span>            : </a>
+<a name="506"><span class="lineNum">     506 </span>            : #endif // __PLUMED_HAS_ASMJIT</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

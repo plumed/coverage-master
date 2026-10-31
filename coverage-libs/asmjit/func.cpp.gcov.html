@@ -1,0 +1,366 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage (other modules) - asmjit/func.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">asmjit</a> - func.cpp<span style="font-size: 80%;"> (source / <a href="func.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage (other modules)</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">84</td>
+            <td class="headerCovTableEntry">96</td>
+            <td class="headerCovTableEntryMed">87.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-10-31 16:48:53</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #ifdef __PLUMED_HAS_ASMJIT</a>
+<a name="2"><span class="lineNum">       2 </span>            : // This file is part of AsmJit project &lt;https://asmjit.com&gt;</a>
+<a name="3"><span class="lineNum">       3 </span>            : //</a>
+<a name="4"><span class="lineNum">       4 </span>            : // See asmjit.h or LICENSE.md for license and copyright information</a>
+<a name="5"><span class="lineNum">       5 </span>            : // SPDX-License-Identifier: Zlib</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            : #include &quot;api-build_p.h&quot;</a>
+<a name="8"><span class="lineNum">       8 </span>            : #include &quot;archtraits.h&quot;</a>
+<a name="9"><span class="lineNum">       9 </span>            : #include &quot;func.h&quot;</a>
+<a name="10"><span class="lineNum">      10 </span>            : #include &quot;operand.h&quot;</a>
+<a name="11"><span class="lineNum">      11 </span>            : #include &quot;type.h&quot;</a>
+<a name="12"><span class="lineNum">      12 </span>            : #include &quot;funcargscontext_p.h&quot;</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            : #if !defined(ASMJIT_NO_X86)</a>
+<a name="15"><span class="lineNum">      15 </span>            :   #include &quot;x86func_p.h&quot;</a>
+<a name="16"><span class="lineNum">      16 </span>            : #endif</a>
+<a name="17"><span class="lineNum">      17 </span>            : </a>
+<a name="18"><span class="lineNum">      18 </span>            : #if !defined(ASMJIT_NO_AARCH64)</a>
+<a name="19"><span class="lineNum">      19 </span>            :   #include &quot;a64func_p.h&quot;</a>
+<a name="20"><span class="lineNum">      20 </span>            : #endif</a>
+<a name="21"><span class="lineNum">      21 </span>            : </a>
+<a name="22"><span class="lineNum">      22 </span>            : ASMJIT_BEGIN_NAMESPACE</a>
+<a name="23"><span class="lineNum">      23 </span>            : </a>
+<a name="24"><span class="lineNum">      24 </span>            : // CallConv - Init &amp; Reset</a>
+<a name="25"><span class="lineNum">      25 </span>            : // =======================</a>
+<a name="26"><span class="lineNum">      26 </span>            : </a>
+<a name="27"><span class="lineNum">      27 </span><span class="lineCov">      46072 : ASMJIT_FAVOR_SIZE Error CallConv::init(CallConvId ccId, const Environment&amp; environment) noexcept {</span></a>
+<a name="28"><span class="lineNum">      28 </span><span class="lineCov">      46072 :   reset();</span></a>
+<a name="29"><span class="lineNum">      29 </span>            : </a>
+<a name="30"><span class="lineNum">      30 </span>            : #if !defined(ASMJIT_NO_X86)</a>
+<a name="31"><span class="lineNum">      31 </span><span class="lineCov">      46072 :   if (environment.isFamilyX86())</span></a>
+<a name="32"><span class="lineNum">      32 </span><span class="lineCov">      46072 :     return x86::FuncInternal::initCallConv(*this, ccId, environment);</span></a>
+<a name="33"><span class="lineNum">      33 </span>            : #endif</a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span>            : #if !defined(ASMJIT_NO_AARCH64)</a>
+<a name="36"><span class="lineNum">      36 </span><span class="lineNoCov">          0 :   if (environment.isFamilyAArch64())</span></a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineNoCov">          0 :     return a64::FuncInternal::initCallConv(*this, ccId, environment);</span></a>
+<a name="38"><span class="lineNum">      38 </span>            : #endif</a>
+<a name="39"><span class="lineNum">      39 </span>            : </a>
+<a name="40"><span class="lineNum">      40 </span>            :   return DebugUtils::errored(kErrorInvalidArgument);</a>
+<a name="41"><span class="lineNum">      41 </span>            : }</a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span>            : // FuncDetail - Init / Reset</a>
+<a name="44"><span class="lineNum">      44 </span>            : // =========================</a>
+<a name="45"><span class="lineNum">      45 </span>            : </a>
+<a name="46"><span class="lineNum">      46 </span><span class="lineCov">      46072 : ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature&amp; signature, const Environment&amp; environment) noexcept {</span></a>
+<a name="47"><span class="lineNum">      47 </span>            :   CallConvId ccId = signature.callConvId();</a>
+<a name="48"><span class="lineNum">      48 </span>            :   uint32_t argCount = signature.argCount();</a>
+<a name="49"><span class="lineNum">      49 </span>            : </a>
+<a name="50"><span class="lineNum">      50 </span><span class="lineCov">      46072 :   if (ASMJIT_UNLIKELY(argCount &gt; Globals::kMaxFuncArgs))</span></a>
+<a name="51"><span class="lineNum">      51 </span>            :     return DebugUtils::errored(kErrorInvalidArgument);</a>
+<a name="52"><span class="lineNum">      52 </span>            : </a>
+<a name="53"><span class="lineNum">      53 </span><span class="lineCov">      46072 :   CallConv&amp; cc = _callConv;</span></a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineCov">      46072 :   ASMJIT_PROPAGATE(cc.init(ccId, environment));</span></a>
+<a name="55"><span class="lineNum">      55 </span>            : </a>
+<a name="56"><span class="lineNum">      56 </span>            :   uint32_t registerSize = Environment::registerSizeFromArch(cc.arch());</a>
+<a name="57"><span class="lineNum">      57 </span>            :   uint32_t deabstractDelta = TypeUtils::deabstractDeltaOfSize(registerSize);</a>
+<a name="58"><span class="lineNum">      58 </span>            : </a>
+<a name="59"><span class="lineNum">      59 </span>            :   const TypeId* signatureArgs = signature.args();</a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">      58806 :   for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="61"><span class="lineNum">      61 </span>            :     FuncValuePack&amp; argPack = _args[argIndex];</a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">      12734 :     argPack[0].initTypeId(TypeUtils::deabstract(signatureArgs[argIndex], deabstractDelta));</span></a>
+<a name="63"><span class="lineNum">      63 </span>            :   }</a>
+<a name="64"><span class="lineNum">      64 </span>            : </a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">      46072 :   _argCount = uint8_t(argCount);</span></a>
+<a name="66"><span class="lineNum">      66 </span><span class="lineCov">      46072 :   _vaIndex = uint8_t(signature.vaIndex());</span></a>
+<a name="67"><span class="lineNum">      67 </span>            : </a>
+<a name="68"><span class="lineNum">      68 </span>            :   TypeId ret = signature.ret();</a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">      46072 :   if (ret != TypeId::kVoid)</span></a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">      46072 :     _rets[0].initTypeId(TypeUtils::deabstract(ret, deabstractDelta));</span></a>
+<a name="71"><span class="lineNum">      71 </span>            : </a>
+<a name="72"><span class="lineNum">      72 </span>            : #if !defined(ASMJIT_NO_X86)</a>
+<a name="73"><span class="lineNum">      73 </span><span class="lineCov">      46072 :   if (environment.isFamilyX86())</span></a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">      46072 :     return x86::FuncInternal::initFuncDetail(*this, signature, registerSize);</span></a>
+<a name="75"><span class="lineNum">      75 </span>            : #endif</a>
+<a name="76"><span class="lineNum">      76 </span>            : </a>
+<a name="77"><span class="lineNum">      77 </span>            : #if !defined(ASMJIT_NO_AARCH64)</a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineNoCov">          0 :   if (environment.isFamilyAArch64())</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineNoCov">          0 :     return a64::FuncInternal::initFuncDetail(*this, signature, registerSize);</span></a>
+<a name="80"><span class="lineNum">      80 </span>            : #endif</a>
+<a name="81"><span class="lineNum">      81 </span>            : </a>
+<a name="82"><span class="lineNum">      82 </span>            :   // We should never bubble here as if `cc.init()` succeeded then there has to be an implementation for the current</a>
+<a name="83"><span class="lineNum">      83 </span>            :   // architecture. However, stay safe.</a>
+<a name="84"><span class="lineNum">      84 </span>            :   return DebugUtils::errored(kErrorInvalidArgument);</a>
+<a name="85"><span class="lineNum">      85 </span>            : }</a>
+<a name="86"><span class="lineNum">      86 </span>            : </a>
+<a name="87"><span class="lineNum">      87 </span>            : // FuncFrame - Init</a>
+<a name="88"><span class="lineNum">      88 </span>            : // ================</a>
+<a name="89"><span class="lineNum">      89 </span>            : </a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">      33600 : ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail&amp; func) noexcept {</span></a>
+<a name="91"><span class="lineNum">      91 </span>            :   Arch arch = func.callConv().arch();</a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">      33600 :   if (!Environment::isValidArch(arch))</span></a>
+<a name="93"><span class="lineNum">      93 </span>            :     return DebugUtils::errored(kErrorInvalidArch);</a>
+<a name="94"><span class="lineNum">      94 </span>            : </a>
+<a name="95"><span class="lineNum">      95 </span>            :   const ArchTraits&amp; archTraits = ArchTraits::byArch(arch);</a>
+<a name="96"><span class="lineNum">      96 </span>            : </a>
+<a name="97"><span class="lineNum">      97 </span>            :   // Initializing FuncFrame means making a copy of some properties of `func`. Properties like `_localStackSize` will</a>
+<a name="98"><span class="lineNum">      98 </span>            :   // be set by the user before the frame is finalized.</a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">      33600 :   reset();</span></a>
+<a name="100"><span class="lineNum">     100 </span>            : </a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">      33600 :   _arch = arch;</span></a>
+<a name="102"><span class="lineNum">     102 </span><span class="lineCov">      33600 :   _spRegId = uint8_t(archTraits.spRegId());</span></a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineCov">      33600 :   _saRegId = uint8_t(BaseReg::kIdBad);</span></a>
+<a name="104"><span class="lineNum">     104 </span>            : </a>
+<a name="105"><span class="lineNum">     105 </span>            :   uint32_t naturalStackAlignment = func.callConv().naturalStackAlignment();</a>
+<a name="106"><span class="lineNum">     106 </span>            :   uint32_t minDynamicAlignment = Support::max&lt;uint32_t&gt;(naturalStackAlignment, 16);</a>
+<a name="107"><span class="lineNum">     107 </span>            : </a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">      33600 :   if (minDynamicAlignment == naturalStackAlignment)</span></a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineCov">      33600 :     minDynamicAlignment &lt;&lt;= 1;</span></a>
+<a name="110"><span class="lineNum">     110 </span>            : </a>
+<a name="111"><span class="lineNum">     111 </span><span class="lineCov">      33600 :   _naturalStackAlignment = uint8_t(naturalStackAlignment);</span></a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">      33600 :   _minDynamicAlignment = uint8_t(minDynamicAlignment);</span></a>
+<a name="113"><span class="lineNum">     113 </span><span class="lineCov">      33600 :   _redZoneSize = uint8_t(func.redZoneSize());</span></a>
+<a name="114"><span class="lineNum">     114 </span><span class="lineCov">      33600 :   _spillZoneSize = uint8_t(func.spillZoneSize());</span></a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">      33600 :   _finalStackAlignment = uint8_t(_naturalStackAlignment);</span></a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span><span class="lineCov">      33600 :   if (func.hasFlag(CallConvFlags::kCalleePopsStack)) {</span></a>
+<a name="118"><span class="lineNum">     118 </span><span class="lineNoCov">          0 :     _calleeStackCleanup = uint16_t(func.argStackSize());</span></a>
+<a name="119"><span class="lineNum">     119 </span>            :   }</a>
+<a name="120"><span class="lineNum">     120 </span>            : </a>
+<a name="121"><span class="lineNum">     121 </span>            :   // Initial masks of dirty and preserved registers.</a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">     168000 :   for (RegGroup group : RegGroupVirtValues{}) {</span></a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">     134400 :     _dirtyRegs[group] = func.usedRegs(group);</span></a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">     134400 :     _preservedRegs[group] = func.preservedRegs(group);</span></a>
+<a name="125"><span class="lineNum">     125 </span>            :   }</a>
+<a name="126"><span class="lineNum">     126 </span>            : </a>
+<a name="127"><span class="lineNum">     127 </span>            :   // Exclude stack pointer - this register is never included in saved GP regs.</a>
+<a name="128"><span class="lineNum">     128 </span><span class="lineCov">      33600 :   _preservedRegs[RegGroup::kGp] &amp;= ~Support::bitMask(archTraits.spRegId());</span></a>
+<a name="129"><span class="lineNum">     129 </span>            : </a>
+<a name="130"><span class="lineNum">     130 </span>            :   // The size and alignment of save/restore area of registers for each virtual register group</a>
+<a name="131"><span class="lineNum">     131 </span><span class="lineCov">      33600 :   _saveRestoreRegSize = func.callConv()._saveRestoreRegSize;</span></a>
+<a name="132"><span class="lineNum">     132 </span><span class="lineCov">      33600 :   _saveRestoreAlignment = func.callConv()._saveRestoreAlignment;</span></a>
+<a name="133"><span class="lineNum">     133 </span>            : </a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">      33600 :   return kErrorOk;</span></a>
+<a name="135"><span class="lineNum">     135 </span>            : }</a>
+<a name="136"><span class="lineNum">     136 </span>            : </a>
+<a name="137"><span class="lineNum">     137 </span>            : // FuncFrame - Finalize</a>
+<a name="138"><span class="lineNum">     138 </span>            : // ====================</a>
+<a name="139"><span class="lineNum">     139 </span>            : </a>
+<a name="140"><span class="lineNum">     140 </span><span class="lineCov">      33600 : ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {</span></a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">      33600 :   if (!Environment::isValidArch(arch()))</span></a>
+<a name="142"><span class="lineNum">     142 </span>            :     return DebugUtils::errored(kErrorInvalidArch);</a>
+<a name="143"><span class="lineNum">     143 </span>            : </a>
+<a name="144"><span class="lineNum">     144 </span>            :   const ArchTraits&amp; archTraits = ArchTraits::byArch(arch());</a>
+<a name="145"><span class="lineNum">     145 </span>            : </a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">      33600 :   uint32_t registerSize = _saveRestoreRegSize[RegGroup::kGp];</span></a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">      33600 :   uint32_t vectorSize = _saveRestoreRegSize[RegGroup::kVec];</span></a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineCov">      33600 :   uint32_t returnAddressSize = archTraits.hasLinkReg() ? 0u : registerSize;</span></a>
+<a name="149"><span class="lineNum">     149 </span>            : </a>
+<a name="150"><span class="lineNum">     150 </span>            :   // The final stack alignment must be updated accordingly to call and local stack alignments.</a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineCov">      33600 :   uint32_t stackAlignment = _finalStackAlignment;</span></a>
+<a name="152"><span class="lineNum">     152 </span>            :   ASMJIT_ASSERT(stackAlignment == Support::max(_naturalStackAlignment,</a>
+<a name="153"><span class="lineNum">     153 </span>            :                                                _callStackAlignment,</a>
+<a name="154"><span class="lineNum">     154 </span>            :                                                _localStackAlignment));</a>
+<a name="155"><span class="lineNum">     155 </span>            : </a>
+<a name="156"><span class="lineNum">     156 </span>            :   bool hasFP = hasPreservedFP();</a>
+<a name="157"><span class="lineNum">     157 </span>            :   bool hasDA = hasDynamicAlignment();</a>
+<a name="158"><span class="lineNum">     158 </span>            : </a>
+<a name="159"><span class="lineNum">     159 </span>            :   uint32_t kSp = archTraits.spRegId();</a>
+<a name="160"><span class="lineNum">     160 </span>            :   uint32_t kFp = archTraits.fpRegId();</a>
+<a name="161"><span class="lineNum">     161 </span>            :   uint32_t kLr = archTraits.linkRegId();</a>
+<a name="162"><span class="lineNum">     162 </span>            : </a>
+<a name="163"><span class="lineNum">     163 </span>            :   // Make frame pointer dirty if the function uses it.</a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">      33600 :   if (hasFP) {</span></a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineNoCov">          0 :     _dirtyRegs[RegGroup::kGp] |= Support::bitMask(kFp);</span></a>
+<a name="166"><span class="lineNum">     166 </span>            : </a>
+<a name="167"><span class="lineNum">     167 </span>            :     // Currently required by ARM, if this works differently across architectures we would have to generalize most</a>
+<a name="168"><span class="lineNum">     168 </span>            :     // likely in CallConv.</a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineNoCov">          0 :     if (kLr != BaseReg::kIdBad)</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineNoCov">          0 :       _dirtyRegs[RegGroup::kGp] |= Support::bitMask(kLr);</span></a>
+<a name="171"><span class="lineNum">     171 </span>            :   }</a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span>            :   // These two are identical if the function doesn't align its stack dynamically.</a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">      33600 :   uint32_t saRegId = _saRegId;</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">      33600 :   if (saRegId == BaseReg::kIdBad)</span></a>
+<a name="176"><span class="lineNum">     176 </span>            :     saRegId = kSp;</a>
+<a name="177"><span class="lineNum">     177 </span>            : </a>
+<a name="178"><span class="lineNum">     178 </span>            :   // Fix stack arguments base-register from SP to FP in case it was not picked before and the function performs</a>
+<a name="179"><span class="lineNum">     179 </span>            :   // dynamic stack alignment.</a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">      33600 :   if (hasDA &amp;&amp; saRegId == kSp)</span></a>
+<a name="181"><span class="lineNum">     181 </span>            :     saRegId = kFp;</a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span>            :   // Mark as dirty any register but SP if used as SA pointer.</a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">      33600 :   if (saRegId != kSp)</span></a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineNoCov">          0 :     _dirtyRegs[RegGroup::kGp] |= Support::bitMask(saRegId);</span></a>
+<a name="186"><span class="lineNum">     186 </span>            : </a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">      33600 :   _spRegId = uint8_t(kSp);</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">      33600 :   _saRegId = uint8_t(saRegId);</span></a>
+<a name="189"><span class="lineNum">     189 </span>            : </a>
+<a name="190"><span class="lineNum">     190 </span>            :   // Setup stack size used to save preserved registers.</a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">      33600 :   uint32_t saveRestoreSizes[2] {};</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">     168000 :   for (RegGroup group : RegGroupVirtValues{})</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">     134400 :     saveRestoreSizes[size_t(!archTraits.hasInstPushPop(group))]</span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineCov">     134400 :       += Support::alignUp(Support::popcnt(savedRegs(group)) * saveRestoreRegSize(group), saveRestoreAlignment(group));</span></a>
+<a name="195"><span class="lineNum">     195 </span>            : </a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">      33600 :   _pushPopSaveSize  = uint16_t(saveRestoreSizes[0]);</span></a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">      33600 :   _extraRegSaveSize = uint16_t(saveRestoreSizes[1]);</span></a>
+<a name="198"><span class="lineNum">     198 </span>            : </a>
+<a name="199"><span class="lineNum">     199 </span>            :   uint32_t v = 0;                            // The beginning of the stack frame relative to SP after prolog.</a>
+<a name="200"><span class="lineNum">     200 </span>            :   v += callStackSize();                      // Count 'callStackSize'      &lt;- This is used to call functions.</a>
+<a name="201"><span class="lineNum">     201 </span>            :   v  = Support::alignUp(v, stackAlignment);  // Align to function's stack alignment.</a>
+<a name="202"><span class="lineNum">     202 </span>            : </a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">      33600 :   _localStackOffset = v;                     // Store 'localStackOffset'   &lt;- Function's local stack starts here.</span></a>
+<a name="204"><span class="lineNum">     204 </span><span class="lineCov">      33600 :   v += localStackSize();                     // Count 'localStackSize'     &lt;- Function's local stack ends here.</span></a>
+<a name="205"><span class="lineNum">     205 </span>            : </a>
+<a name="206"><span class="lineNum">     206 </span>            :   // If the function's stack must be aligned, calculate the alignment necessary to store vector registers, and set</a>
+<a name="207"><span class="lineNum">     207 </span>            :   // `FuncAttributes::kAlignedVecSR` to inform PEI that it can use instructions that perform aligned stores/loads.</a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">      33600 :   if (stackAlignment &gt;= vectorSize &amp;&amp; _extraRegSaveSize) {</span></a>
+<a name="209"><span class="lineNum">     209 </span>            :     addAttributes(FuncAttributes::kAlignedVecSR);</a>
+<a name="210"><span class="lineNum">     210 </span>            :     v = Support::alignUp(v, vectorSize);     // Align 'extraRegSaveOffset'.</a>
+<a name="211"><span class="lineNum">     211 </span>            :   }</a>
+<a name="212"><span class="lineNum">     212 </span>            : </a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">      33600 :   _extraRegSaveOffset = v;                   // Store 'extraRegSaveOffset' &lt;- Non-GP save/restore starts here.</span></a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">      33600 :   v += _extraRegSaveSize;                    // Count 'extraRegSaveSize'   &lt;- Non-GP save/restore ends here.</span></a>
+<a name="215"><span class="lineNum">     215 </span>            : </a>
+<a name="216"><span class="lineNum">     216 </span>            :   // Calculate if dynamic alignment (DA) slot (stored as offset relative to SP) is required and its offset.</a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">      33600 :   if (hasDA &amp;&amp; !hasFP) {</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineNoCov">          0 :     _daOffset = v;                           // Store 'daOffset'           &lt;- DA pointer would be stored here.</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineNoCov">          0 :     v += registerSize;                       // Count 'daOffset'.</span></a>
+<a name="220"><span class="lineNum">     220 </span>            :   }</a>
+<a name="221"><span class="lineNum">     221 </span>            :   else {</a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineCov">      33600 :     _daOffset = FuncFrame::kTagInvalidOffset;</span></a>
+<a name="223"><span class="lineNum">     223 </span>            :   }</a>
+<a name="224"><span class="lineNum">     224 </span>            : </a>
+<a name="225"><span class="lineNum">     225 </span>            :   // Link Register</a>
+<a name="226"><span class="lineNum">     226 </span>            :   // -------------</a>
+<a name="227"><span class="lineNum">     227 </span>            :   //</a>
+<a name="228"><span class="lineNum">     228 </span>            :   // The stack is aligned after the function call as the return address is stored in a link register. Some</a>
+<a name="229"><span class="lineNum">     229 </span>            :   // architectures may require to always have aligned stack after PUSH/POP operation, which is represented</a>
+<a name="230"><span class="lineNum">     230 </span>            :   // by ArchTraits::stackAlignmentConstraint().</a>
+<a name="231"><span class="lineNum">     231 </span>            :   //</a>
+<a name="232"><span class="lineNum">     232 </span>            :   // No Link Register (X86/X64)</a>
+<a name="233"><span class="lineNum">     233 </span>            :   // --------------------------</a>
+<a name="234"><span class="lineNum">     234 </span>            :   //</a>
+<a name="235"><span class="lineNum">     235 </span>            :   // The return address should be stored after GP save/restore regs. It has the same size as `registerSize`</a>
+<a name="236"><span class="lineNum">     236 </span>            :   // (basically the native register/pointer size). We don't adjust it now as `v` now contains the exact size</a>
+<a name="237"><span class="lineNum">     237 </span>            :   // that the function requires to adjust (call frame + stack frame, vec stack size). The stack (if we consider</a>
+<a name="238"><span class="lineNum">     238 </span>            :   // this size) is misaligned now, as it's always aligned before the function call - when `call()` is executed</a>
+<a name="239"><span class="lineNum">     239 </span>            :   // it pushes the current EIP|RIP onto the stack, and misaligns it by 12 or 8 bytes (depending on the</a>
+<a name="240"><span class="lineNum">     240 </span>            :   // architecture). So count number of bytes needed to align it up to the function's CallFrame (the beginning).</a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">      33600 :   if (v || hasFuncCalls() || !returnAddressSize)</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">       6315 :     v += Support::alignUpDiff(v + pushPopSaveSize() + returnAddressSize, stackAlignment);</span></a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineCov">      33600 :   _pushPopSaveOffset = v;                    // Store 'pushPopSaveOffset'  &lt;- Function's push/pop save/restore starts here.</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">      33600 :   _stackAdjustment = v;                      // Store 'stackAdjustment'    &lt;- SA used by 'add SP, SA' and 'sub SP, SA'.</span></a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">      33600 :   v += _pushPopSaveSize;                     // Count 'pushPopSaveSize'    &lt;- Function's push/pop save/restore ends here.</span></a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">      33600 :   _finalStackSize = v;                       // Store 'finalStackSize'     &lt;- Final stack used by the function.</span></a>
+<a name="248"><span class="lineNum">     248 </span>            : </a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">      33600 :   if (!archTraits.hasLinkReg())</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">      33600 :     v += registerSize;                       // Count 'ReturnAddress'      &lt;- As CALL pushes onto stack.</span></a>
+<a name="251"><span class="lineNum">     251 </span>            : </a>
+<a name="252"><span class="lineNum">     252 </span>            :   // If the function performs dynamic stack alignment then the stack-adjustment must be aligned.</a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">      33600 :   if (hasDA)</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineNoCov">          0 :     _stackAdjustment = Support::alignUp(_stackAdjustment, stackAlignment);</span></a>
+<a name="255"><span class="lineNum">     255 </span>            : </a>
+<a name="256"><span class="lineNum">     256 </span>            :   // Calculate where the function arguments start relative to SP.</a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">      33600 :   _saOffsetFromSP = hasDA ? FuncFrame::kTagInvalidOffset : v;</span></a>
+<a name="258"><span class="lineNum">     258 </span>            : </a>
+<a name="259"><span class="lineNum">     259 </span>            :   // Calculate where the function arguments start relative to FP or user-provided register.</a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">      33600 :   _saOffsetFromSA = hasFP ? returnAddressSize + registerSize      // Return address + frame pointer.</span></a>
+<a name="261"><span class="lineNum">     261 </span>            :                           : returnAddressSize + _pushPopSaveSize; // Return address + all push/pop regs.</a>
+<a name="262"><span class="lineNum">     262 </span>            : </a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineCov">      33600 :   return kErrorOk;</span></a>
+<a name="264"><span class="lineNum">     264 </span>            : }</a>
+<a name="265"><span class="lineNum">     265 </span>            : </a>
+<a name="266"><span class="lineNum">     266 </span>            : // FuncArgsAssignment - UpdateFuncFrame</a>
+<a name="267"><span class="lineNum">     267 </span>            : // ====================================</a>
+<a name="268"><span class="lineNum">     268 </span>            : </a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineCov">      33600 : ASMJIT_FAVOR_SIZE Error FuncArgsAssignment::updateFuncFrame(FuncFrame&amp; frame) const noexcept {</span></a>
+<a name="270"><span class="lineNum">     270 </span>            :   Arch arch = frame.arch();</a>
+<a name="271"><span class="lineNum">     271 </span>            :   const FuncDetail* func = funcDetail();</a>
+<a name="272"><span class="lineNum">     272 </span>            : </a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">      33600 :   if (!func)</span></a>
+<a name="274"><span class="lineNum">     274 </span>            :     return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="275"><span class="lineNum">     275 </span>            : </a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">      33600 :   RAConstraints constraints;</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">      33600 :   ASMJIT_PROPAGATE(constraints.init(arch));</span></a>
+<a name="278"><span class="lineNum">     278 </span>            : </a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">      33600 :   FuncArgsContext ctx;</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">      33600 :   ASMJIT_PROPAGATE(ctx.initWorkData(frame, *this, &amp;constraints));</span></a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">      33600 :   ASMJIT_PROPAGATE(ctx.markDstRegsDirty(frame));</span></a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">      33600 :   ASMJIT_PROPAGATE(ctx.markScratchRegs(frame));</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineCov">      33600 :   ASMJIT_PROPAGATE(ctx.markStackArgsReg(frame));</span></a>
+<a name="284"><span class="lineNum">     284 </span>            :   return kErrorOk;</a>
+<a name="285"><span class="lineNum">     285 </span>            : }</a>
+<a name="286"><span class="lineNum">     286 </span>            : </a>
+<a name="287"><span class="lineNum">     287 </span>            : ASMJIT_END_NAMESPACE</a>
+<a name="288"><span class="lineNum">     288 </span>            : </a>
+<a name="289"><span class="lineNum">     289 </span>            : #endif // __PLUMED_HAS_ASMJIT</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

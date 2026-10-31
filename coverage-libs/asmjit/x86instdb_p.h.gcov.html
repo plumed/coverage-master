@@ -1,0 +1,388 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage (other modules) - asmjit/x86instdb_p.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">asmjit</a> - x86instdb_p.h<span style="font-size: 80%;"> (source / <a href="x86instdb_p.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage (other modules)</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-10-31 16:48:53</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : // This file is part of AsmJit project &lt;https://asmjit.com&gt;</a>
+<a name="2"><span class="lineNum">       2 </span>            : //</a>
+<a name="3"><span class="lineNum">       3 </span>            : // See asmjit.h or LICENSE.md for license and copyright information</a>
+<a name="4"><span class="lineNum">       4 </span>            : // SPDX-License-Identifier: Zlib</a>
+<a name="5"><span class="lineNum">       5 </span>            : </a>
+<a name="6"><span class="lineNum">       6 </span>            : #ifndef ASMJIT_X86_X86INSTDB_P_H_INCLUDED</a>
+<a name="7"><span class="lineNum">       7 </span>            : #define ASMJIT_X86_X86INSTDB_P_H_INCLUDED</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            : #include &quot;x86instdb.h&quot;</a>
+<a name="10"><span class="lineNum">      10 </span>            : </a>
+<a name="11"><span class="lineNum">      11 </span>            : ASMJIT_BEGIN_SUB_NAMESPACE(x86)</a>
+<a name="12"><span class="lineNum">      12 </span>            : </a>
+<a name="13"><span class="lineNum">      13 </span>            : //! \cond INTERNAL</a>
+<a name="14"><span class="lineNum">      14 </span>            : //! \addtogroup asmjit_x86</a>
+<a name="15"><span class="lineNum">      15 </span>            : //! \{</a>
+<a name="16"><span class="lineNum">      16 </span>            : </a>
+<a name="17"><span class="lineNum">      17 </span>            : namespace InstDB {</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            : //! Instruction encoding (X86).</a>
+<a name="20"><span class="lineNum">      20 </span>            : //!</a>
+<a name="21"><span class="lineNum">      21 </span>            : //! This is a specific identifier that is used by AsmJit to describe the way each instruction is encoded. Some</a>
+<a name="22"><span class="lineNum">      22 </span>            : //! encodings are special only for a single instruction as X86 instruction set contains a lot of legacy encodings,</a>
+<a name="23"><span class="lineNum">      23 </span>            : //! and some encodings describe a group of instructions that share some commons, like MMX, SSE, AVX, AVX512</a>
+<a name="24"><span class="lineNum">      24 </span>            : //! instructions, etc...</a>
+<a name="25"><span class="lineNum">      25 </span>            : enum EncodingId : uint32_t {</a>
+<a name="26"><span class="lineNum">      26 </span>            :   kEncodingNone = 0,                     //!&lt; Never used.</a>
+<a name="27"><span class="lineNum">      27 </span>            :   kEncodingX86Op,                        //!&lt; X86 [OP].</a>
+<a name="28"><span class="lineNum">      28 </span>            :   kEncodingX86Op_Mod11RM,                //!&lt; X86 [OP] (opcode with ModRM byte where MOD must be 11b).</a>
+<a name="29"><span class="lineNum">      29 </span>            :   kEncodingX86Op_Mod11RM_I8,             //!&lt; X86 [OP] (opcode with ModRM byte + 8-bit immediate).</a>
+<a name="30"><span class="lineNum">      30 </span>            :   kEncodingX86Op_xAddr,                  //!&lt; X86 [OP] (implicit address in the first register operand).</a>
+<a name="31"><span class="lineNum">      31 </span>            :   kEncodingX86Op_xAX,                    //!&lt; X86 [OP] (implicit or explicit '?AX' form).</a>
+<a name="32"><span class="lineNum">      32 </span>            :   kEncodingX86Op_xDX_xAX,                //!&lt; X86 [OP] (implicit or explicit '?DX, ?AX' form).</a>
+<a name="33"><span class="lineNum">      33 </span>            :   kEncodingX86Op_MemZAX,                 //!&lt; X86 [OP] (implicit or explicit '[EAX|RAX]' form).</a>
+<a name="34"><span class="lineNum">      34 </span>            :   kEncodingX86I_xAX,                     //!&lt; X86 [I] (implicit or explicit '?AX' form).</a>
+<a name="35"><span class="lineNum">      35 </span>            :   kEncodingX86M,                         //!&lt; X86 [M] (handles 2|4|8-bytes size).</a>
+<a name="36"><span class="lineNum">      36 </span>            :   kEncodingX86M_NoMemSize,               //!&lt; X86 [M] (handles 2|4|8-bytes size, but doesn't consider memory size).</a>
+<a name="37"><span class="lineNum">      37 </span>            :   kEncodingX86M_NoSize,                  //!&lt; X86 [M] (doesn't handle any size).</a>
+<a name="38"><span class="lineNum">      38 </span>            :   kEncodingX86M_GPB,                     //!&lt; X86 [M] (handles single-byte size).</a>
+<a name="39"><span class="lineNum">      39 </span>            :   kEncodingX86M_GPB_MulDiv,              //!&lt; X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).</a>
+<a name="40"><span class="lineNum">      40 </span>            :   kEncodingX86M_Only,                    //!&lt; X86 [M] (restricted to memory operand of any size).</a>
+<a name="41"><span class="lineNum">      41 </span>            :   kEncodingX86M_Only_EDX_EAX,            //!&lt; X86 [M] (memory operand only, followed by implicit &lt;edx&gt; and &lt;eax&gt;).</a>
+<a name="42"><span class="lineNum">      42 </span>            :   kEncodingX86M_Nop,                     //!&lt; X86 [M] (special case of NOP instruction).</a>
+<a name="43"><span class="lineNum">      43 </span>            :   kEncodingX86R_Native,                  //!&lt; X86 [R] (register must be either 32-bit or 64-bit depending on arch).</a>
+<a name="44"><span class="lineNum">      44 </span>            :   kEncodingX86R_FromM,                   //!&lt; X86 [R] - which specifies memory address.</a>
+<a name="45"><span class="lineNum">      45 </span>            :   kEncodingX86R32_EDX_EAX,               //!&lt; X86 [R32] followed by implicit EDX and EAX.</a>
+<a name="46"><span class="lineNum">      46 </span>            :   kEncodingX86Rm,                        //!&lt; X86 [RM] (doesn't handle single-byte size).</a>
+<a name="47"><span class="lineNum">      47 </span>            :   kEncodingX86Rm_Raw66H,                 //!&lt; X86 [RM] (used by LZCNT, POPCNT, and TZCNT).</a>
+<a name="48"><span class="lineNum">      48 </span>            :   kEncodingX86Rm_NoSize,                 //!&lt; X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).</a>
+<a name="49"><span class="lineNum">      49 </span>            :   kEncodingX86Mr,                        //!&lt; X86 [MR] (doesn't handle single-byte size).</a>
+<a name="50"><span class="lineNum">      50 </span>            :   kEncodingX86Mr_NoSize,                 //!&lt; X86 [MR] (doesn't handle any size).</a>
+<a name="51"><span class="lineNum">      51 </span>            :   kEncodingX86Arith,                     //!&lt; X86 adc, add, and, cmp, or, sbb, sub, xor.</a>
+<a name="52"><span class="lineNum">      52 </span>            :   kEncodingX86Bswap,                     //!&lt; X86 bswap.</a>
+<a name="53"><span class="lineNum">      53 </span>            :   kEncodingX86Bt,                        //!&lt; X86 bt, btc, btr, bts.</a>
+<a name="54"><span class="lineNum">      54 </span>            :   kEncodingX86Call,                      //!&lt; X86 call.</a>
+<a name="55"><span class="lineNum">      55 </span>            :   kEncodingX86Cmpxchg,                   //!&lt; X86 [MR] cmpxchg.</a>
+<a name="56"><span class="lineNum">      56 </span>            :   kEncodingX86Cmpxchg8b_16b,             //!&lt; X86 [MR] cmpxchg8b, cmpxchg16b.</a>
+<a name="57"><span class="lineNum">      57 </span>            :   kEncodingX86Crc,                       //!&lt; X86 crc32.</a>
+<a name="58"><span class="lineNum">      58 </span>            :   kEncodingX86Enter,                     //!&lt; X86 enter.</a>
+<a name="59"><span class="lineNum">      59 </span>            :   kEncodingX86Imul,                      //!&lt; X86 imul.</a>
+<a name="60"><span class="lineNum">      60 </span>            :   kEncodingX86In,                        //!&lt; X86 in.</a>
+<a name="61"><span class="lineNum">      61 </span>            :   kEncodingX86Ins,                       //!&lt; X86 ins[b|q|d].</a>
+<a name="62"><span class="lineNum">      62 </span>            :   kEncodingX86IncDec,                    //!&lt; X86 inc, dec.</a>
+<a name="63"><span class="lineNum">      63 </span>            :   kEncodingX86Int,                       //!&lt; X86 int (interrupt).</a>
+<a name="64"><span class="lineNum">      64 </span>            :   kEncodingX86Jcc,                       //!&lt; X86 jcc.</a>
+<a name="65"><span class="lineNum">      65 </span>            :   kEncodingX86JecxzLoop,                 //!&lt; X86 jcxz, jecxz, jrcxz, loop, loope, loopne.</a>
+<a name="66"><span class="lineNum">      66 </span>            :   kEncodingX86Jmp,                       //!&lt; X86 jmp.</a>
+<a name="67"><span class="lineNum">      67 </span>            :   kEncodingX86JmpRel,                    //!&lt; X86 xbegin.</a>
+<a name="68"><span class="lineNum">      68 </span>            :   kEncodingX86LcallLjmp,                 //!&lt; X86 lcall/ljmp.</a>
+<a name="69"><span class="lineNum">      69 </span>            :   kEncodingX86Lea,                       //!&lt; X86 lea.</a>
+<a name="70"><span class="lineNum">      70 </span>            :   kEncodingX86Mov,                       //!&lt; X86 mov (all possible cases).</a>
+<a name="71"><span class="lineNum">      71 </span>            :   kEncodingX86Movabs,                    //!&lt; X86 movabs.</a>
+<a name="72"><span class="lineNum">      72 </span>            :   kEncodingX86MovsxMovzx,                //!&lt; X86 movsx, movzx.</a>
+<a name="73"><span class="lineNum">      73 </span>            :   kEncodingX86MovntiMovdiri,             //!&lt; X86 movnti/movdiri.</a>
+<a name="74"><span class="lineNum">      74 </span>            :   kEncodingX86EnqcmdMovdir64b,           //!&lt; X86 enqcmd/enqcmds/movdir64b.</a>
+<a name="75"><span class="lineNum">      75 </span>            :   kEncodingX86Out,                       //!&lt; X86 out.</a>
+<a name="76"><span class="lineNum">      76 </span>            :   kEncodingX86Outs,                      //!&lt; X86 out[b|w|d].</a>
+<a name="77"><span class="lineNum">      77 </span>            :   kEncodingX86Push,                      //!&lt; X86 push.</a>
+<a name="78"><span class="lineNum">      78 </span>            :   kEncodingX86Pop,                       //!&lt; X86 pop.</a>
+<a name="79"><span class="lineNum">      79 </span>            :   kEncodingX86Ret,                       //!&lt; X86 ret.</a>
+<a name="80"><span class="lineNum">      80 </span>            :   kEncodingX86Rot,                       //!&lt; X86 rcl, rcr, rol, ror, sal, sar, shl, shr.</a>
+<a name="81"><span class="lineNum">      81 </span>            :   kEncodingX86Set,                       //!&lt; X86 setcc.</a>
+<a name="82"><span class="lineNum">      82 </span>            :   kEncodingX86ShldShrd,                  //!&lt; X86 shld, shrd.</a>
+<a name="83"><span class="lineNum">      83 </span>            :   kEncodingX86StrRm,                     //!&lt; X86 lods.</a>
+<a name="84"><span class="lineNum">      84 </span>            :   kEncodingX86StrMr,                     //!&lt; X86 scas, stos.</a>
+<a name="85"><span class="lineNum">      85 </span>            :   kEncodingX86StrMm,                     //!&lt; X86 cmps, movs.</a>
+<a name="86"><span class="lineNum">      86 </span>            :   kEncodingX86Test,                      //!&lt; X86 test.</a>
+<a name="87"><span class="lineNum">      87 </span>            :   kEncodingX86Xadd,                      //!&lt; X86 xadd.</a>
+<a name="88"><span class="lineNum">      88 </span>            :   kEncodingX86Xchg,                      //!&lt; X86 xchg.</a>
+<a name="89"><span class="lineNum">      89 </span>            :   kEncodingX86Fence,                     //!&lt; X86 lfence, mfence, sfence.</a>
+<a name="90"><span class="lineNum">      90 </span>            :   kEncodingX86Bndmov,                    //!&lt; X86 [RM|MR] (used by BNDMOV).</a>
+<a name="91"><span class="lineNum">      91 </span>            :   kEncodingFpuOp,                        //!&lt; FPU [OP].</a>
+<a name="92"><span class="lineNum">      92 </span>            :   kEncodingFpuArith,                     //!&lt; FPU fadd, fdiv, fdivr, fmul, fsub, fsubr.</a>
+<a name="93"><span class="lineNum">      93 </span>            :   kEncodingFpuCom,                       //!&lt; FPU fcom, fcomp.</a>
+<a name="94"><span class="lineNum">      94 </span>            :   kEncodingFpuFldFst,                    //!&lt; FPU fld, fst, fstp.</a>
+<a name="95"><span class="lineNum">      95 </span>            :   kEncodingFpuM,                         //!&lt; FPU fiadd, ficom, ficomp, fidiv, fidivr, fild, fimul, fist, fistp, fisttp, fisub, fisubr.</a>
+<a name="96"><span class="lineNum">      96 </span>            :   kEncodingFpuR,                         //!&lt; FPU fcmov, fcomi, fcomip, ffree, fucom, fucomi, fucomip, fucomp, fxch.</a>
+<a name="97"><span class="lineNum">      97 </span>            :   kEncodingFpuRDef,                      //!&lt; FPU faddp, fdivp, fdivrp, fmulp, fsubp, fsubrp.</a>
+<a name="98"><span class="lineNum">      98 </span>            :   kEncodingFpuStsw,                      //!&lt; FPU fnstsw, Fstsw.</a>
+<a name="99"><span class="lineNum">      99 </span>            :   kEncodingExtRm,                        //!&lt; EXT [RM].</a>
+<a name="100"><span class="lineNum">     100 </span>            :   kEncodingExtRm_XMM0,                   //!&lt; EXT [RM&lt;XMM0&gt;].</a>
+<a name="101"><span class="lineNum">     101 </span>            :   kEncodingExtRm_ZDI,                    //!&lt; EXT [RM&lt;ZDI&gt;].</a>
+<a name="102"><span class="lineNum">     102 </span>            :   kEncodingExtRm_P,                      //!&lt; EXT [RM] (propagates 66H if the instruction uses XMM register).</a>
+<a name="103"><span class="lineNum">     103 </span>            :   kEncodingExtRm_Wx,                     //!&lt; EXT [RM] (propagates REX.W if GPQ is used or the second operand is GPQ/QWORD_PTR).</a>
+<a name="104"><span class="lineNum">     104 </span>            :   kEncodingExtRm_Wx_GpqOnly,             //!&lt; EXT [RM] (propagates REX.W if the first operand is GPQ register).</a>
+<a name="105"><span class="lineNum">     105 </span>            :   kEncodingExtRmRi,                      //!&lt; EXT [RM|RI].</a>
+<a name="106"><span class="lineNum">     106 </span>            :   kEncodingExtRmRi_P,                    //!&lt; EXT [RM|RI] (propagates 66H if the instruction uses XMM register).</a>
+<a name="107"><span class="lineNum">     107 </span>            :   kEncodingExtRmi,                       //!&lt; EXT [RMI].</a>
+<a name="108"><span class="lineNum">     108 </span>            :   kEncodingExtRmi_P,                     //!&lt; EXT [RMI] (propagates 66H if the instruction uses XMM register).</a>
+<a name="109"><span class="lineNum">     109 </span>            :   kEncodingExtPextrw,                    //!&lt; EXT pextrw.</a>
+<a name="110"><span class="lineNum">     110 </span>            :   kEncodingExtExtract,                   //!&lt; EXT pextrb, pextrd, pextrq, extractps.</a>
+<a name="111"><span class="lineNum">     111 </span>            :   kEncodingExtMov,                       //!&lt; EXT mov?? - #1:[MM|XMM, MM|XMM|Mem] #2:[MM|XMM|Mem, MM|XMM].</a>
+<a name="112"><span class="lineNum">     112 </span>            :   kEncodingExtMovbe,                     //!&lt; EXT movbe.</a>
+<a name="113"><span class="lineNum">     113 </span>            :   kEncodingExtMovd,                      //!&lt; EXT movd.</a>
+<a name="114"><span class="lineNum">     114 </span>            :   kEncodingExtMovq,                      //!&lt; EXT movq.</a>
+<a name="115"><span class="lineNum">     115 </span>            :   kEncodingExtExtrq,                     //!&lt; EXT extrq (SSE4A).</a>
+<a name="116"><span class="lineNum">     116 </span>            :   kEncodingExtInsertq,                   //!&lt; EXT insrq (SSE4A).</a>
+<a name="117"><span class="lineNum">     117 </span>            :   kEncodingExt3dNow,                     //!&lt; EXT [RMI] (3DNOW specific).</a>
+<a name="118"><span class="lineNum">     118 </span>            :   kEncodingVexOp,                        //!&lt; VEX [OP].</a>
+<a name="119"><span class="lineNum">     119 </span>            :   kEncodingVexOpMod,                     //!&lt; VEX [OP] with MODR/M.</a>
+<a name="120"><span class="lineNum">     120 </span>            :   kEncodingVexKmov,                      //!&lt; VEX [RM|MR] (used by kmov[b|w|d|q]).</a>
+<a name="121"><span class="lineNum">     121 </span>            :   kEncodingVexR_Wx,                      //!&lt; VEX|EVEX [R] (propagatex VEX.W if GPQ used).</a>
+<a name="122"><span class="lineNum">     122 </span>            :   kEncodingVexM,                         //!&lt; VEX|EVEX [M].</a>
+<a name="123"><span class="lineNum">     123 </span>            :   kEncodingVexM_VM,                      //!&lt; VEX|EVEX [M] (propagates VEX|EVEX.L, VSIB support).</a>
+<a name="124"><span class="lineNum">     124 </span>            :   kEncodingVexMr_Lx,                     //!&lt; VEX|EVEX [MR] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="125"><span class="lineNum">     125 </span>            :   kEncodingVexMr_VM,                     //!&lt; VEX|EVEX [MR] (VSIB support).</a>
+<a name="126"><span class="lineNum">     126 </span>            :   kEncodingVexMri,                       //!&lt; VEX|EVEX [MRI].</a>
+<a name="127"><span class="lineNum">     127 </span>            :   kEncodingVexMri_Lx,                    //!&lt; VEX|EVEX [MRI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="128"><span class="lineNum">     128 </span>            :   kEncodingVexMri_Vpextrw,               //!&lt; VEX|EVEX [MRI] (special case required by VPEXTRW instruction).</a>
+<a name="129"><span class="lineNum">     129 </span>            :   kEncodingVexRm,                        //!&lt; VEX|EVEX [RM].</a>
+<a name="130"><span class="lineNum">     130 </span>            :   kEncodingVexRm_ZDI,                    //!&lt; VEX|EVEX [RM&lt;ZDI&gt;].</a>
+<a name="131"><span class="lineNum">     131 </span>            :   kEncodingVexRm_Wx,                     //!&lt; VEX|EVEX [RM] (propagates VEX|EVEX.W if GPQ used).</a>
+<a name="132"><span class="lineNum">     132 </span>            :   kEncodingVexRm_Lx,                     //!&lt; VEX|EVEX [RM] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="133"><span class="lineNum">     133 </span>            :   kEncodingVexRm_Lx_Narrow,              //!&lt; VEX|EVEX [RM] (the destination vector size is narrowed).</a>
+<a name="134"><span class="lineNum">     134 </span>            :   kEncodingVexRm_Lx_Bcst,                //!&lt; VEX|EVEX [RM] (can handle broadcast r32/r64).</a>
+<a name="135"><span class="lineNum">     135 </span>            :   kEncodingVexRm_VM,                     //!&lt; VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).</a>
+<a name="136"><span class="lineNum">     136 </span>            :   kEncodingVexRm_T1_4X,                  //!&lt;     EVEX [RM] (used by NN instructions that use RM-T1_4X encoding).</a>
+<a name="137"><span class="lineNum">     137 </span>            :   kEncodingVexRmi,                       //!&lt; VEX|EVEX [RMI].</a>
+<a name="138"><span class="lineNum">     138 </span>            :   kEncodingVexRmi_Wx,                    //!&lt; VEX|EVEX [RMI] (propagates VEX|EVEX.W if GPQ used).</a>
+<a name="139"><span class="lineNum">     139 </span>            :   kEncodingVexRmi_Lx,                    //!&lt; VEX|EVEX [RMI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="140"><span class="lineNum">     140 </span>            :   kEncodingVexRvm,                       //!&lt; VEX|EVEX [RVM].</a>
+<a name="141"><span class="lineNum">     141 </span>            :   kEncodingVexRvm_Wx,                    //!&lt; VEX|EVEX [RVM] (propagates VEX|EVEX.W if GPQ used).</a>
+<a name="142"><span class="lineNum">     142 </span>            :   kEncodingVexRvm_ZDX_Wx,                //!&lt; VEX|EVEX [RVM&lt;ZDX&gt;] (propagates VEX|EVEX.W if GPQ used).</a>
+<a name="143"><span class="lineNum">     143 </span>            :   kEncodingVexRvm_Lx,                    //!&lt; VEX|EVEX [RVM] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="144"><span class="lineNum">     144 </span>            :   kEncodingVexRvm_Lx_KEvex,              //!&lt; VEX|EVEX [RVM] (forces EVEX prefix if K register is used on destination).</a>
+<a name="145"><span class="lineNum">     145 </span>            :   kEncodingVexRvm_Lx_2xK,                //!&lt; VEX|EVEX [RVM] (vp2intersectd/vp2intersectq).</a>
+<a name="146"><span class="lineNum">     146 </span>            :   kEncodingVexRvmr,                      //!&lt; VEX|EVEX [RVMR].</a>
+<a name="147"><span class="lineNum">     147 </span>            :   kEncodingVexRvmr_Lx,                   //!&lt; VEX|EVEX [RVMR] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="148"><span class="lineNum">     148 </span>            :   kEncodingVexRvmi,                      //!&lt; VEX|EVEX [RVMI].</a>
+<a name="149"><span class="lineNum">     149 </span>            :   kEncodingVexRvmi_KEvex,                //!&lt; VEX|EVEX [RVMI] (forces EVEX prefix if K register is used on destination).</a>
+<a name="150"><span class="lineNum">     150 </span>            :   kEncodingVexRvmi_Lx,                   //!&lt; VEX|EVEX [RVMI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="151"><span class="lineNum">     151 </span>            :   kEncodingVexRvmi_Lx_KEvex,             //!&lt; VEX|EVEX [RVMI] (forces EVEX prefix if K register is used on destination).</a>
+<a name="152"><span class="lineNum">     152 </span>            :   kEncodingVexRmv,                       //!&lt; VEX|EVEX [RMV].</a>
+<a name="153"><span class="lineNum">     153 </span>            :   kEncodingVexRmv_Wx,                    //!&lt; VEX|EVEX [RMV] (propagates VEX|EVEX.W if GPQ used).</a>
+<a name="154"><span class="lineNum">     154 </span>            :   kEncodingVexRmv_VM,                    //!&lt; VEX|EVEX [RMV] (propagates VEX|EVEX.L, VSIB support).</a>
+<a name="155"><span class="lineNum">     155 </span>            :   kEncodingVexRmvRm_VM,                  //!&lt; VEX|EVEX [RMV|RM] (propagates VEX|EVEX.L, VSIB support).</a>
+<a name="156"><span class="lineNum">     156 </span>            :   kEncodingVexRmvi,                      //!&lt; VEX|EVEX [RMVI].</a>
+<a name="157"><span class="lineNum">     157 </span>            :   kEncodingVexRmMr,                      //!&lt; VEX|EVEX [RM|MR].</a>
+<a name="158"><span class="lineNum">     158 </span>            :   kEncodingVexRmMr_Lx,                   //!&lt; VEX|EVEX [RM|MR] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="159"><span class="lineNum">     159 </span>            :   kEncodingVexRvmRmv,                    //!&lt; VEX|EVEX [RVM|RMV].</a>
+<a name="160"><span class="lineNum">     160 </span>            :   kEncodingVexRvmRmi,                    //!&lt; VEX|EVEX [RVM|RMI].</a>
+<a name="161"><span class="lineNum">     161 </span>            :   kEncodingVexRvmRmi_Lx,                 //!&lt; VEX|EVEX [RVM|RMI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="162"><span class="lineNum">     162 </span>            :   kEncodingVexRvmRmvRmi,                 //!&lt; VEX|EVEX [RVM|RMV|RMI].</a>
+<a name="163"><span class="lineNum">     163 </span>            :   kEncodingVexRvmMr,                     //!&lt; VEX|EVEX [RVM|MR].</a>
+<a name="164"><span class="lineNum">     164 </span>            :   kEncodingVexRvmMvr,                    //!&lt; VEX|EVEX [RVM|MVR].</a>
+<a name="165"><span class="lineNum">     165 </span>            :   kEncodingVexRvmMvr_Lx,                 //!&lt; VEX|EVEX [RVM|MVR] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="166"><span class="lineNum">     166 </span>            :   kEncodingVexRvmVmi,                    //!&lt; VEX|EVEX [RVM|VMI].</a>
+<a name="167"><span class="lineNum">     167 </span>            :   kEncodingVexRvmVmi_Lx,                 //!&lt; VEX|EVEX [RVM|VMI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="168"><span class="lineNum">     168 </span>            :   kEncodingVexRvmVmi_Lx_MEvex,           //!&lt; VEX|EVEX [RVM|VMI] (propagates EVEX if the second operand is memory).</a>
+<a name="169"><span class="lineNum">     169 </span>            :   kEncodingVexVm,                        //!&lt; VEX|EVEX [VM].</a>
+<a name="170"><span class="lineNum">     170 </span>            :   kEncodingVexVm_Wx,                     //!&lt; VEX|EVEX [VM] (propagates VEX|EVEX.W if GPQ used).</a>
+<a name="171"><span class="lineNum">     171 </span>            :   kEncodingVexVmi,                       //!&lt; VEX|EVEX [VMI].</a>
+<a name="172"><span class="lineNum">     172 </span>            :   kEncodingVexVmi_Lx,                    //!&lt; VEX|EVEX [VMI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="173"><span class="lineNum">     173 </span>            :   kEncodingVexVmi4_Wx,                   //!&lt; VEX|EVEX [VMI] (propagates VEX|EVEX.W if GPQ used, DWORD Immediate).</a>
+<a name="174"><span class="lineNum">     174 </span>            :   kEncodingVexVmi_Lx_MEvex,              //!&lt; VEX|EVEX [VMI] (force EVEX prefix when the second operand is memory)</a>
+<a name="175"><span class="lineNum">     175 </span>            :   kEncodingVexRvrmRvmr,                  //!&lt; VEX|EVEX [RVRM|RVMR].</a>
+<a name="176"><span class="lineNum">     176 </span>            :   kEncodingVexRvrmRvmr_Lx,               //!&lt; VEX|EVEX [RVRM|RVMR] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="177"><span class="lineNum">     177 </span>            :   kEncodingVexRvrmiRvmri_Lx,             //!&lt; VEX|EVEX [RVRMI|RVMRI] (propagates VEX|EVEX.L if YMM used).</a>
+<a name="178"><span class="lineNum">     178 </span>            :   kEncodingVexMovdMovq,                  //!&lt; VEX|EVEX vmovd, vmovq.</a>
+<a name="179"><span class="lineNum">     179 </span>            :   kEncodingVexMovssMovsd,                //!&lt; VEX|EVEX vmovss, vmovsd.</a>
+<a name="180"><span class="lineNum">     180 </span>            :   kEncodingFma4,                         //!&lt; FMA4 [R, R, R/M, R/M].</a>
+<a name="181"><span class="lineNum">     181 </span>            :   kEncodingFma4_Lx,                      //!&lt; FMA4 [R, R, R/M, R/M] (propagates AVX.L if YMM used).</a>
+<a name="182"><span class="lineNum">     182 </span>            :   kEncodingAmxCfg,                       //!&lt; AMX ldtilecfg/sttilecfg.</a>
+<a name="183"><span class="lineNum">     183 </span>            :   kEncodingAmxR,                         //!&lt; AMX [R] - tilezero.</a>
+<a name="184"><span class="lineNum">     184 </span>            :   kEncodingAmxRm,                        //!&lt; AMX tileloadd/tileloaddt1.</a>
+<a name="185"><span class="lineNum">     185 </span>            :   kEncodingAmxMr,                        //!&lt; AMX tilestored.</a>
+<a name="186"><span class="lineNum">     186 </span>            :   kEncodingAmxRmv,                       //!&lt; AMX instructions that use TMM registers.</a>
+<a name="187"><span class="lineNum">     187 </span>            :   kEncodingCount                         //!&lt; Count of instruction encodings.</a>
+<a name="188"><span class="lineNum">     188 </span>            : };</a>
+<a name="189"><span class="lineNum">     189 </span>            : </a>
+<a name="190"><span class="lineNum">     190 </span>            : //! Additional information table, provides CPU extensions required to execute an instruction and RW flags.</a>
+<a name="191"><span class="lineNum">     191 </span>            : struct AdditionalInfo {</a>
+<a name="192"><span class="lineNum">     192 </span>            :   //! Index to `_instFlagsTable`.</a>
+<a name="193"><span class="lineNum">     193 </span>            :   uint8_t _instFlagsIndex;</a>
+<a name="194"><span class="lineNum">     194 </span>            :   //! Index to `_rwFlagsTable`.</a>
+<a name="195"><span class="lineNum">     195 </span>            :   uint8_t _rwFlagsIndex;</a>
+<a name="196"><span class="lineNum">     196 </span>            :   //! Features vector.</a>
+<a name="197"><span class="lineNum">     197 </span>            :   uint8_t _features[6];</a>
+<a name="198"><span class="lineNum">     198 </span>            : </a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineNoCov">          0 :   inline const uint8_t* featuresBegin() const noexcept { return _features; }</span></a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineNoCov">          0 :   inline const uint8_t* featuresEnd() const noexcept { return _features + ASMJIT_ARRAY_SIZE(_features); }</span></a>
+<a name="201"><span class="lineNum">     201 </span>            : };</a>
+<a name="202"><span class="lineNum">     202 </span>            : </a>
+<a name="203"><span class="lineNum">     203 </span>            : // ${NameLimits:Begin}</a>
+<a name="204"><span class="lineNum">     204 </span>            : // ------------------- Automatically generated, do not edit -------------------</a>
+<a name="205"><span class="lineNum">     205 </span>            : enum : uint32_t { kMaxNameSize = 17 };</a>
+<a name="206"><span class="lineNum">     206 </span>            : // ----------------------------------------------------------------------------</a>
+<a name="207"><span class="lineNum">     207 </span>            : // ${NameLimits:End}</a>
+<a name="208"><span class="lineNum">     208 </span>            : </a>
+<a name="209"><span class="lineNum">     209 </span>            : struct InstNameIndex {</a>
+<a name="210"><span class="lineNum">     210 </span>            :   uint16_t start;</a>
+<a name="211"><span class="lineNum">     211 </span>            :   uint16_t end;</a>
+<a name="212"><span class="lineNum">     212 </span>            : };</a>
+<a name="213"><span class="lineNum">     213 </span>            : </a>
+<a name="214"><span class="lineNum">     214 </span>            : struct RWInfo {</a>
+<a name="215"><span class="lineNum">     215 </span>            :   enum Category : uint8_t {</a>
+<a name="216"><span class="lineNum">     216 </span>            :     kCategoryGeneric,</a>
+<a name="217"><span class="lineNum">     217 </span>            :     kCategoryMov,</a>
+<a name="218"><span class="lineNum">     218 </span>            :     kCategoryMovabs,</a>
+<a name="219"><span class="lineNum">     219 </span>            :     kCategoryImul,</a>
+<a name="220"><span class="lineNum">     220 </span>            :     kCategoryMovh64,</a>
+<a name="221"><span class="lineNum">     221 </span>            :     kCategoryPunpcklxx,</a>
+<a name="222"><span class="lineNum">     222 </span>            :     kCategoryVmaskmov,</a>
+<a name="223"><span class="lineNum">     223 </span>            :     kCategoryVmovddup,</a>
+<a name="224"><span class="lineNum">     224 </span>            :     kCategoryVmovmskpd,</a>
+<a name="225"><span class="lineNum">     225 </span>            :     kCategoryVmovmskps,</a>
+<a name="226"><span class="lineNum">     226 </span>            :     kCategoryVmov1_2,</a>
+<a name="227"><span class="lineNum">     227 </span>            :     kCategoryVmov1_4,</a>
+<a name="228"><span class="lineNum">     228 </span>            :     kCategoryVmov1_8,</a>
+<a name="229"><span class="lineNum">     229 </span>            :     kCategoryVmov2_1,</a>
+<a name="230"><span class="lineNum">     230 </span>            :     kCategoryVmov4_1,</a>
+<a name="231"><span class="lineNum">     231 </span>            :     kCategoryVmov8_1</a>
+<a name="232"><span class="lineNum">     232 </span>            :   };</a>
+<a name="233"><span class="lineNum">     233 </span>            : </a>
+<a name="234"><span class="lineNum">     234 </span>            :   uint8_t category;</a>
+<a name="235"><span class="lineNum">     235 </span>            :   uint8_t rmInfo;</a>
+<a name="236"><span class="lineNum">     236 </span>            :   uint8_t opInfoIndex[6];</a>
+<a name="237"><span class="lineNum">     237 </span>            : };</a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span>            : struct RWInfoOp {</a>
+<a name="240"><span class="lineNum">     240 </span>            :   uint64_t rByteMask;</a>
+<a name="241"><span class="lineNum">     241 </span>            :   uint64_t wByteMask;</a>
+<a name="242"><span class="lineNum">     242 </span>            :   uint8_t physId;</a>
+<a name="243"><span class="lineNum">     243 </span>            :   uint8_t consecutiveLeadCount;</a>
+<a name="244"><span class="lineNum">     244 </span>            :   uint8_t reserved[2];</a>
+<a name="245"><span class="lineNum">     245 </span>            :   OpRWFlags flags;</a>
+<a name="246"><span class="lineNum">     246 </span>            : };</a>
+<a name="247"><span class="lineNum">     247 </span>            : </a>
+<a name="248"><span class="lineNum">     248 </span>            : //! R/M information.</a>
+<a name="249"><span class="lineNum">     249 </span>            : //!</a>
+<a name="250"><span class="lineNum">     250 </span>            : //! This data is used to replace register operand by a memory operand reliably.</a>
+<a name="251"><span class="lineNum">     251 </span>            : struct RWInfoRm {</a>
+<a name="252"><span class="lineNum">     252 </span>            :   enum Category : uint8_t {</a>
+<a name="253"><span class="lineNum">     253 </span>            :     kCategoryNone = 0,</a>
+<a name="254"><span class="lineNum">     254 </span>            :     kCategoryFixed,</a>
+<a name="255"><span class="lineNum">     255 </span>            :     kCategoryConsistent,</a>
+<a name="256"><span class="lineNum">     256 </span>            :     kCategoryHalf,</a>
+<a name="257"><span class="lineNum">     257 </span>            :     kCategoryQuarter,</a>
+<a name="258"><span class="lineNum">     258 </span>            :     kCategoryEighth</a>
+<a name="259"><span class="lineNum">     259 </span>            :   };</a>
+<a name="260"><span class="lineNum">     260 </span>            : </a>
+<a name="261"><span class="lineNum">     261 </span>            :   enum Flags : uint8_t {</a>
+<a name="262"><span class="lineNum">     262 </span>            :     kFlagAmbiguous = 0x01,</a>
+<a name="263"><span class="lineNum">     263 </span>            :     //! Special semantics for PEXTRW - memory operand can only be used with SSE4.1 instruction and it's forbidden in MMX.</a>
+<a name="264"><span class="lineNum">     264 </span>            :     kFlagPextrw = 0x02,</a>
+<a name="265"><span class="lineNum">     265 </span>            :     //! Special semantics for MOVSS and MOVSD - doesn't zero extend the destination if the operation is a reg to reg move.</a>
+<a name="266"><span class="lineNum">     266 </span>            :     kFlagMovssMovsd = 0x04,</a>
+<a name="267"><span class="lineNum">     267 </span>            :     //! Special semantics for AVX shift instructions that do not provide reg/mem in AVX/AVX2 mode (AVX-512 is required).</a>
+<a name="268"><span class="lineNum">     268 </span>            :     kFlagFeatureIfRMI = 0x08</a>
+<a name="269"><span class="lineNum">     269 </span>            :   };</a>
+<a name="270"><span class="lineNum">     270 </span>            : </a>
+<a name="271"><span class="lineNum">     271 </span>            :   uint8_t category;</a>
+<a name="272"><span class="lineNum">     272 </span>            :   uint8_t rmOpsMask;</a>
+<a name="273"><span class="lineNum">     273 </span>            :   uint8_t fixedSize;</a>
+<a name="274"><span class="lineNum">     274 </span>            :   uint8_t flags;</a>
+<a name="275"><span class="lineNum">     275 </span>            :   uint8_t rmFeature;</a>
+<a name="276"><span class="lineNum">     276 </span>            : };</a>
+<a name="277"><span class="lineNum">     277 </span>            : </a>
+<a name="278"><span class="lineNum">     278 </span>            : struct RWFlagsInfoTable {</a>
+<a name="279"><span class="lineNum">     279 </span>            :   //! CPU/FPU flags read.</a>
+<a name="280"><span class="lineNum">     280 </span>            :   uint32_t readFlags;</a>
+<a name="281"><span class="lineNum">     281 </span>            :   //! CPU/FPU flags written or undefined.</a>
+<a name="282"><span class="lineNum">     282 </span>            :   uint32_t writeFlags;</a>
+<a name="283"><span class="lineNum">     283 </span>            : };</a>
+<a name="284"><span class="lineNum">     284 </span>            : </a>
+<a name="285"><span class="lineNum">     285 </span>            : extern const uint8_t rwInfoIndexA[Inst::_kIdCount];</a>
+<a name="286"><span class="lineNum">     286 </span>            : extern const uint8_t rwInfoIndexB[Inst::_kIdCount];</a>
+<a name="287"><span class="lineNum">     287 </span>            : extern const RWInfo rwInfoA[];</a>
+<a name="288"><span class="lineNum">     288 </span>            : extern const RWInfo rwInfoB[];</a>
+<a name="289"><span class="lineNum">     289 </span>            : extern const RWInfoOp rwInfoOp[];</a>
+<a name="290"><span class="lineNum">     290 </span>            : extern const RWInfoRm rwInfoRm[];</a>
+<a name="291"><span class="lineNum">     291 </span>            : extern const RWFlagsInfoTable _rwFlagsInfoTable[];</a>
+<a name="292"><span class="lineNum">     292 </span>            : extern const InstRWFlags _instFlagsTable[];</a>
+<a name="293"><span class="lineNum">     293 </span>            : </a>
+<a name="294"><span class="lineNum">     294 </span>            : extern const uint32_t _mainOpcodeTable[];</a>
+<a name="295"><span class="lineNum">     295 </span>            : extern const uint32_t _altOpcodeTable[];</a>
+<a name="296"><span class="lineNum">     296 </span>            : </a>
+<a name="297"><span class="lineNum">     297 </span>            : #ifndef ASMJIT_NO_TEXT</a>
+<a name="298"><span class="lineNum">     298 </span>            : extern const char _nameData[];</a>
+<a name="299"><span class="lineNum">     299 </span>            : extern const InstNameIndex instNameIndex[26];</a>
+<a name="300"><span class="lineNum">     300 </span>            : #endif // !ASMJIT_NO_TEXT</a>
+<a name="301"><span class="lineNum">     301 </span>            : </a>
+<a name="302"><span class="lineNum">     302 </span>            : extern const AdditionalInfo _additionalInfoTable[];</a>
+<a name="303"><span class="lineNum">     303 </span>            : </a>
+<a name="304"><span class="lineNum">     304 </span>            : } // {InstDB}</a>
+<a name="305"><span class="lineNum">     305 </span>            : </a>
+<a name="306"><span class="lineNum">     306 </span>            : //! \}</a>
+<a name="307"><span class="lineNum">     307 </span>            : //! \endcond</a>
+<a name="308"><span class="lineNum">     308 </span>            : </a>
+<a name="309"><span class="lineNum">     309 </span>            : ASMJIT_END_SUB_NAMESPACE</a>
+<a name="310"><span class="lineNum">     310 </span>            : </a>
+<a name="311"><span class="lineNum">     311 </span>            : #endif // ASMJIT_X86_X86INSTDB_P_H_INCLUDED</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

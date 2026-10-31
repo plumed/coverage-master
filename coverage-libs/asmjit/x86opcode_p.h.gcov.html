@@ -1,0 +1,513 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage (other modules) - asmjit/x86opcode_p.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">asmjit</a> - x86opcode_p.h<span style="font-size: 80%;"> (source / <a href="x86opcode_p.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage (other modules)</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntry">20</td>
+            <td class="headerCovTableEntryLo">70.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-10-31 16:48:53</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : // This file is part of AsmJit project &lt;https://asmjit.com&gt;</a>
+<a name="2"><span class="lineNum">       2 </span>            : //</a>
+<a name="3"><span class="lineNum">       3 </span>            : // See asmjit.h or LICENSE.md for license and copyright information</a>
+<a name="4"><span class="lineNum">       4 </span>            : // SPDX-License-Identifier: Zlib</a>
+<a name="5"><span class="lineNum">       5 </span>            : </a>
+<a name="6"><span class="lineNum">       6 </span>            : #ifndef ASMJIT_X86_X86OPCODE_P_H_INCLUDED</a>
+<a name="7"><span class="lineNum">       7 </span>            : #define ASMJIT_X86_X86OPCODE_P_H_INCLUDED</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            : #include &quot;x86globals.h&quot;</a>
+<a name="10"><span class="lineNum">      10 </span>            : </a>
+<a name="11"><span class="lineNum">      11 </span>            : ASMJIT_BEGIN_SUB_NAMESPACE(x86)</a>
+<a name="12"><span class="lineNum">      12 </span>            : </a>
+<a name="13"><span class="lineNum">      13 </span>            : //! \cond INTERNAL</a>
+<a name="14"><span class="lineNum">      14 </span>            : //! \addtogroup asmjit_x86</a>
+<a name="15"><span class="lineNum">      15 </span>            : //! \{</a>
+<a name="16"><span class="lineNum">      16 </span>            : </a>
+<a name="17"><span class="lineNum">      17 </span>            : //! Helper class to store and manipulate X86 opcodes.</a>
+<a name="18"><span class="lineNum">      18 </span>            : //!</a>
+<a name="19"><span class="lineNum">      19 </span>            : //! The first 8 least significant bits describe the opcode byte as defined in ISA manuals, all other bits</a>
+<a name="20"><span class="lineNum">      20 </span>            : //! describe other properties like prefixes, see `Opcode::Bits` for more information.</a>
+<a name="21"><span class="lineNum">      21 </span>            : struct Opcode {</a>
+<a name="22"><span class="lineNum">      22 </span>            :   uint32_t v;</a>
+<a name="23"><span class="lineNum">      23 </span>            : </a>
+<a name="24"><span class="lineNum">      24 </span>            :   //! Describes a meaning of all bits of AsmJit's 32-bit opcode value.</a>
+<a name="25"><span class="lineNum">      25 </span>            :   //!</a>
+<a name="26"><span class="lineNum">      26 </span>            :   //! This schema is AsmJit specific and has been designed to allow encoding of all X86 instructions available. X86,</a>
+<a name="27"><span class="lineNum">      27 </span>            :   //! MMX, and SSE+ instructions always use `MM` and `PP` fields, which are encoded to corresponding prefixes needed</a>
+<a name="28"><span class="lineNum">      28 </span>            :   //! by X86 or SIMD instructions. AVX+ instructions embed `MMMMM` and `PP` fields in a VEX prefix, and AVX-512</a>
+<a name="29"><span class="lineNum">      29 </span>            :   //! instructions embed `MM` and `PP` in EVEX prefix.</a>
+<a name="30"><span class="lineNum">      30 </span>            :   //!</a>
+<a name="31"><span class="lineNum">      31 </span>            :   //! The instruction opcode definition uses 1 or 2 bytes as an opcode value. 1 byte is needed by most of the</a>
+<a name="32"><span class="lineNum">      32 </span>            :   //! instructions, 2 bytes are only used by legacy X87-FPU instructions. This means that a second byte is free to</a>
+<a name="33"><span class="lineNum">      33 </span>            :   //! by used by instructions encoded by using VEX and/or EVEX prefix.</a>
+<a name="34"><span class="lineNum">      34 </span>            :   //!</a>
+<a name="35"><span class="lineNum">      35 </span>            :   //! The fields description:</a>
+<a name="36"><span class="lineNum">      36 </span>            :   //!</a>
+<a name="37"><span class="lineNum">      37 </span>            :   //! - `MM` field is used to encode prefixes needed by the instruction or as a part of VEX/EVEX prefix. Described as</a>
+<a name="38"><span class="lineNum">      38 </span>            :   //!   `mm` and `mmmmm` in instruction manuals.</a>
+<a name="39"><span class="lineNum">      39 </span>            :   //!</a>
+<a name="40"><span class="lineNum">      40 </span>            :   //!   NOTE: Since `MM` field is defined as `mmmmm` (5 bits), but only 2 least significant bits are used by VEX and</a>
+<a name="41"><span class="lineNum">      41 </span>            :   //!   EVEX prefixes, and additional 4th bit is used by XOP prefix, AsmJit uses the 3rd and 5th bit for it's own</a>
+<a name="42"><span class="lineNum">      42 </span>            :   //!   purposes. These bits will probably never be used in future encodings as AVX512 uses only `000mm` from `mmmmm`.</a>
+<a name="43"><span class="lineNum">      43 </span>            :   //!</a>
+<a name="44"><span class="lineNum">      44 </span>            :   //! - `PP` field is used to encode prefixes needed by the instruction or as a part of VEX/EVEX prefix. Described as</a>
+<a name="45"><span class="lineNum">      45 </span>            :   //!   `pp` in instruction manuals.</a>
+<a name="46"><span class="lineNum">      46 </span>            :   //!</a>
+<a name="47"><span class="lineNum">      47 </span>            :   //! - `LL` field is used exclusively by AVX+ and AVX512+ instruction sets. It describes vector size, which is `L.128`</a>
+<a name="48"><span class="lineNum">      48 </span>            :   //!   for XMM register, `L.256` for for YMM register, and `L.512` for ZMM register. The `LL` field is omitted in case</a>
+<a name="49"><span class="lineNum">      49 </span>            :   //!   that instruction supports multiple vector lengths, however, if the instruction requires specific `L` value it</a>
+<a name="50"><span class="lineNum">      50 </span>            :   //!   must be specified as a part of the opcode.</a>
+<a name="51"><span class="lineNum">      51 </span>            :   //!</a>
+<a name="52"><span class="lineNum">      52 </span>            :   //!   NOTE: `LL` having value `11` is not defined yet.</a>
+<a name="53"><span class="lineNum">      53 </span>            :   //!</a>
+<a name="54"><span class="lineNum">      54 </span>            :   //! - `W` field is the most complicated. It was added by 64-bit architecture to promote default operation width</a>
+<a name="55"><span class="lineNum">      55 </span>            :   //!   (instructions that perform 32-bit operation by default require to override the width to 64-bit explicitly).</a>
+<a name="56"><span class="lineNum">      56 </span>            :   //!   There is nothing wrong on this, however, some instructions introduced implicit `W` override, for example a</a>
+<a name="57"><span class="lineNum">      57 </span>            :   //!   `cdqe` instruction is basically a `cwde` instruction with overridden `W` (set to 1). There are some others</a>
+<a name="58"><span class="lineNum">      58 </span>            :   //!   in the base X86 instruction set. More recent instruction sets started using `W` field more often:</a>
+<a name="59"><span class="lineNum">      59 </span>            :   //!</a>
+<a name="60"><span class="lineNum">      60 </span>            :   //!   - AVX instructions started using `W` field as an extended opcode for FMA, GATHER, PERM, and other instructions.</a>
+<a name="61"><span class="lineNum">      61 </span>            :   //!     It also uses `W` field to override the default operation width in instructions like `vmovq`.</a>
+<a name="62"><span class="lineNum">      62 </span>            :   //!</a>
+<a name="63"><span class="lineNum">      63 </span>            :   //!   - AVX-512 instructions started using `W` field as an extended opcode for all new instructions. This wouldn't</a>
+<a name="64"><span class="lineNum">      64 </span>            :   //!     have been an issue if the `W` field of AVX-512 have matched AVX, but this is not always the case.</a>
+<a name="65"><span class="lineNum">      65 </span>            :   //!</a>
+<a name="66"><span class="lineNum">      66 </span>            :   //! - `O` field is an extended opcode field (3 bits) embedded in ModR/M BYTE.</a>
+<a name="67"><span class="lineNum">      67 </span>            :   //!</a>
+<a name="68"><span class="lineNum">      68 </span>            :   //! - `CDSHL` and `CDTT` fields describe 'compressed-displacement'. `CDSHL` is defined for each instruction that is</a>
+<a name="69"><span class="lineNum">      69 </span>            :   //!   AVX-512 encodable (EVEX) and contains a base N shift (base shift to perform the calculation). The `CDTT` field</a>
+<a name="70"><span class="lineNum">      70 </span>            :   //!   is derived from instruction specification and describes additional shift to calculate the final `CDSHL` that</a>
+<a name="71"><span class="lineNum">      71 </span>            :   //!   will be used in SIB byte.</a>
+<a name="72"><span class="lineNum">      72 </span>            :   //!</a>
+<a name="73"><span class="lineNum">      73 </span>            :   //! \note Don't reorder any fields here, the shifts and masks were defined carefully to make encoding of X86</a>
+<a name="74"><span class="lineNum">      74 </span>            :   //! instructions fast, especially to construct REX, VEX, and EVEX prefixes in the most efficient way. Changing</a>
+<a name="75"><span class="lineNum">      75 </span>            :   //! values defined by these enums many cause AsmJit to emit invalid binary representations of instructions passed to</a>
+<a name="76"><span class="lineNum">      76 </span>            :   //! `x86::Assembler::_emit`.</a>
+<a name="77"><span class="lineNum">      77 </span>            :   enum Bits : uint32_t {</a>
+<a name="78"><span class="lineNum">      78 </span>            :     // MM &amp; VEX &amp; EVEX &amp; XOP</a>
+<a name="79"><span class="lineNum">      79 </span>            :     // ---------------------</a>
+<a name="80"><span class="lineNum">      80 </span>            :     //</a>
+<a name="81"><span class="lineNum">      81 </span>            :     // Two meanings:</a>
+<a name="82"><span class="lineNum">      82 </span>            :     //  * Part of a legacy opcode (prefixes emitted before the main opcode byte).</a>
+<a name="83"><span class="lineNum">      83 </span>            :     //  * `MMMMM` field in VEX|EVEX|XOP instruction.</a>
+<a name="84"><span class="lineNum">      84 </span>            :     //</a>
+<a name="85"><span class="lineNum">      85 </span>            :     // AVX reserves 5 bits for `MMMMM` field, however AVX instructions only use 2 bits and XOP 3 bits. AVX-512 shrinks</a>
+<a name="86"><span class="lineNum">      86 </span>            :     // `MMMMM` field into `MMM` so it's safe to use [4:3] bits of `MMMMM` field for internal payload.</a>
+<a name="87"><span class="lineNum">      87 </span>            :     //</a>
+<a name="88"><span class="lineNum">      88 </span>            :     // AsmJit divides MMMMM field into this layout:</a>
+<a name="89"><span class="lineNum">      89 </span>            :     //</a>
+<a name="90"><span class="lineNum">      90 </span>            :     // [2:0] - Used to describe 0F, 0F38 and 0F3A legacy prefix bytes and 3 bits of MMMMM field for XOP/AVX/AVX512.</a>
+<a name="91"><span class="lineNum">      91 </span>            :     // [3]   - Required by XOP instructions, so we use this bit also to indicate that this is a XOP opcode.</a>
+<a name="92"><span class="lineNum">      92 </span>            :     // [4]   - Used to force EVEX prefix - this bit is not used by any X86 instruction yet, so AsmJit uses it to</a>
+<a name="93"><span class="lineNum">      93 </span>            :     //         describe EVEX only instructions or sets its bit when user uses InstOptions::kX86_Evex to force EVEX.</a>
+<a name="94"><span class="lineNum">      94 </span>            :     kMM_Shift      = 8,</a>
+<a name="95"><span class="lineNum">      95 </span>            :     kMM_Mask       = 0x1Fu &lt;&lt; kMM_Shift,</a>
+<a name="96"><span class="lineNum">      96 </span>            :     kMM_00         = 0x00u &lt;&lt; kMM_Shift,</a>
+<a name="97"><span class="lineNum">      97 </span>            :     kMM_0F         = 0x01u &lt;&lt; kMM_Shift,</a>
+<a name="98"><span class="lineNum">      98 </span>            :     kMM_0F38       = 0x02u &lt;&lt; kMM_Shift,</a>
+<a name="99"><span class="lineNum">      99 </span>            :     kMM_0F3A       = 0x03u &lt;&lt; kMM_Shift,   // Described also as XOP.M3 in AMD manuals.</a>
+<a name="100"><span class="lineNum">     100 </span>            :     kMM_0F01       = 0x04u &lt;&lt; kMM_Shift,   // AsmJit way to describe 0F01 (never VEX/EVEX).</a>
+<a name="101"><span class="lineNum">     101 </span>            : </a>
+<a name="102"><span class="lineNum">     102 </span>            :     kMM_MAP5       = 0x05u &lt;&lt; kMM_Shift,   // EVEX.MAP5.</a>
+<a name="103"><span class="lineNum">     103 </span>            :     kMM_MAP6       = 0x06u &lt;&lt; kMM_Shift,   // EVEX.MAP6.</a>
+<a name="104"><span class="lineNum">     104 </span>            : </a>
+<a name="105"><span class="lineNum">     105 </span>            :     // `XOP` field is only used to force XOP prefix instead of VEX3 prefix. We know XOP encodings always use 0b1000</a>
+<a name="106"><span class="lineNum">     106 </span>            :     // bit of MM field and that no VEX and EVEX instruction use such bit yet, so we can use this bit to force XOP</a>
+<a name="107"><span class="lineNum">     107 </span>            :     // prefix to be emitted instead of VEX3 prefix. See `x86VEXPrefix` defined in `x86assembler.cpp`.</a>
+<a name="108"><span class="lineNum">     108 </span>            :     kMM_XOP08      = 0x08u &lt;&lt; kMM_Shift,   // XOP.M8.</a>
+<a name="109"><span class="lineNum">     109 </span>            :     kMM_XOP09      = 0x09u &lt;&lt; kMM_Shift,   // XOP.M9.</a>
+<a name="110"><span class="lineNum">     110 </span>            :     kMM_XOP0A      = 0x0Au &lt;&lt; kMM_Shift,   // XOP.MA.</a>
+<a name="111"><span class="lineNum">     111 </span>            : </a>
+<a name="112"><span class="lineNum">     112 </span>            :     kMM_IsXOP_Shift= kMM_Shift + 3,</a>
+<a name="113"><span class="lineNum">     113 </span>            :     kMM_IsXOP      = kMM_XOP08,</a>
+<a name="114"><span class="lineNum">     114 </span>            : </a>
+<a name="115"><span class="lineNum">     115 </span>            :     // NOTE: Force VEX3 allows to force to emit VEX3 instead of VEX2 in some cases (similar to forcing REX prefix).</a>
+<a name="116"><span class="lineNum">     116 </span>            :     // Force EVEX will force emitting EVEX prefix instead of VEX2|VEX3. EVEX-only instructions will have ForceEvex</a>
+<a name="117"><span class="lineNum">     117 </span>            :     // always set, however. instructions that can be encoded by either VEX or EVEX prefix should not have ForceEvex</a>
+<a name="118"><span class="lineNum">     118 </span>            :     // set.</a>
+<a name="119"><span class="lineNum">     119 </span>            :     kMM_ForceEvex  = 0x10u &lt;&lt; kMM_Shift,   // Force 4-BYTE EVEX prefix.</a>
+<a name="120"><span class="lineNum">     120 </span>            : </a>
+<a name="121"><span class="lineNum">     121 </span>            :     // FPU_2B - Second-Byte of the Opcode used by FPU</a>
+<a name="122"><span class="lineNum">     122 </span>            :     // ----------------------------------------------</a>
+<a name="123"><span class="lineNum">     123 </span>            :     //</a>
+<a name="124"><span class="lineNum">     124 </span>            :     // Second byte opcode. This BYTE is ONLY used by FPU instructions and collides with 3 bits from `MM` and 5 bits</a>
+<a name="125"><span class="lineNum">     125 </span>            :     // from 'CDSHL' and 'CDTT'. It's fine as FPU and AVX512 flags are never used at the same time.</a>
+<a name="126"><span class="lineNum">     126 </span>            :     kFPU_2B_Shift  = 10,</a>
+<a name="127"><span class="lineNum">     127 </span>            :     kFPU_2B_Mask   = 0xFF &lt;&lt; kFPU_2B_Shift,</a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span>            :     // CDSHL &amp; CDTT</a>
+<a name="130"><span class="lineNum">     130 </span>            :     // ------------</a>
+<a name="131"><span class="lineNum">     131 </span>            :     //</a>
+<a name="132"><span class="lineNum">     132 </span>            :     // Compressed displacement bits.</a>
+<a name="133"><span class="lineNum">     133 </span>            :     //</a>
+<a name="134"><span class="lineNum">     134 </span>            :     // Each opcode defines the base size (N) shift:</a>
+<a name="135"><span class="lineNum">     135 </span>            :     //   [0]: BYTE  (1 byte).</a>
+<a name="136"><span class="lineNum">     136 </span>            :     //   [1]: WORD  (2 bytes).</a>
+<a name="137"><span class="lineNum">     137 </span>            :     //   [2]: DWORD (4 bytes - float/int32).</a>
+<a name="138"><span class="lineNum">     138 </span>            :     //   [3]: QWORD (8 bytes - double/int64).</a>
+<a name="139"><span class="lineNum">     139 </span>            :     //   [4]: OWORD (16 bytes - used by FV|FVM|M128).</a>
+<a name="140"><span class="lineNum">     140 </span>            :     //</a>
+<a name="141"><span class="lineNum">     141 </span>            :     // Which is then scaled by the instruction's TT (TupleType) into possible:</a>
+<a name="142"><span class="lineNum">     142 </span>            :     //   [5]: YWORD (32 bytes)</a>
+<a name="143"><span class="lineNum">     143 </span>            :     //   [6]: ZWORD (64 bytes)</a>
+<a name="144"><span class="lineNum">     144 </span>            :     //</a>
+<a name="145"><span class="lineNum">     145 </span>            :     // These bits are then adjusted before calling EmitModSib or EmitModVSib.</a>
+<a name="146"><span class="lineNum">     146 </span>            :     kCDSHL_Shift   = 13,</a>
+<a name="147"><span class="lineNum">     147 </span>            :     kCDSHL_Mask    = 0x7u &lt;&lt; kCDSHL_Shift,</a>
+<a name="148"><span class="lineNum">     148 </span>            : </a>
+<a name="149"><span class="lineNum">     149 </span>            :     kCDSHL__       = 0x0u &lt;&lt; kCDSHL_Shift, // Base element size not used.</a>
+<a name="150"><span class="lineNum">     150 </span>            :     kCDSHL_0       = 0x0u &lt;&lt; kCDSHL_Shift, // N &lt;&lt; 0.</a>
+<a name="151"><span class="lineNum">     151 </span>            :     kCDSHL_1       = 0x1u &lt;&lt; kCDSHL_Shift, // N &lt;&lt; 1.</a>
+<a name="152"><span class="lineNum">     152 </span>            :     kCDSHL_2       = 0x2u &lt;&lt; kCDSHL_Shift, // N &lt;&lt; 2.</a>
+<a name="153"><span class="lineNum">     153 </span>            :     kCDSHL_3       = 0x3u &lt;&lt; kCDSHL_Shift, // N &lt;&lt; 3.</a>
+<a name="154"><span class="lineNum">     154 </span>            :     kCDSHL_4       = 0x4u &lt;&lt; kCDSHL_Shift, // N &lt;&lt; 4.</a>
+<a name="155"><span class="lineNum">     155 </span>            :     kCDSHL_5       = 0x5u &lt;&lt; kCDSHL_Shift, // N &lt;&lt; 5.</a>
+<a name="156"><span class="lineNum">     156 </span>            : </a>
+<a name="157"><span class="lineNum">     157 </span>            :     // Compressed displacement tuple-type (specific to AsmJit).</a>
+<a name="158"><span class="lineNum">     158 </span>            :     //</a>
+<a name="159"><span class="lineNum">     159 </span>            :     // Since we store the base offset independently of CDTT we can simplify the number of 'TUPLE_TYPE' groups</a>
+<a name="160"><span class="lineNum">     160 </span>            :     // significantly and just handle special cases.</a>
+<a name="161"><span class="lineNum">     161 </span>            :     kCDTT_Shift    = 16,</a>
+<a name="162"><span class="lineNum">     162 </span>            :     kCDTT_Mask     = 0x3u &lt;&lt; kCDTT_Shift,</a>
+<a name="163"><span class="lineNum">     163 </span>            :     kCDTT_None     = 0x0u &lt;&lt; kCDTT_Shift,  // Does nothing.</a>
+<a name="164"><span class="lineNum">     164 </span>            :     kCDTT_ByLL     = 0x1u &lt;&lt; kCDTT_Shift,  // Scales by LL (1x 2x 4x).</a>
+<a name="165"><span class="lineNum">     165 </span>            :     kCDTT_T1W      = 0x2u &lt;&lt; kCDTT_Shift,  // Used to add 'W' to the shift.</a>
+<a name="166"><span class="lineNum">     166 </span>            :     kCDTT_DUP      = 0x3u &lt;&lt; kCDTT_Shift,  // Special 'VMOVDDUP' case.</a>
+<a name="167"><span class="lineNum">     167 </span>            : </a>
+<a name="168"><span class="lineNum">     168 </span>            :     // Aliases that match names used in instruction manuals.</a>
+<a name="169"><span class="lineNum">     169 </span>            :     kCDTT__        = kCDTT_None,</a>
+<a name="170"><span class="lineNum">     170 </span>            :     kCDTT_FV       = kCDTT_ByLL,</a>
+<a name="171"><span class="lineNum">     171 </span>            :     kCDTT_HV       = kCDTT_ByLL,</a>
+<a name="172"><span class="lineNum">     172 </span>            :     kCDTT_QV       = kCDTT_ByLL,</a>
+<a name="173"><span class="lineNum">     173 </span>            :     kCDTT_FVM      = kCDTT_ByLL,</a>
+<a name="174"><span class="lineNum">     174 </span>            :     kCDTT_T1S      = kCDTT_None,</a>
+<a name="175"><span class="lineNum">     175 </span>            :     kCDTT_T1F      = kCDTT_None,</a>
+<a name="176"><span class="lineNum">     176 </span>            :     kCDTT_T1_4X    = kCDTT_None,</a>
+<a name="177"><span class="lineNum">     177 </span>            :     kCDTT_T4X      = kCDTT_None,           // Alias to have only 3 letters.</a>
+<a name="178"><span class="lineNum">     178 </span>            :     kCDTT_T2       = kCDTT_None,</a>
+<a name="179"><span class="lineNum">     179 </span>            :     kCDTT_T4       = kCDTT_None,</a>
+<a name="180"><span class="lineNum">     180 </span>            :     kCDTT_T8       = kCDTT_None,</a>
+<a name="181"><span class="lineNum">     181 </span>            :     kCDTT_HVM      = kCDTT_ByLL,</a>
+<a name="182"><span class="lineNum">     182 </span>            :     kCDTT_QVM      = kCDTT_ByLL,</a>
+<a name="183"><span class="lineNum">     183 </span>            :     kCDTT_OVM      = kCDTT_ByLL,</a>
+<a name="184"><span class="lineNum">     184 </span>            :     kCDTT_128      = kCDTT_None,</a>
+<a name="185"><span class="lineNum">     185 </span>            : </a>
+<a name="186"><span class="lineNum">     186 </span>            :     // `O` Field in ModR/M (??:xxx:???)</a>
+<a name="187"><span class="lineNum">     187 </span>            :     // --------------------------------</a>
+<a name="188"><span class="lineNum">     188 </span>            : </a>
+<a name="189"><span class="lineNum">     189 </span>            :     kModO_Shift    = 18,</a>
+<a name="190"><span class="lineNum">     190 </span>            :     kModO_Mask     = 0x7u &lt;&lt; kModO_Shift,</a>
+<a name="191"><span class="lineNum">     191 </span>            : </a>
+<a name="192"><span class="lineNum">     192 </span>            :     kModO__        = 0x0u,</a>
+<a name="193"><span class="lineNum">     193 </span>            :     kModO_0        = 0x0u &lt;&lt; kModO_Shift,</a>
+<a name="194"><span class="lineNum">     194 </span>            :     kModO_1        = 0x1u &lt;&lt; kModO_Shift,</a>
+<a name="195"><span class="lineNum">     195 </span>            :     kModO_2        = 0x2u &lt;&lt; kModO_Shift,</a>
+<a name="196"><span class="lineNum">     196 </span>            :     kModO_3        = 0x3u &lt;&lt; kModO_Shift,</a>
+<a name="197"><span class="lineNum">     197 </span>            :     kModO_4        = 0x4u &lt;&lt; kModO_Shift,</a>
+<a name="198"><span class="lineNum">     198 </span>            :     kModO_5        = 0x5u &lt;&lt; kModO_Shift,</a>
+<a name="199"><span class="lineNum">     199 </span>            :     kModO_6        = 0x6u &lt;&lt; kModO_Shift,</a>
+<a name="200"><span class="lineNum">     200 </span>            :     kModO_7        = 0x7u &lt;&lt; kModO_Shift,</a>
+<a name="201"><span class="lineNum">     201 </span>            : </a>
+<a name="202"><span class="lineNum">     202 </span>            :     // `RM` Field in ModR/M (??:???:xxx)</a>
+<a name="203"><span class="lineNum">     203 </span>            :     // ---------------------------------</a>
+<a name="204"><span class="lineNum">     204 </span>            :     //</a>
+<a name="205"><span class="lineNum">     205 </span>            :     // Second data field used by ModR/M byte. This is only used by few instructions that use OPCODE+MOD/RM where both</a>
+<a name="206"><span class="lineNum">     206 </span>            :     // values in Mod/RM are part of the opcode.</a>
+<a name="207"><span class="lineNum">     207 </span>            : </a>
+<a name="208"><span class="lineNum">     208 </span>            :     kModRM_Shift    = 13,</a>
+<a name="209"><span class="lineNum">     209 </span>            :     kModRM_Mask     = 0x7u &lt;&lt; kModRM_Shift,</a>
+<a name="210"><span class="lineNum">     210 </span>            : </a>
+<a name="211"><span class="lineNum">     211 </span>            :     kModRM__        = 0x0u,</a>
+<a name="212"><span class="lineNum">     212 </span>            :     kModRM_0        = 0x0u &lt;&lt; kModRM_Shift,</a>
+<a name="213"><span class="lineNum">     213 </span>            :     kModRM_1        = 0x1u &lt;&lt; kModRM_Shift,</a>
+<a name="214"><span class="lineNum">     214 </span>            :     kModRM_2        = 0x2u &lt;&lt; kModRM_Shift,</a>
+<a name="215"><span class="lineNum">     215 </span>            :     kModRM_3        = 0x3u &lt;&lt; kModRM_Shift,</a>
+<a name="216"><span class="lineNum">     216 </span>            :     kModRM_4        = 0x4u &lt;&lt; kModRM_Shift,</a>
+<a name="217"><span class="lineNum">     217 </span>            :     kModRM_5        = 0x5u &lt;&lt; kModRM_Shift,</a>
+<a name="218"><span class="lineNum">     218 </span>            :     kModRM_6        = 0x6u &lt;&lt; kModRM_Shift,</a>
+<a name="219"><span class="lineNum">     219 </span>            :     kModRM_7        = 0x7u &lt;&lt; kModRM_Shift,</a>
+<a name="220"><span class="lineNum">     220 </span>            : </a>
+<a name="221"><span class="lineNum">     221 </span>            :     // `PP` Field</a>
+<a name="222"><span class="lineNum">     222 </span>            :     // ----------</a>
+<a name="223"><span class="lineNum">     223 </span>            :     //</a>
+<a name="224"><span class="lineNum">     224 </span>            :     // These fields are stored deliberately right after each other as it makes it easier to construct VEX prefix from</a>
+<a name="225"><span class="lineNum">     225 </span>            :     // the opcode value stored in the instruction database.</a>
+<a name="226"><span class="lineNum">     226 </span>            :     //</a>
+<a name="227"><span class="lineNum">     227 </span>            :     // Two meanings:</a>
+<a name="228"><span class="lineNum">     228 </span>            :     //   * &quot;PP&quot; field in AVX/XOP/AVX-512 instruction.</a>
+<a name="229"><span class="lineNum">     229 </span>            :     //   * Mandatory Prefix in legacy encoding.</a>
+<a name="230"><span class="lineNum">     230 </span>            :     //</a>
+<a name="231"><span class="lineNum">     231 </span>            :     // AVX reserves 2 bits for `PP` field, but AsmJit extends the storage by 1 more bit that is used to emit 9B prefix</a>
+<a name="232"><span class="lineNum">     232 </span>            :     // for some X87-FPU instructions.</a>
+<a name="233"><span class="lineNum">     233 </span>            : </a>
+<a name="234"><span class="lineNum">     234 </span>            :     kPP_Shift      = 21,</a>
+<a name="235"><span class="lineNum">     235 </span>            :     kPP_VEXMask    = 0x03u &lt;&lt; kPP_Shift,   // PP field mask used by VEX/EVEX.</a>
+<a name="236"><span class="lineNum">     236 </span>            :     kPP_FPUMask    = 0x07u &lt;&lt; kPP_Shift,   // Mask used by EMIT_PP, also includes '0x9B'.</a>
+<a name="237"><span class="lineNum">     237 </span>            :     kPP_00         = 0x00u &lt;&lt; kPP_Shift,</a>
+<a name="238"><span class="lineNum">     238 </span>            :     kPP_66         = 0x01u &lt;&lt; kPP_Shift,</a>
+<a name="239"><span class="lineNum">     239 </span>            :     kPP_F3         = 0x02u &lt;&lt; kPP_Shift,</a>
+<a name="240"><span class="lineNum">     240 </span>            :     kPP_F2         = 0x03u &lt;&lt; kPP_Shift,</a>
+<a name="241"><span class="lineNum">     241 </span>            : </a>
+<a name="242"><span class="lineNum">     242 </span>            :     kPP_9B         = 0x07u &lt;&lt; kPP_Shift,   // AsmJit specific to emit FPU's '9B' byte.</a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span>            :     // REX|VEX|EVEX B|X|R|W Bits</a>
+<a name="245"><span class="lineNum">     245 </span>            :     // -------------------------</a>
+<a name="246"><span class="lineNum">     246 </span>            :     //</a>
+<a name="247"><span class="lineNum">     247 </span>            :     // NOTE: REX.[B|X|R] are never stored within the opcode itself, they are reserved by AsmJit are are added</a>
+<a name="248"><span class="lineNum">     248 </span>            :     // dynamically to the opcode to represent [REX|VEX|EVEX].[B|X|R] bits. REX.W can be stored in DB as it's sometimes</a>
+<a name="249"><span class="lineNum">     249 </span>            :     // part of the opcode itself.</a>
+<a name="250"><span class="lineNum">     250 </span>            : </a>
+<a name="251"><span class="lineNum">     251 </span>            :     // These must be binary compatible with instruction options.</a>
+<a name="252"><span class="lineNum">     252 </span>            :     kREX_Shift     = 24,</a>
+<a name="253"><span class="lineNum">     253 </span>            :     kREX_Mask      = 0x0Fu &lt;&lt; kREX_Shift,</a>
+<a name="254"><span class="lineNum">     254 </span>            :     kB             = 0x01u &lt;&lt; kREX_Shift,  // Never stored in DB, used by encoder.</a>
+<a name="255"><span class="lineNum">     255 </span>            :     kX             = 0x02u &lt;&lt; kREX_Shift,  // Never stored in DB, used by encoder.</a>
+<a name="256"><span class="lineNum">     256 </span>            :     kR             = 0x04u &lt;&lt; kREX_Shift,  // Never stored in DB, used by encoder.</a>
+<a name="257"><span class="lineNum">     257 </span>            :     kW             = 0x08u &lt;&lt; kREX_Shift,</a>
+<a name="258"><span class="lineNum">     258 </span>            :     kW_Shift       = kREX_Shift + 3,</a>
+<a name="259"><span class="lineNum">     259 </span>            : </a>
+<a name="260"><span class="lineNum">     260 </span>            :     kW__           = 0u &lt;&lt; kW_Shift,       // REX.W/VEX.W is unspecified.</a>
+<a name="261"><span class="lineNum">     261 </span>            :     kW_x           = 0u &lt;&lt; kW_Shift,       // REX.W/VEX.W is based on instruction operands.</a>
+<a name="262"><span class="lineNum">     262 </span>            :     kW_I           = 0u &lt;&lt; kW_Shift,       // REX.W/VEX.W is ignored (WIG).</a>
+<a name="263"><span class="lineNum">     263 </span>            :     kW_0           = 0u &lt;&lt; kW_Shift,       // REX.W/VEX.W is 0 (W0).</a>
+<a name="264"><span class="lineNum">     264 </span>            :     kW_1           = 1u &lt;&lt; kW_Shift,       // REX.W/VEX.W is 1 (W1).</a>
+<a name="265"><span class="lineNum">     265 </span>            : </a>
+<a name="266"><span class="lineNum">     266 </span>            :     // EVEX.W Field</a>
+<a name="267"><span class="lineNum">     267 </span>            :     // ------------</a>
+<a name="268"><span class="lineNum">     268 </span>            :     //</a>
+<a name="269"><span class="lineNum">     269 </span>            :     // `W` field used by EVEX instruction encoding.</a>
+<a name="270"><span class="lineNum">     270 </span>            : </a>
+<a name="271"><span class="lineNum">     271 </span>            :     kEvex_W_Shift  = 28,</a>
+<a name="272"><span class="lineNum">     272 </span>            :     kEvex_W_Mask   = 1u &lt;&lt; kEvex_W_Shift,</a>
+<a name="273"><span class="lineNum">     273 </span>            : </a>
+<a name="274"><span class="lineNum">     274 </span>            :     kEvex_W__      = 0u &lt;&lt; kEvex_W_Shift,  // EVEX.W is unspecified (not EVEX instruction).</a>
+<a name="275"><span class="lineNum">     275 </span>            :     kEvex_W_x      = 0u &lt;&lt; kEvex_W_Shift,  // EVEX.W is based on instruction operands.</a>
+<a name="276"><span class="lineNum">     276 </span>            :     kEvex_W_I      = 0u &lt;&lt; kEvex_W_Shift,  // EVEX.W is ignored (WIG).</a>
+<a name="277"><span class="lineNum">     277 </span>            :     kEvex_W_0      = 0u &lt;&lt; kEvex_W_Shift,  // EVEX.W is 0 (W0).</a>
+<a name="278"><span class="lineNum">     278 </span>            :     kEvex_W_1      = 1u &lt;&lt; kEvex_W_Shift,  // EVEX.W is 1 (W1).</a>
+<a name="279"><span class="lineNum">     279 </span>            : </a>
+<a name="280"><span class="lineNum">     280 </span>            :     // `L` or `LL` field in AVX/XOP/AVX-512</a>
+<a name="281"><span class="lineNum">     281 </span>            :     // ------------------------------------</a>
+<a name="282"><span class="lineNum">     282 </span>            :     //</a>
+<a name="283"><span class="lineNum">     283 </span>            :     // VEX/XOP prefix can only use the first bit `L.128` or `L.256`. EVEX prefix prefix makes it possible to use also</a>
+<a name="284"><span class="lineNum">     284 </span>            :     // `L.512`. If the instruction set manual describes an instruction by `LIG` it means that the `L` field is ignored</a>
+<a name="285"><span class="lineNum">     285 </span>            :     // and AsmJit defaults to `0` in such case.</a>
+<a name="286"><span class="lineNum">     286 </span>            :     kLL_Shift      = 29,</a>
+<a name="287"><span class="lineNum">     287 </span>            :     kLL_Mask       = 0x3u &lt;&lt; kLL_Shift,</a>
+<a name="288"><span class="lineNum">     288 </span>            : </a>
+<a name="289"><span class="lineNum">     289 </span>            :     kLL__          = 0x0u &lt;&lt; kLL_Shift,    // LL is unspecified.</a>
+<a name="290"><span class="lineNum">     290 </span>            :     kLL_x          = 0x0u &lt;&lt; kLL_Shift,    // LL is based on instruction operands.</a>
+<a name="291"><span class="lineNum">     291 </span>            :     kLL_I          = 0x0u &lt;&lt; kLL_Shift,    // LL is ignored (LIG).</a>
+<a name="292"><span class="lineNum">     292 </span>            :     kLL_0          = 0x0u &lt;&lt; kLL_Shift,    // LL is 0 (L.128).</a>
+<a name="293"><span class="lineNum">     293 </span>            :     kLL_1          = 0x1u &lt;&lt; kLL_Shift,    // LL is 1 (L.256).</a>
+<a name="294"><span class="lineNum">     294 </span>            :     kLL_2          = 0x2u &lt;&lt; kLL_Shift,    // LL is 2 (L.512).</a>
+<a name="295"><span class="lineNum">     295 </span>            : </a>
+<a name="296"><span class="lineNum">     296 </span>            :     // Opcode Combinations</a>
+<a name="297"><span class="lineNum">     297 </span>            :     // -------------------</a>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<a name="299"><span class="lineNum">     299 </span>            :     k0      = 0,                           // '__' (no prefix, used internally).</a>
+<a name="300"><span class="lineNum">     300 </span>            :     k000000 = kPP_00 | kMM_00,             // '__' (no prefix, to be the same width as others).</a>
+<a name="301"><span class="lineNum">     301 </span>            :     k000F00 = kPP_00 | kMM_0F,             // '0F'</a>
+<a name="302"><span class="lineNum">     302 </span>            :     k000F01 = kPP_00 | kMM_0F01,           // '0F01'</a>
+<a name="303"><span class="lineNum">     303 </span>            :     k000F0F = kPP_00 | kMM_0F,             // '0F0F' - 3DNOW, equal to 0x0F, must have special encoding to take effect.</a>
+<a name="304"><span class="lineNum">     304 </span>            :     k000F38 = kPP_00 | kMM_0F38,           // 'NP.0F38'</a>
+<a name="305"><span class="lineNum">     305 </span>            :     k000F3A = kPP_00 | kMM_0F3A,           // 'NP.0F3A'</a>
+<a name="306"><span class="lineNum">     306 </span>            :     k00MAP5 = kPP_00 | kMM_MAP5,           // 'NP.MAP5'</a>
+<a name="307"><span class="lineNum">     307 </span>            :     k00MAP6 = kPP_00 | kMM_MAP6,           // 'NP.MAP5'</a>
+<a name="308"><span class="lineNum">     308 </span>            :     k660000 = kPP_66 | kMM_00,             // '66'</a>
+<a name="309"><span class="lineNum">     309 </span>            :     k660F00 = kPP_66 | kMM_0F,             // '66.0F'</a>
+<a name="310"><span class="lineNum">     310 </span>            :     k660F01 = kPP_66 | kMM_0F01,           // '66.0F01'</a>
+<a name="311"><span class="lineNum">     311 </span>            :     k660F38 = kPP_66 | kMM_0F38,           // '66.0F38'</a>
+<a name="312"><span class="lineNum">     312 </span>            :     k660F3A = kPP_66 | kMM_0F3A,           // '66.0F3A'</a>
+<a name="313"><span class="lineNum">     313 </span>            :     k66MAP5 = kPP_66 | kMM_MAP5,           // '66.MAP5'</a>
+<a name="314"><span class="lineNum">     314 </span>            :     k66MAP6 = kPP_66 | kMM_MAP6,           // '66.MAP5'</a>
+<a name="315"><span class="lineNum">     315 </span>            :     kF20000 = kPP_F2 | kMM_00,             // 'F2'</a>
+<a name="316"><span class="lineNum">     316 </span>            :     kF20F00 = kPP_F2 | kMM_0F,             // 'F2.0F'</a>
+<a name="317"><span class="lineNum">     317 </span>            :     kF20F01 = kPP_F2 | kMM_0F01,           // 'F2.0F01'</a>
+<a name="318"><span class="lineNum">     318 </span>            :     kF20F38 = kPP_F2 | kMM_0F38,           // 'F2.0F38'</a>
+<a name="319"><span class="lineNum">     319 </span>            :     kF20F3A = kPP_F2 | kMM_0F3A,           // 'F2.0F3A'</a>
+<a name="320"><span class="lineNum">     320 </span>            :     kF2MAP5 = kPP_F2 | kMM_MAP5,           // 'F2.MAP5'</a>
+<a name="321"><span class="lineNum">     321 </span>            :     kF2MAP6 = kPP_F2 | kMM_MAP6,           // 'F2.MAP5'</a>
+<a name="322"><span class="lineNum">     322 </span>            :     kF30000 = kPP_F3 | kMM_00,             // 'F3'</a>
+<a name="323"><span class="lineNum">     323 </span>            :     kF30F00 = kPP_F3 | kMM_0F,             // 'F3.0F'</a>
+<a name="324"><span class="lineNum">     324 </span>            :     kF30F01 = kPP_F3 | kMM_0F01,           // 'F3.0F01'</a>
+<a name="325"><span class="lineNum">     325 </span>            :     kF30F38 = kPP_F3 | kMM_0F38,           // 'F3.0F38'</a>
+<a name="326"><span class="lineNum">     326 </span>            :     kF30F3A = kPP_F3 | kMM_0F3A,           // 'F3.0F3A'</a>
+<a name="327"><span class="lineNum">     327 </span>            :     kF3MAP5 = kPP_F3 | kMM_MAP5,           // 'F3.MAP5'</a>
+<a name="328"><span class="lineNum">     328 </span>            :     kF3MAP6 = kPP_F3 | kMM_MAP6,           // 'F3.MAP5'</a>
+<a name="329"><span class="lineNum">     329 </span>            :     kFPU_00 = kPP_00 | kMM_00,             // '__' (FPU)</a>
+<a name="330"><span class="lineNum">     330 </span>            :     kFPU_9B = kPP_9B | kMM_00,             // '9B' (FPU)</a>
+<a name="331"><span class="lineNum">     331 </span>            :     kXOP_M8 = kPP_00 | kMM_XOP08,          // 'M8' (XOP)</a>
+<a name="332"><span class="lineNum">     332 </span>            :     kXOP_M9 = kPP_00 | kMM_XOP09,          // 'M9' (XOP)</a>
+<a name="333"><span class="lineNum">     333 </span>            :     kXOP_MA = kPP_00 | kMM_XOP0A           // 'MA' (XOP)</a>
+<a name="334"><span class="lineNum">     334 </span>            :   };</a>
+<a name="335"><span class="lineNum">     335 </span>            : </a>
+<a name="336"><span class="lineNum">     336 </span>            :   // Opcode Builder</a>
+<a name="337"><span class="lineNum">     337 </span>            :   // --------------</a>
+<a name="338"><span class="lineNum">     338 </span>            : </a>
+<a name="339"><span class="lineNum">     339 </span>            :   inline uint32_t get() const noexcept { return v; }</a>
+<a name="340"><span class="lineNum">     340 </span>            : </a>
+<a name="341"><span class="lineNum">     341 </span>            :   inline bool hasW() const noexcept { return (v &amp; kW) != 0; }</a>
+<a name="342"><span class="lineNum">     342 </span>            :   inline bool has66h() const noexcept { return (v &amp; kPP_66) != 0; }</a>
+<a name="343"><span class="lineNum">     343 </span>            : </a>
+<a name="344"><span class="lineNum">     344 </span>            :   inline Opcode&amp; add(uint32_t x) noexcept { return operator+=(x); }</a>
+<a name="345"><span class="lineNum">     345 </span>            : </a>
+<a name="346"><span class="lineNum">     346 </span>            :   inline Opcode&amp; add66h() noexcept { return operator|=(kPP_66); }</a>
+<a name="347"><span class="lineNum">     347 </span>            :   template&lt;typename T&gt;</a>
+<a name="348"><span class="lineNum">     348 </span><span class="lineNoCov">          0 :   inline Opcode&amp; add66hIf(T exp) noexcept { return operator|=(uint32_t(exp) &lt;&lt; kPP_Shift); }</span></a>
+<a name="349"><span class="lineNum">     349 </span>            :   template&lt;typename T&gt;</a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineNoCov">          0 :   inline Opcode&amp; add66hBySize(T size) noexcept { return add66hIf(size == 2); }</span></a>
+<a name="351"><span class="lineNum">     351 </span>            : </a>
+<a name="352"><span class="lineNum">     352 </span>            :   inline Opcode&amp; addW() noexcept { return operator|=(kW); }</a>
+<a name="353"><span class="lineNum">     353 </span>            :   template&lt;typename T&gt;</a>
+<a name="354"><span class="lineNum">     354 </span><span class="lineCov">      12630 :   inline Opcode&amp; addWIf(T exp) noexcept { return operator|=(uint32_t(exp) &lt;&lt; kW_Shift); }</span></a>
+<a name="355"><span class="lineNum">     355 </span>            :   template&lt;typename T&gt;</a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineCov">      12630 :   inline Opcode&amp; addWBySize(T size) noexcept { return addWIf(size == 8); }</span></a>
+<a name="357"><span class="lineNum">     357 </span>            : </a>
+<a name="358"><span class="lineNum">     358 </span>            :   template&lt;typename T&gt;</a>
+<a name="359"><span class="lineNum">     359 </span>            :   inline Opcode&amp; addPrefixBySize(T size) noexcept {</a>
+<a name="360"><span class="lineNum">     360 </span>            :     static const uint32_t mask[16] = {</a>
+<a name="361"><span class="lineNum">     361 </span>            :       0,          // #0</a>
+<a name="362"><span class="lineNum">     362 </span>            :       0,          // #1 -&gt; nothing (already handled or not possible)</a>
+<a name="363"><span class="lineNum">     363 </span>            :       kPP_66,     // #2 -&gt; 66H</a>
+<a name="364"><span class="lineNum">     364 </span>            :       0,          // #3</a>
+<a name="365"><span class="lineNum">     365 </span>            :       0,          // #4 -&gt; nothing</a>
+<a name="366"><span class="lineNum">     366 </span>            :       0,          // #5</a>
+<a name="367"><span class="lineNum">     367 </span>            :       0,          // #6</a>
+<a name="368"><span class="lineNum">     368 </span>            :       0,          // #7</a>
+<a name="369"><span class="lineNum">     369 </span>            :       kW          // #8 -&gt; REX.W</a>
+<a name="370"><span class="lineNum">     370 </span>            :     };</a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineCov">     108921 :     return operator|=(mask[size &amp; 0xF]);</span></a>
+<a name="372"><span class="lineNum">     372 </span>            :   }</a>
+<a name="373"><span class="lineNum">     373 </span>            : </a>
+<a name="374"><span class="lineNum">     374 </span>            :   template&lt;typename T&gt;</a>
+<a name="375"><span class="lineNum">     375 </span>            :   inline Opcode&amp; addArithBySize(T size) noexcept {</a>
+<a name="376"><span class="lineNum">     376 </span>            :     static const uint32_t mask[16] = {</a>
+<a name="377"><span class="lineNum">     377 </span>            :       0,          // #0</a>
+<a name="378"><span class="lineNum">     378 </span>            :       0,          // #1 -&gt; nothing</a>
+<a name="379"><span class="lineNum">     379 </span>            :       1 | kPP_66, // #2 -&gt; NOT_BYTE_OP(1) and 66H</a>
+<a name="380"><span class="lineNum">     380 </span>            :       0,          // #3</a>
+<a name="381"><span class="lineNum">     381 </span>            :       1,          // #4 -&gt; NOT_BYTE_OP(1)</a>
+<a name="382"><span class="lineNum">     382 </span>            :       0,          // #5</a>
+<a name="383"><span class="lineNum">     383 </span>            :       0,          // #6</a>
+<a name="384"><span class="lineNum">     384 </span>            :       0,          // #7</a>
+<a name="385"><span class="lineNum">     385 </span>            :       1 | kW      // #8 -&gt; NOT_BYTE_OP(1) and REX.W</a>
+<a name="386"><span class="lineNum">     386 </span>            :     };</a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">         26 :     return operator|=(mask[size &amp; 0xF]);</span></a>
+<a name="388"><span class="lineNum">     388 </span>            :   }</a>
+<a name="389"><span class="lineNum">     389 </span>            : </a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineNoCov">          0 :   inline Opcode&amp; forceEvex() noexcept { return operator|=(kMM_ForceEvex); }</span></a>
+<a name="391"><span class="lineNum">     391 </span>            :   template&lt;typename T&gt;</a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineCov">       2190 :   inline Opcode&amp; forceEvexIf(T exp) noexcept { return operator|=(uint32_t(exp) &lt;&lt; Support::ConstCTZ&lt;uint32_t(kMM_ForceEvex)&gt;::value); }</span></a>
+<a name="393"><span class="lineNum">     393 </span>            : </a>
+<a name="394"><span class="lineNum">     394 </span>            :   //! Extract `O` field (R) from the opcode (specified as /0..7 in instruction manuals).</a>
+<a name="395"><span class="lineNum">     395 </span>            :   inline uint32_t extractModO() const noexcept {</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">     491762 :     return (v &gt;&gt; kModO_Shift) &amp; 0x07;</span></a>
+<a name="397"><span class="lineNum">     397 </span>            :   }</a>
+<a name="398"><span class="lineNum">     398 </span>            : </a>
+<a name="399"><span class="lineNum">     399 </span>            :   //! Extract `RM` field (RM) from the opcode (usually specified as another opcode value).</a>
+<a name="400"><span class="lineNum">     400 </span>            :   inline uint32_t extractModRM() const noexcept {</a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineNoCov">          0 :     return (v &gt;&gt; kModRM_Shift) &amp; 0x07;</span></a>
+<a name="402"><span class="lineNum">     402 </span>            :   }</a>
+<a name="403"><span class="lineNum">     403 </span>            : </a>
+<a name="404"><span class="lineNum">     404 </span>            :   //! Extract `REX` prefix from opcode combined with `options`.</a>
+<a name="405"><span class="lineNum">     405 </span>            :   inline uint32_t extractRex(InstOptions options) const noexcept {</a>
+<a name="406"><span class="lineNum">     406 </span>            :     // kREX was designed in a way that when shifted there will be no bytes set except REX.[B|X|R|W].</a>
+<a name="407"><span class="lineNum">     407 </span>            :     // The returned value forms a real REX prefix byte. This case should be unit-tested as well.</a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">     167649 :     return (v | uint32_t(options)) &gt;&gt; kREX_Shift;</span></a>
+<a name="409"><span class="lineNum">     409 </span>            :   }</a>
+<a name="410"><span class="lineNum">     410 </span>            : </a>
+<a name="411"><span class="lineNum">     411 </span>            :   inline uint32_t extractLLMMMMM(InstOptions options) const noexcept {</a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineCov">     324113 :     uint32_t llMmmmm = uint32_t(v &amp; (kLL_Mask | kMM_Mask));</span></a>
+<a name="413"><span class="lineNum">     413 </span>            :     uint32_t vexEvex = uint32_t(options &amp; InstOptions::kX86_Evex);</a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">     324113 :     return (llMmmmm | vexEvex) &gt;&gt; kMM_Shift;</span></a>
+<a name="415"><span class="lineNum">     415 </span>            :   }</a>
+<a name="416"><span class="lineNum">     416 </span>            : </a>
+<a name="417"><span class="lineNum">     417 </span>            :   inline Opcode&amp; operator=(uint32_t x) noexcept { v = x; return *this; }</a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">     155177 :   inline Opcode&amp; operator+=(uint32_t x) noexcept { v += x; return *this; }</span></a>
+<a name="419"><span class="lineNum">     419 </span><span class="lineNoCov">          0 :   inline Opcode&amp; operator-=(uint32_t x) noexcept { v -= x; return *this; }</span></a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineCov">     181454 :   inline Opcode&amp; operator&amp;=(uint32_t x) noexcept { v &amp;= x; return *this; }</span></a>
+<a name="421"><span class="lineNum">     421 </span><span class="lineCov">     613313 :   inline Opcode&amp; operator|=(uint32_t x) noexcept { v |= x; return *this; }</span></a>
+<a name="422"><span class="lineNum">     422 </span>            :   inline Opcode&amp; operator^=(uint32_t x) noexcept { v ^= x; return *this; }</a>
+<a name="423"><span class="lineNum">     423 </span>            : </a>
+<a name="424"><span class="lineNum">     424 </span><span class="lineNoCov">          0 :   inline uint32_t operator&amp;(uint32_t x) const noexcept { return v &amp; x; }</span></a>
+<a name="425"><span class="lineNum">     425 </span>            :   inline uint32_t operator|(uint32_t x) const noexcept { return v | x; }</a>
+<a name="426"><span class="lineNum">     426 </span>            :   inline uint32_t operator^(uint32_t x) const noexcept { return v ^ x; }</a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineCov">       3243 :   inline uint32_t operator&lt;&lt;(uint32_t x) const noexcept { return v &lt;&lt; x; }</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineCov">     324113 :   inline uint32_t operator&gt;&gt;(uint32_t x) const noexcept { return v &gt;&gt; x; }</span></a>
+<a name="429"><span class="lineNum">     429 </span>            : };</a>
+<a name="430"><span class="lineNum">     430 </span>            : </a>
+<a name="431"><span class="lineNum">     431 </span>            : //! \}</a>
+<a name="432"><span class="lineNum">     432 </span>            : //! \endcond</a>
+<a name="433"><span class="lineNum">     433 </span>            : </a>
+<a name="434"><span class="lineNum">     434 </span>            : ASMJIT_END_SUB_NAMESPACE</a>
+<a name="435"><span class="lineNum">     435 </span>            : </a>
+<a name="436"><span class="lineNum">     436 </span>            : #endif // ASMJIT_X86_X86OPCODE_P_H_INCLUDED</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,1589 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage (other modules) - asmjit/x86rapass.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">asmjit</a> - x86rapass.cpp<span style="font-size: 80%;"> (source / <a href="x86rapass.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage (other modules)</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">205</td>
+            <td class="headerCovTableEntry">461</td>
+            <td class="headerCovTableEntryLo">44.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-10-31 16:48:53</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">17</td>
+            <td class="headerCovTableEntry">24</td>
+            <td class="headerCovTableEntryLo">70.8 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #ifdef __PLUMED_HAS_ASMJIT</a>
+<a name="2"><span class="lineNum">       2 </span>            : // This file is part of AsmJit project &lt;https://asmjit.com&gt;</a>
+<a name="3"><span class="lineNum">       3 </span>            : //</a>
+<a name="4"><span class="lineNum">       4 </span>            : // See asmjit.h or LICENSE.md for license and copyright information</a>
+<a name="5"><span class="lineNum">       5 </span>            : // SPDX-License-Identifier: Zlib</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            : #include &quot;api-build_p.h&quot;</a>
+<a name="8"><span class="lineNum">       8 </span>            : #if !defined(ASMJIT_NO_X86) &amp;&amp; !defined(ASMJIT_NO_COMPILER)</a>
+<a name="9"><span class="lineNum">       9 </span>            : </a>
+<a name="10"><span class="lineNum">      10 </span>            : #include &quot;cpuinfo.h&quot;</a>
+<a name="11"><span class="lineNum">      11 </span>            : #include &quot;support.h&quot;</a>
+<a name="12"><span class="lineNum">      12 </span>            : #include &quot;type.h&quot;</a>
+<a name="13"><span class="lineNum">      13 </span>            : #include &quot;x86assembler.h&quot;</a>
+<a name="14"><span class="lineNum">      14 </span>            : #include &quot;x86compiler.h&quot;</a>
+<a name="15"><span class="lineNum">      15 </span>            : #include &quot;x86instapi_p.h&quot;</a>
+<a name="16"><span class="lineNum">      16 </span>            : #include &quot;x86instdb_p.h&quot;</a>
+<a name="17"><span class="lineNum">      17 </span>            : #include &quot;x86emithelper_p.h&quot;</a>
+<a name="18"><span class="lineNum">      18 </span>            : #include &quot;x86rapass_p.h&quot;</a>
+<a name="19"><span class="lineNum">      19 </span>            : </a>
+<a name="20"><span class="lineNum">      20 </span>            : ASMJIT_BEGIN_SUB_NAMESPACE(x86)</a>
+<a name="21"><span class="lineNum">      21 </span>            : </a>
+<a name="22"><span class="lineNum">      22 </span>            : // x86::X86RAPass - Utilities</a>
+<a name="23"><span class="lineNum">      23 </span>            : // ==========================</a>
+<a name="24"><span class="lineNum">      24 </span>            : </a>
+<a name="25"><span class="lineNum">      25 </span>            : static ASMJIT_FORCE_INLINE uint64_t raImmMaskFromSize(uint32_t size) noexcept {</a>
+<a name="26"><span class="lineNum">      26 </span>            :   ASMJIT_ASSERT(size &gt; 0 &amp;&amp; size &lt; 256);</a>
+<a name="27"><span class="lineNum">      27 </span>            :   static constexpr uint64_t masks[] = {</a>
+<a name="28"><span class="lineNum">      28 </span>            :     0x00000000000000FFu, //   1</a>
+<a name="29"><span class="lineNum">      29 </span>            :     0x000000000000FFFFu, //   2</a>
+<a name="30"><span class="lineNum">      30 </span>            :     0x00000000FFFFFFFFu, //   4</a>
+<a name="31"><span class="lineNum">      31 </span>            :     0xFFFFFFFFFFFFFFFFu, //   8</a>
+<a name="32"><span class="lineNum">      32 </span>            :     0x0000000000000000u, //  16</a>
+<a name="33"><span class="lineNum">      33 </span>            :     0x0000000000000000u, //  32</a>
+<a name="34"><span class="lineNum">      34 </span>            :     0x0000000000000000u, //  64</a>
+<a name="35"><span class="lineNum">      35 </span>            :     0x0000000000000000u, // 128</a>
+<a name="36"><span class="lineNum">      36 </span>            :     0x0000000000000000u  // 256</a>
+<a name="37"><span class="lineNum">      37 </span>            :   };</a>
+<a name="38"><span class="lineNum">      38 </span><span class="lineNoCov">          0 :   return masks[Support::ctz(size)];</span></a>
+<a name="39"><span class="lineNum">      39 </span>            : }</a>
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<a name="41"><span class="lineNum">      41 </span>            : static const RegMask raConsecutiveLeadCountToRegMaskFilter[5] = {</a>
+<a name="42"><span class="lineNum">      42 </span>            :   0xFFFFFFFFu, // [0] No consecutive.</a>
+<a name="43"><span class="lineNum">      43 </span>            :   0x00000000u, // [1] Invalid, never used.</a>
+<a name="44"><span class="lineNum">      44 </span>            :   0x55555555u, // [2] Even registers.</a>
+<a name="45"><span class="lineNum">      45 </span>            :   0x00000000u, // [3] Invalid, never used.</a>
+<a name="46"><span class="lineNum">      46 </span>            :   0x11111111u  // [4] Every fourth register.</a>
+<a name="47"><span class="lineNum">      47 </span>            : };</a>
+<a name="48"><span class="lineNum">      48 </span>            : </a>
+<a name="49"><span class="lineNum">      49 </span>            : static ASMJIT_FORCE_INLINE RATiedFlags raUseOutFlagsFromRWFlags(OpRWFlags rwFlags) noexcept {</a>
+<a name="50"><span class="lineNum">      50 </span>            :   static constexpr RATiedFlags map[] = {</a>
+<a name="51"><span class="lineNum">      51 </span>            :     RATiedFlags::kNone,</a>
+<a name="52"><span class="lineNum">      52 </span>            :     RATiedFlags::kRead  | RATiedFlags::kUse,                       // kRead</a>
+<a name="53"><span class="lineNum">      53 </span>            :     RATiedFlags::kWrite | RATiedFlags::kOut,                       // kWrite</a>
+<a name="54"><span class="lineNum">      54 </span>            :     RATiedFlags::kRW    | RATiedFlags::kUse,                       // kRW</a>
+<a name="55"><span class="lineNum">      55 </span>            :     RATiedFlags::kNone,</a>
+<a name="56"><span class="lineNum">      56 </span>            :     RATiedFlags::kRead  | RATiedFlags::kUse | RATiedFlags::kUseRM, // kRead  | kRegMem</a>
+<a name="57"><span class="lineNum">      57 </span>            :     RATiedFlags::kWrite | RATiedFlags::kOut | RATiedFlags::kOutRM, // kWrite | kRegMem</a>
+<a name="58"><span class="lineNum">      58 </span>            :     RATiedFlags::kRW    | RATiedFlags::kUse | RATiedFlags::kUseRM  // kRW    | kRegMem</a>
+<a name="59"><span class="lineNum">      59 </span>            :   };</a>
+<a name="60"><span class="lineNum">      60 </span>            : </a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">     720061 :   return map[uint32_t(rwFlags &amp; (OpRWFlags::kRW | OpRWFlags::kRegMem))];</span></a>
+<a name="62"><span class="lineNum">      62 </span>            : }</a>
+<a name="63"><span class="lineNum">      63 </span>            : </a>
+<a name="64"><span class="lineNum">      64 </span>            : static ASMJIT_FORCE_INLINE RATiedFlags raRegRwFlags(OpRWFlags flags) noexcept {</a>
+<a name="65"><span class="lineNum">      65 </span>            :   return (RATiedFlags)raUseOutFlagsFromRWFlags(flags);</a>
+<a name="66"><span class="lineNum">      66 </span>            : }</a>
+<a name="67"><span class="lineNum">      67 </span>            : </a>
+<a name="68"><span class="lineNum">      68 </span>            : static ASMJIT_FORCE_INLINE RATiedFlags raMemBaseRwFlags(OpRWFlags flags) noexcept {</a>
+<a name="69"><span class="lineNum">      69 </span>            :   constexpr uint32_t kShift = Support::ConstCTZ&lt;uint32_t(OpRWFlags::kMemBaseRW)&gt;::value;</a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">      88022 :   return (RATiedFlags)raUseOutFlagsFromRWFlags(OpRWFlags(uint32_t(flags) &gt;&gt; kShift) &amp; OpRWFlags::kRW);</span></a>
+<a name="71"><span class="lineNum">      71 </span>            : }</a>
+<a name="72"><span class="lineNum">      72 </span>            : </a>
+<a name="73"><span class="lineNum">      73 </span>            : static ASMJIT_FORCE_INLINE RATiedFlags raMemIndexRwFlags(OpRWFlags flags) noexcept {</a>
+<a name="74"><span class="lineNum">      74 </span>            :   constexpr uint32_t kShift = Support::ConstCTZ&lt;uint32_t(OpRWFlags::kMemIndexRW)&gt;::value;</a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineNoCov">          0 :   return (RATiedFlags)raUseOutFlagsFromRWFlags(OpRWFlags(uint32_t(flags) &gt;&gt; kShift) &amp; OpRWFlags::kRW);</span></a>
+<a name="76"><span class="lineNum">      76 </span>            : }</a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span>            : // x86::RACFGBuilder</a>
+<a name="79"><span class="lineNum">      79 </span>            : // =================</a>
+<a name="80"><span class="lineNum">      80 </span>            : </a>
+<a name="81"><span class="lineNum">      81 </span>            : class RACFGBuilder : public RACFGBuilderT&lt;RACFGBuilder&gt; {</a>
+<a name="82"><span class="lineNum">      82 </span>            : public:</a>
+<a name="83"><span class="lineNum">      83 </span>            :   Arch _arch;</a>
+<a name="84"><span class="lineNum">      84 </span>            :   bool _is64Bit;</a>
+<a name="85"><span class="lineNum">      85 </span>            :   bool _avxEnabled;</a>
+<a name="86"><span class="lineNum">      86 </span>            : </a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">      33600 :   inline RACFGBuilder(X86RAPass* pass) noexcept</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">      33600 :     : RACFGBuilderT&lt;RACFGBuilder&gt;(pass),</span></a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">      33600 :       _arch(pass-&gt;cc()-&gt;arch()),</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">      33600 :       _is64Bit(pass-&gt;registerSize() == 8),</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">      33600 :       _avxEnabled(pass-&gt;avxEnabled()) {</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">      33600 :   }</span></a>
+<a name="93"><span class="lineNum">      93 </span>            : </a>
+<a name="94"><span class="lineNum">      94 </span><span class="lineCov">      58790 :   inline Compiler* cc() const noexcept { return static_cast&lt;Compiler*&gt;(_cc); }</span></a>
+<a name="95"><span class="lineNum">      95 </span>            : </a>
+<a name="96"><span class="lineNum">      96 </span>            :   inline uint32_t choose(uint32_t sseInst, uint32_t avxInst) const noexcept {</a>
+<a name="97"><span class="lineNum">      97 </span><span class="lineNoCov">          0 :     return _avxEnabled ? avxInst : sseInst;</span></a>
+<a name="98"><span class="lineNum">      98 </span>            :   }</a>
+<a name="99"><span class="lineNum">      99 </span>            : </a>
+<a name="100"><span class="lineNum">     100 </span>            :   Error onInst(InstNode* inst, InstControlFlow&amp; cf, RAInstBuilder&amp; ib) noexcept;</a>
+<a name="101"><span class="lineNum">     101 </span>            : </a>
+<a name="102"><span class="lineNum">     102 </span>            :   Error onBeforeInvoke(InvokeNode* invokeNode) noexcept;</a>
+<a name="103"><span class="lineNum">     103 </span>            :   Error onInvoke(InvokeNode* invokeNode, RAInstBuilder&amp; ib) noexcept;</a>
+<a name="104"><span class="lineNum">     104 </span>            : </a>
+<a name="105"><span class="lineNum">     105 </span>            :   Error moveVecToPtr(InvokeNode* invokeNode, const FuncValue&amp; arg, const Vec&amp; src, BaseReg* out) noexcept;</a>
+<a name="106"><span class="lineNum">     106 </span>            :   Error moveImmToRegArg(InvokeNode* invokeNode, const FuncValue&amp; arg, const Imm&amp; imm_, BaseReg* out) noexcept;</a>
+<a name="107"><span class="lineNum">     107 </span>            :   Error moveImmToStackArg(InvokeNode* invokeNode, const FuncValue&amp; arg, const Imm&amp; imm_) noexcept;</a>
+<a name="108"><span class="lineNum">     108 </span>            :   Error moveRegToStackArg(InvokeNode* invokeNode, const FuncValue&amp; arg, const BaseReg&amp; reg) noexcept;</a>
+<a name="109"><span class="lineNum">     109 </span>            : </a>
+<a name="110"><span class="lineNum">     110 </span>            :   Error onBeforeRet(FuncRetNode* funcRet) noexcept;</a>
+<a name="111"><span class="lineNum">     111 </span>            :   Error onRet(FuncRetNode* funcRet, RAInstBuilder&amp; ib) noexcept;</a>
+<a name="112"><span class="lineNum">     112 </span>            : };</a>
+<a name="113"><span class="lineNum">     113 </span>            : </a>
+<a name="114"><span class="lineNum">     114 </span>            : // x86::RACFGBuilder - OnInst</a>
+<a name="115"><span class="lineNum">     115 </span>            : // ==========================</a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span><span class="lineCov">     413214 : Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow&amp; cf, RAInstBuilder&amp; ib) noexcept {</span></a>
+<a name="118"><span class="lineNum">     118 </span>            :   InstRWInfo rwInfo;</a>
+<a name="119"><span class="lineNum">     119 </span>            : </a>
+<a name="120"><span class="lineNum">     120 </span>            :   InstId instId = inst-&gt;id();</a>
+<a name="121"><span class="lineNum">     121 </span><span class="lineCov">     413214 :   if (Inst::isDefinedId(instId)) {</span></a>
+<a name="122"><span class="lineNum">     122 </span>            :     uint32_t opCount = inst-&gt;opCount();</a>
+<a name="123"><span class="lineNum">     123 </span>            :     const Operand* opArray = inst-&gt;operands();</a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">     379614 :     ASMJIT_PROPAGATE(InstInternal::queryRWInfo(_arch, inst-&gt;baseInst(), opArray, opCount, &amp;rwInfo));</span></a>
+<a name="125"><span class="lineNum">     125 </span>            : </a>
+<a name="126"><span class="lineNum">     126 </span>            :     const InstDB::InstInfo&amp; instInfo = InstDB::infoById(instId);</a>
+<a name="127"><span class="lineNum">     127 </span>            :     bool hasGpbHiConstraint = false;</a>
+<a name="128"><span class="lineNum">     128 </span>            :     uint32_t singleRegOps = 0;</a>
+<a name="129"><span class="lineNum">     129 </span>            : </a>
+<a name="130"><span class="lineNum">     130 </span>            :     // Copy instruction RW flags to instruction builder except kMovOp, which is propagated manually later.</a>
+<a name="131"><span class="lineNum">     131 </span>            :     ib.addInstRWFlags(rwInfo.instFlags() &amp; ~InstRWFlags::kMovOp);</a>
+<a name="132"><span class="lineNum">     132 </span>            : </a>
+<a name="133"><span class="lineNum">     133 </span>            :     // Mask of all operand types used by the instruction - can be used as an optimization later.</a>
+<a name="134"><span class="lineNum">     134 </span>            :     uint32_t opTypesMask = 0u;</a>
+<a name="135"><span class="lineNum">     135 </span>            : </a>
+<a name="136"><span class="lineNum">     136 </span><span class="lineCov">     379614 :     if (opCount) {</span></a>
+<a name="137"><span class="lineNum">     137 </span>            :       // The mask is for all registers, but we are mostly interested in AVX-512 registers at the moment. The mask</a>
+<a name="138"><span class="lineNum">     138 </span>            :       // will be combined with all available registers of the Compiler at the end so we it never use more registers</a>
+<a name="139"><span class="lineNum">     139 </span>            :       // than available.</a>
+<a name="140"><span class="lineNum">     140 </span>            :       RegMask instructionAllowedRegs = 0xFFFFFFFFu;</a>
+<a name="141"><span class="lineNum">     141 </span>            : </a>
+<a name="142"><span class="lineNum">     142 </span>            :       uint32_t consecutiveOffset = 0;</a>
+<a name="143"><span class="lineNum">     143 </span>            :       uint32_t consecutiveLeadId = Globals::kInvalidId;</a>
+<a name="144"><span class="lineNum">     144 </span>            :       uint32_t consecutiveParent = Globals::kInvalidId;</a>
+<a name="145"><span class="lineNum">     145 </span>            : </a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">     379614 :       if (instInfo.isEvex()) {</span></a>
+<a name="147"><span class="lineNum">     147 </span>            :         // EVEX instruction and VEX instructions that can be encoded with EVEX have the possibility to use 32 SIMD</a>
+<a name="148"><span class="lineNum">     148 </span>            :         // registers (XMM/YMM/ZMM).</a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">     258164 :         if (instInfo.isVex() &amp;&amp; !instInfo.isEvexCompatible()) {</span></a>
+<a name="150"><span class="lineNum">     150 </span><span class="lineCov">       2190 :           if (instInfo.isEvexKRegOnly()) {</span></a>
+<a name="151"><span class="lineNum">     151 </span>            :             // EVEX encodable only if the first operand is K register (compare instructions).</a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">       2190 :             if (!Reg::isKReg(opArray[0]))</span></a>
+<a name="153"><span class="lineNum">     153 </span>            :               instructionAllowedRegs = 0xFFFFu;</a>
+<a name="154"><span class="lineNum">     154 </span>            :           }</a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineNoCov">          0 :           else if (instInfo.isEvexTwoOpOnly()) {</span></a>
+<a name="156"><span class="lineNum">     156 </span>            :             // EVEX encodable only if the instruction has two operands (gather instructions).</a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineNoCov">          0 :             if (opCount != 2)</span></a>
+<a name="158"><span class="lineNum">     158 </span>            :               instructionAllowedRegs = 0xFFFFu;</a>
+<a name="159"><span class="lineNum">     159 </span>            :           }</a>
+<a name="160"><span class="lineNum">     160 </span>            :           else {</a>
+<a name="161"><span class="lineNum">     161 </span>            :             instructionAllowedRegs = 0xFFFFu;</a>
+<a name="162"><span class="lineNum">     162 </span>            :           }</a>
+<a name="163"><span class="lineNum">     163 </span>            :         }</a>
+<a name="164"><span class="lineNum">     164 </span>            :       }</a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">     121450 :       else if (instInfo.isEvexTransformable()) {</span></a>
+<a name="166"><span class="lineNum">     166 </span>            :         ib.addAggregatedFlags(RATiedFlags::kInst_IsTransformable);</a>
+<a name="167"><span class="lineNum">     167 </span>            :       }</a>
+<a name="168"><span class="lineNum">     168 </span>            :       else {</a>
+<a name="169"><span class="lineNum">     169 </span>            :         // Not EVEX, restrict everything to [0-15] registers.</a>
+<a name="170"><span class="lineNum">     170 </span>            :         instructionAllowedRegs = 0xFFFFu;</a>
+<a name="171"><span class="lineNum">     171 </span>            :       }</a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">    1298816 :       for (uint32_t i = 0; i &lt; opCount; i++) {</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">     919202 :         const Operand&amp; op = opArray[i];</span></a>
+<a name="175"><span class="lineNum">     175 </span>            :         const OpRWInfo&amp; opRwInfo = rwInfo.operand(i);</a>
+<a name="176"><span class="lineNum">     176 </span>            : </a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">     919202 :         opTypesMask |= 1u &lt;&lt; uint32_t(op.opType());</span></a>
+<a name="178"><span class="lineNum">     178 </span>            : </a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">     919202 :         if (op.isReg()) {</span></a>
+<a name="180"><span class="lineNum">     180 </span>            :           // Register Operand</a>
+<a name="181"><span class="lineNum">     181 </span>            :           // ----------------</a>
+<a name="182"><span class="lineNum">     182 </span>            :           const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="183"><span class="lineNum">     183 </span>            : </a>
+<a name="184"><span class="lineNum">     184 </span>            :           RATiedFlags flags = raRegRwFlags(opRwInfo.opFlags());</a>
+<a name="185"><span class="lineNum">     185 </span>            :           RegMask allowedRegs = instructionAllowedRegs;</a>
+<a name="186"><span class="lineNum">     186 </span>            : </a>
+<a name="187"><span class="lineNum">     187 </span>            :           // X86-specific constraints related to LO|HI general purpose registers. This is only required when the</a>
+<a name="188"><span class="lineNum">     188 </span>            :           // register is part of the encoding. If the register is fixed we won't restrict anything as it doesn't</a>
+<a name="189"><span class="lineNum">     189 </span>            :           // restrict encoding of other registers.</a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">     720061 :           if (reg.isGpb() &amp;&amp; !opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {</span></a>
+<a name="191"><span class="lineNum">     191 </span>            :             flags |= RATiedFlags::kX86_Gpb;</a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineNoCov">          0 :             if (!_is64Bit) {</span></a>
+<a name="193"><span class="lineNum">     193 </span>            :               // Restrict to first four - AL|AH|BL|BH|CL|CH|DL|DH. In 32-bit mode it's not possible to access</a>
+<a name="194"><span class="lineNum">     194 </span>            :               // SIL|DIL, etc, so this is just enough.</a>
+<a name="195"><span class="lineNum">     195 </span>            :               allowedRegs = 0x0Fu;</a>
+<a name="196"><span class="lineNum">     196 </span>            :             }</a>
+<a name="197"><span class="lineNum">     197 </span>            :             else {</a>
+<a name="198"><span class="lineNum">     198 </span>            :               // If we encountered GPB-HI register the situation is much more complicated than in 32-bit mode.</a>
+<a name="199"><span class="lineNum">     199 </span>            :               // We need to patch all registers to not use ID higher than 7 and all GPB-LO registers to not use</a>
+<a name="200"><span class="lineNum">     200 </span>            :               // index higher than 3. Instead of doing the patching here we just set a flag and will do it later,</a>
+<a name="201"><span class="lineNum">     201 </span>            :               // to not complicate this loop.</a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineNoCov">          0 :               if (reg.isGpbHi()) {</span></a>
+<a name="203"><span class="lineNum">     203 </span>            :                 hasGpbHiConstraint = true;</a>
+<a name="204"><span class="lineNum">     204 </span>            :                 allowedRegs = 0x0Fu;</a>
+<a name="205"><span class="lineNum">     205 </span>            :               }</a>
+<a name="206"><span class="lineNum">     206 </span>            :             }</a>
+<a name="207"><span class="lineNum">     207 </span>            :           }</a>
+<a name="208"><span class="lineNum">     208 </span>            : </a>
+<a name="209"><span class="lineNum">     209 </span>            :           uint32_t vIndex = Operand::virtIdToIndex(reg.id());</a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">     720061 :           if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="211"><span class="lineNum">     211 </span>            :             RAWorkReg* workReg;</a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineCov">    1440122 :             ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(vIndex, &amp;workReg));</span></a>
+<a name="213"><span class="lineNum">     213 </span>            : </a>
+<a name="214"><span class="lineNum">     214 </span>            :             // Use RW instead of Write in case that not the whole register is overwritten. This is important</a>
+<a name="215"><span class="lineNum">     215 </span>            :             // for liveness as we cannot kill a register that will be used. For example `mov al, 0xFF` is not</a>
+<a name="216"><span class="lineNum">     216 </span>            :             // a write-only operation if user allocated the whole `rax` register.</a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">     720061 :             if ((flags &amp; RATiedFlags::kRW) == RATiedFlags::kWrite) {</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">     367019 :               if (workReg-&gt;regByteMask() &amp; ~(opRwInfo.writeByteMask() | opRwInfo.extendByteMask())) {</span></a>
+<a name="219"><span class="lineNum">     219 </span>            :                 // Not write-only operation.</a>
+<a name="220"><span class="lineNum">     220 </span>            :                 flags = (flags &amp; ~RATiedFlags::kOut) | (RATiedFlags::kRead | RATiedFlags::kUse);</a>
+<a name="221"><span class="lineNum">     221 </span>            :               }</a>
+<a name="222"><span class="lineNum">     222 </span>            :             }</a>
+<a name="223"><span class="lineNum">     223 </span>            : </a>
+<a name="224"><span class="lineNum">     224 </span>            :             // Do not use RegMem flag if changing Reg to Mem requires additional CPU feature that may not be enabled.</a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">     720061 :             if (rwInfo.rmFeature() &amp;&amp; Support::test(flags, RATiedFlags::kUseRM | RATiedFlags::kOutRM)) {</span></a>
+<a name="226"><span class="lineNum">     226 </span>            :               flags &amp;= ~(RATiedFlags::kUseRM | RATiedFlags::kOutRM);</a>
+<a name="227"><span class="lineNum">     227 </span>            :             }</a>
+<a name="228"><span class="lineNum">     228 </span>            : </a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineCov">     720061 :             RegGroup group = workReg-&gt;group();</span></a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">     720061 :             RegMask useRegs = _pass-&gt;_availableRegs[group] &amp; allowedRegs;</span></a>
+<a name="231"><span class="lineNum">     231 </span>            :             RegMask outRegs = useRegs;</a>
+<a name="232"><span class="lineNum">     232 </span>            : </a>
+<a name="233"><span class="lineNum">     233 </span>            :             uint32_t useId = BaseReg::kIdBad;</a>
+<a name="234"><span class="lineNum">     234 </span>            :             uint32_t outId = BaseReg::kIdBad;</a>
+<a name="235"><span class="lineNum">     235 </span>            : </a>
+<a name="236"><span class="lineNum">     236 </span>            :             uint32_t useRewriteMask = 0;</a>
+<a name="237"><span class="lineNum">     237 </span>            :             uint32_t outRewriteMask = 0;</a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">     720061 :             if (opRwInfo.consecutiveLeadCount()) {</span></a>
+<a name="240"><span class="lineNum">     240 </span>            :               // There must be a single consecutive register lead, otherwise the RW data is invalid.</a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineNoCov">          0 :               if (consecutiveLeadId != Globals::kInvalidId)</span></a>
+<a name="242"><span class="lineNum">     242 </span>            :                 return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span>            :               // A consecutive lead register cannot be used as a consecutive +1/+2/+3 register, the registers must be distinct.</a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineNoCov">          0 :               if (RATiedReg::consecutiveDataFromFlags(flags) != 0)</span></a>
+<a name="246"><span class="lineNum">     246 </span>            :                 return DebugUtils::errored(kErrorNotConsecutiveRegs);</a>
+<a name="247"><span class="lineNum">     247 </span>            : </a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineNoCov">          0 :               flags |= RATiedFlags::kLeadConsecutive | RATiedReg::consecutiveDataToFlags(opRwInfo.consecutiveLeadCount() - 1);</span></a>
+<a name="249"><span class="lineNum">     249 </span>            :               consecutiveLeadId = workReg-&gt;workId();</a>
+<a name="250"><span class="lineNum">     250 </span>            : </a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineNoCov">          0 :               RegMask filter = raConsecutiveLeadCountToRegMaskFilter[opRwInfo.consecutiveLeadCount()];</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineNoCov">          0 :               if (Support::test(flags, RATiedFlags::kUse)) {</span></a>
+<a name="253"><span class="lineNum">     253 </span>            :                 flags |= RATiedFlags::kUseConsecutive;</a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineNoCov">          0 :                 useRegs &amp;= filter;</span></a>
+<a name="255"><span class="lineNum">     255 </span>            :               }</a>
+<a name="256"><span class="lineNum">     256 </span>            :               else {</a>
+<a name="257"><span class="lineNum">     257 </span>            :                 flags |= RATiedFlags::kOutConsecutive;</a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineNoCov">          0 :                 outRegs &amp;= filter;</span></a>
+<a name="259"><span class="lineNum">     259 </span>            :               }</a>
+<a name="260"><span class="lineNum">     260 </span>            :             }</a>
+<a name="261"><span class="lineNum">     261 </span>            : </a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">     720061 :             if (Support::test(flags, RATiedFlags::kUse)) {</span></a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineCov">     353042 :               useRewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;reg._baseId));</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">     353042 :               if (opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {</span></a>
+<a name="265"><span class="lineNum">     265 </span>            :                 useId = opRwInfo.physId();</a>
+<a name="266"><span class="lineNum">     266 </span>            :                 flags |= RATiedFlags::kUseFixed;</a>
+<a name="267"><span class="lineNum">     267 </span>            :               }</a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">     353042 :               else if (opRwInfo.hasOpFlag(OpRWFlags::kConsecutive)) {</span></a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineNoCov">          0 :                 if (consecutiveLeadId == Globals::kInvalidId)</span></a>
+<a name="270"><span class="lineNum">     270 </span>            :                   return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="271"><span class="lineNum">     271 </span>            : </a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineNoCov">          0 :                 if (consecutiveLeadId == workReg-&gt;workId())</span></a>
+<a name="273"><span class="lineNum">     273 </span>            :                   return DebugUtils::errored(kErrorOverlappedRegs);</a>
+<a name="274"><span class="lineNum">     274 </span>            : </a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineNoCov">          0 :                 flags |= RATiedFlags::kUseConsecutive | RATiedReg::consecutiveDataToFlags(++consecutiveOffset);</span></a>
+<a name="276"><span class="lineNum">     276 </span>            :               }</a>
+<a name="277"><span class="lineNum">     277 </span>            :             }</a>
+<a name="278"><span class="lineNum">     278 </span>            :             else {</a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">     367019 :               outRewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;reg._baseId));</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">     367019 :               if (opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {</span></a>
+<a name="281"><span class="lineNum">     281 </span>            :                 outId = opRwInfo.physId();</a>
+<a name="282"><span class="lineNum">     282 </span>            :                 flags |= RATiedFlags::kOutFixed;</a>
+<a name="283"><span class="lineNum">     283 </span>            :               }</a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineCov">     367019 :               else if (opRwInfo.hasOpFlag(OpRWFlags::kConsecutive)) {</span></a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineNoCov">          0 :                 if (consecutiveLeadId == Globals::kInvalidId)</span></a>
+<a name="286"><span class="lineNum">     286 </span>            :                   return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="287"><span class="lineNum">     287 </span>            : </a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineNoCov">          0 :                 if (consecutiveLeadId == workReg-&gt;workId())</span></a>
+<a name="289"><span class="lineNum">     289 </span>            :                   return DebugUtils::errored(kErrorOverlappedRegs);</a>
+<a name="290"><span class="lineNum">     290 </span>            : </a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineNoCov">          0 :                 flags |= RATiedFlags::kOutConsecutive | RATiedReg::consecutiveDataToFlags(++consecutiveOffset);</span></a>
+<a name="292"><span class="lineNum">     292 </span>            :               }</a>
+<a name="293"><span class="lineNum">     293 </span>            :             }</a>
+<a name="294"><span class="lineNum">     294 </span>            : </a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">     720061 :             ASMJIT_PROPAGATE(ib.add(workReg, flags, useRegs, useId, useRewriteMask, outRegs, outId, outRewriteMask, opRwInfo.rmSize(), consecutiveParent));</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">     720061 :             if (singleRegOps == i)</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">     719938 :               singleRegOps++;</span></a>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">     720061 :             if (Support::test(flags, RATiedFlags::kLeadConsecutive | RATiedFlags::kUseConsecutive | RATiedFlags::kOutConsecutive))</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineNoCov">          0 :               consecutiveParent = workReg-&gt;workId();</span></a>
+<a name="301"><span class="lineNum">     301 </span>            :           }</a>
+<a name="302"><span class="lineNum">     302 </span>            :         }</a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineCov">     199141 :         else if (op.isMem()) {</span></a>
+<a name="304"><span class="lineNum">     304 </span>            :           // Memory Operand</a>
+<a name="305"><span class="lineNum">     305 </span>            :           // --------------</a>
+<a name="306"><span class="lineNum">     306 </span>            :           const Mem&amp; mem = op.as&lt;Mem&gt;();</a>
+<a name="307"><span class="lineNum">     307 </span>            :           ib.addForbiddenFlags(RATiedFlags::kUseRM | RATiedFlags::kOutRM);</a>
+<a name="308"><span class="lineNum">     308 </span>            : </a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">      88022 :           if (mem.isRegHome()) {</span></a>
+<a name="310"><span class="lineNum">     310 </span>            :             RAWorkReg* workReg;</a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(Operand::virtIdToIndex(mem.baseId()), &amp;workReg));</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineNoCov">          0 :             _pass-&gt;getOrCreateStackSlot(workReg);</span></a>
+<a name="313"><span class="lineNum">     313 </span>            :           }</a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">      88022 :           else if (mem.hasBaseReg()) {</span></a>
+<a name="315"><span class="lineNum">     315 </span>            :             uint32_t vIndex = Operand::virtIdToIndex(mem.baseId());</a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">      88022 :             if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="317"><span class="lineNum">     317 </span>            :               RAWorkReg* workReg;</a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineCov">     176044 :               ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(vIndex, &amp;workReg));</span></a>
+<a name="319"><span class="lineNum">     319 </span>            : </a>
+<a name="320"><span class="lineNum">     320 </span>            :               RATiedFlags flags = raMemBaseRwFlags(opRwInfo.opFlags());</a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">      88022 :               RegGroup group = workReg-&gt;group();</span></a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">      88022 :               RegMask inOutRegs = _pass-&gt;_availableRegs[group];</span></a>
+<a name="323"><span class="lineNum">     323 </span>            : </a>
+<a name="324"><span class="lineNum">     324 </span>            :               uint32_t useId = BaseReg::kIdBad;</a>
+<a name="325"><span class="lineNum">     325 </span>            :               uint32_t outId = BaseReg::kIdBad;</a>
+<a name="326"><span class="lineNum">     326 </span>            : </a>
+<a name="327"><span class="lineNum">     327 </span>            :               uint32_t useRewriteMask = 0;</a>
+<a name="328"><span class="lineNum">     328 </span>            :               uint32_t outRewriteMask = 0;</a>
+<a name="329"><span class="lineNum">     329 </span>            : </a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">      88022 :               if (Support::test(flags, RATiedFlags::kUse)) {</span></a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">      88022 :                 useRewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;mem._baseId));</span></a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">      88022 :                 if (opRwInfo.hasOpFlag(OpRWFlags::kMemPhysId)) {</span></a>
+<a name="333"><span class="lineNum">     333 </span>            :                   useId = opRwInfo.physId();</a>
+<a name="334"><span class="lineNum">     334 </span>            :                   flags |= RATiedFlags::kUseFixed;</a>
+<a name="335"><span class="lineNum">     335 </span>            :                 }</a>
+<a name="336"><span class="lineNum">     336 </span>            :               }</a>
+<a name="337"><span class="lineNum">     337 </span>            :               else {</a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineNoCov">          0 :                 outRewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;mem._baseId));</span></a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineNoCov">          0 :                 if (opRwInfo.hasOpFlag(OpRWFlags::kMemPhysId)) {</span></a>
+<a name="340"><span class="lineNum">     340 </span>            :                   outId = opRwInfo.physId();</a>
+<a name="341"><span class="lineNum">     341 </span>            :                   flags |= RATiedFlags::kOutFixed;</a>
+<a name="342"><span class="lineNum">     342 </span>            :                 }</a>
+<a name="343"><span class="lineNum">     343 </span>            :               }</a>
+<a name="344"><span class="lineNum">     344 </span>            : </a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineCov">      88022 :               ASMJIT_PROPAGATE(ib.add(workReg, flags, inOutRegs, useId, useRewriteMask, inOutRegs, outId, outRewriteMask));</span></a>
+<a name="346"><span class="lineNum">     346 </span>            :             }</a>
+<a name="347"><span class="lineNum">     347 </span>            :           }</a>
+<a name="348"><span class="lineNum">     348 </span>            : </a>
+<a name="349"><span class="lineNum">     349 </span><span class="lineCov">      88022 :           if (mem.hasIndexReg()) {</span></a>
+<a name="350"><span class="lineNum">     350 </span>            :             uint32_t vIndex = Operand::virtIdToIndex(mem.indexId());</a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineNoCov">          0 :             if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="352"><span class="lineNum">     352 </span>            :               RAWorkReg* workReg;</a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineNoCov">          0 :               ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(vIndex, &amp;workReg));</span></a>
+<a name="354"><span class="lineNum">     354 </span>            : </a>
+<a name="355"><span class="lineNum">     355 </span>            :               RATiedFlags flags = raMemIndexRwFlags(opRwInfo.opFlags());</a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineNoCov">          0 :               RegGroup group = workReg-&gt;group();</span></a>
+<a name="357"><span class="lineNum">     357 </span><span class="lineNoCov">          0 :               RegMask inOutRegs = _pass-&gt;_availableRegs[group] &amp; instructionAllowedRegs;</span></a>
+<a name="358"><span class="lineNum">     358 </span>            : </a>
+<a name="359"><span class="lineNum">     359 </span>            :               // Index registers have never fixed id on X86/x64.</a>
+<a name="360"><span class="lineNum">     360 </span>            :               const uint32_t useId = BaseReg::kIdBad;</a>
+<a name="361"><span class="lineNum">     361 </span>            :               const uint32_t outId = BaseReg::kIdBad;</a>
+<a name="362"><span class="lineNum">     362 </span>            : </a>
+<a name="363"><span class="lineNum">     363 </span>            :               uint32_t useRewriteMask = 0;</a>
+<a name="364"><span class="lineNum">     364 </span>            :               uint32_t outRewriteMask = 0;</a>
+<a name="365"><span class="lineNum">     365 </span>            : </a>
+<a name="366"><span class="lineNum">     366 </span><span class="lineNoCov">          0 :               if (Support::test(flags, RATiedFlags::kUse))</span></a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineNoCov">          0 :                 useRewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;mem._data[Operand::kDataMemIndexId]));</span></a>
+<a name="368"><span class="lineNum">     368 </span>            :               else</a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineNoCov">          0 :                 outRewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;mem._data[Operand::kDataMemIndexId]));</span></a>
+<a name="370"><span class="lineNum">     370 </span>            : </a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineNoCov">          0 :               ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, useId, useRewriteMask, inOutRegs, outId, outRewriteMask));</span></a>
+<a name="372"><span class="lineNum">     372 </span>            :             }</a>
+<a name="373"><span class="lineNum">     373 </span>            :           }</a>
+<a name="374"><span class="lineNum">     374 </span>            :         }</a>
+<a name="375"><span class="lineNum">     375 </span>            :       }</a>
+<a name="376"><span class="lineNum">     376 </span>            :     }</a>
+<a name="377"><span class="lineNum">     377 </span>            : </a>
+<a name="378"><span class="lineNum">     378 </span>            :     // Handle extra operand (either REP {cx|ecx|rcx} or AVX-512 {k} selector).</a>
+<a name="379"><span class="lineNum">     379 </span><span class="lineCov">     379614 :     if (inst-&gt;hasExtraReg()) {</span></a>
+<a name="380"><span class="lineNum">     380 </span>            :       uint32_t vIndex = Operand::virtIdToIndex(inst-&gt;extraReg().id());</a>
+<a name="381"><span class="lineNum">     381 </span><span class="lineNoCov">          0 :       if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="382"><span class="lineNum">     382 </span>            :         RAWorkReg* workReg;</a>
+<a name="383"><span class="lineNum">     383 </span><span class="lineNoCov">          0 :         ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(vIndex, &amp;workReg));</span></a>
+<a name="384"><span class="lineNum">     384 </span>            : </a>
+<a name="385"><span class="lineNum">     385 </span><span class="lineNoCov">          0 :         RegGroup group = workReg-&gt;group();</span></a>
+<a name="386"><span class="lineNum">     386 </span><span class="lineNoCov">          0 :         RegMask inOutRegs = _pass-&gt;_availableRegs[group];</span></a>
+<a name="387"><span class="lineNum">     387 </span>            :         uint32_t rewriteMask = Support::bitMask(inst-&gt;getRewriteIndex(&amp;inst-&gt;extraReg()._id));</a>
+<a name="388"><span class="lineNum">     388 </span>            : </a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineNoCov">          0 :         if (group == RegGroup::kX86_K) {</span></a>
+<a name="390"><span class="lineNum">     390 </span>            :           // AVX-512 mask selector {k} register - read-only, allocable to any register except {k0}.</a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineNoCov">          0 :           ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, BaseReg::kIdBad, rewriteMask, inOutRegs, BaseReg::kIdBad, 0));</span></a>
+<a name="392"><span class="lineNum">     392 </span>            :           singleRegOps = 0;</a>
+<a name="393"><span class="lineNum">     393 </span>            :         }</a>
+<a name="394"><span class="lineNum">     394 </span>            :         else {</a>
+<a name="395"><span class="lineNum">     395 </span>            :           // REP {cx|ecx|rcx} register - read &amp; write, allocable to {cx|ecx|rcx} only.</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineNoCov">          0 :           ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRW, inOutRegs, Gp::kIdCx, rewriteMask, inOutRegs, Gp::kIdBad, 0));</span></a>
+<a name="397"><span class="lineNum">     397 </span>            :         }</a>
+<a name="398"><span class="lineNum">     398 </span>            :       }</a>
+<a name="399"><span class="lineNum">     399 </span>            :       else {</a>
+<a name="400"><span class="lineNum">     400 </span>            :         RegGroup group = inst-&gt;extraReg().group();</a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineNoCov">          0 :         if (group == RegGroup::kX86_K &amp;&amp; inst-&gt;extraReg().id() != 0)</span></a>
+<a name="402"><span class="lineNum">     402 </span>            :           singleRegOps = 0;</a>
+<a name="403"><span class="lineNum">     403 </span>            :       }</a>
+<a name="404"><span class="lineNum">     404 </span>            :     }</a>
+<a name="405"><span class="lineNum">     405 </span>            : </a>
+<a name="406"><span class="lineNum">     406 </span>            :     // If this instruction has move semantics then check whether it could be eliminated if all virtual registers</a>
+<a name="407"><span class="lineNum">     407 </span>            :     // are allocated into the same register. Take into account the virtual size of the destination register as that's</a>
+<a name="408"><span class="lineNum">     408 </span>            :     // more important than a physical register size in this case.</a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">     379614 :     if (rwInfo.hasInstFlag(InstRWFlags::kMovOp) &amp;&amp; !inst-&gt;hasExtraReg() &amp;&amp; Support::bitTest(opTypesMask, uint32_t(OperandType::kReg))) {</span></a>
+<a name="410"><span class="lineNum">     410 </span>            :       // AVX+ move instructions have 3 operand form - the first two operands must be the same to guarantee move semantics.</a>
+<a name="411"><span class="lineNum">     411 </span><span class="lineCov">      38571 :       if (opCount == 2 || (opCount == 3 &amp;&amp; opArray[0] == opArray[1])) {</span></a>
+<a name="412"><span class="lineNum">     412 </span>            :         uint32_t vIndex = Operand::virtIdToIndex(opArray[0].as&lt;Reg&gt;().id());</a>
+<a name="413"><span class="lineNum">     413 </span><span class="lineNoCov">          0 :         if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineNoCov">          0 :           const VirtReg* vReg = _cc-&gt;virtRegByIndex(vIndex);</span></a>
+<a name="415"><span class="lineNum">     415 </span>            :           const OpRWInfo&amp; opRwInfo = rwInfo.operand(0);</a>
+<a name="416"><span class="lineNum">     416 </span>            : </a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineNoCov">          0 :           uint64_t remainingByteMask = vReg-&gt;workReg()-&gt;regByteMask() &amp; ~opRwInfo.writeByteMask();</span></a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineNoCov">          0 :           if (remainingByteMask == 0u || (remainingByteMask &amp; opRwInfo.extendByteMask()) == 0)</span></a>
+<a name="419"><span class="lineNum">     419 </span>            :             ib.addInstRWFlags(InstRWFlags::kMovOp);</a>
+<a name="420"><span class="lineNum">     420 </span>            :         }</a>
+<a name="421"><span class="lineNum">     421 </span>            :       }</a>
+<a name="422"><span class="lineNum">     422 </span>            :     }</a>
+<a name="423"><span class="lineNum">     423 </span>            : </a>
+<a name="424"><span class="lineNum">     424 </span>            :     // Handle X86 constraints.</a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">     379614 :     if (hasGpbHiConstraint) {</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineNoCov">          0 :       for (RATiedReg&amp; tiedReg : ib) {</span></a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineNoCov">          0 :         RegMask filter = tiedReg.hasFlag(RATiedFlags::kX86_Gpb) ? 0x0Fu : 0xFFu;</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineNoCov">          0 :         tiedReg._useRegMask &amp;= filter;</span></a>
+<a name="429"><span class="lineNum">     429 </span><span class="lineNoCov">          0 :         tiedReg._outRegMask &amp;= filter;</span></a>
+<a name="430"><span class="lineNum">     430 </span>            :       }</a>
+<a name="431"><span class="lineNum">     431 </span>            :     }</a>
+<a name="432"><span class="lineNum">     432 </span>            : </a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">     379614 :     if (ib.tiedRegCount() == 1) {</span></a>
+<a name="434"><span class="lineNum">     434 </span>            :       // Handle special cases of some instructions where all operands share the same</a>
+<a name="435"><span class="lineNum">     435 </span>            :       // register. In such case the single operand becomes read-only or write-only.</a>
+<a name="436"><span class="lineNum">     436 </span>            :       InstSameRegHint sameRegHint = InstSameRegHint::kNone;</a>
+<a name="437"><span class="lineNum">     437 </span><span class="lineCov">     144083 :       if (singleRegOps == opCount) {</span></a>
+<a name="438"><span class="lineNum">     438 </span>            :         sameRegHint = instInfo.sameRegHint();</a>
+<a name="439"><span class="lineNum">     439 </span>            :       }</a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">     108921 :       else if (opCount == 2 &amp;&amp; inst-&gt;op(1).isImm()) {</span></a>
+<a name="441"><span class="lineNum">     441 </span>            :         // Handle some tricks used by X86 asm.</a>
+<a name="442"><span class="lineNum">     442 </span>            :         const BaseReg&amp; reg = inst-&gt;op(0).as&lt;BaseReg&gt;();</a>
+<a name="443"><span class="lineNum">     443 </span>            :         const Imm&amp; imm = inst-&gt;op(1).as&lt;Imm&gt;();</a>
+<a name="444"><span class="lineNum">     444 </span>            : </a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineCov">     108921 :         const RAWorkReg* workReg = _pass-&gt;workRegById(ib[0]-&gt;workId());</span></a>
+<a name="446"><span class="lineNum">     446 </span>            :         uint32_t workRegSize = workReg-&gt;signature().size();</a>
+<a name="447"><span class="lineNum">     447 </span>            : </a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">     108921 :         switch (inst-&gt;id()) {</span></a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineNoCov">          0 :           case Inst::kIdOr: {</span></a>
+<a name="450"><span class="lineNum">     450 </span>            :             // Sets the value of the destination register to -1, previous content unused.</a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineNoCov">          0 :             if (reg.size() &gt;= 4 || reg.size() &gt;= workRegSize) {</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineNoCov">          0 :               if (imm.value() == -1 || imm.valueAs&lt;uint64_t&gt;() == raImmMaskFromSize(reg.size()))</span></a>
+<a name="453"><span class="lineNum">     453 </span>            :                 sameRegHint = InstSameRegHint::kWO;</a>
+<a name="454"><span class="lineNum">     454 </span>            :             }</a>
+<a name="455"><span class="lineNum">     455 </span>            :             ASMJIT_FALLTHROUGH;</a>
+<a name="456"><span class="lineNum">     456 </span>            :           }</a>
+<a name="457"><span class="lineNum">     457 </span>            : </a>
+<a name="458"><span class="lineNum">     458 </span>            :           case Inst::kIdAdd:</a>
+<a name="459"><span class="lineNum">     459 </span>            :           case Inst::kIdAnd:</a>
+<a name="460"><span class="lineNum">     460 </span>            :           case Inst::kIdRol:</a>
+<a name="461"><span class="lineNum">     461 </span>            :           case Inst::kIdRor:</a>
+<a name="462"><span class="lineNum">     462 </span>            :           case Inst::kIdSar:</a>
+<a name="463"><span class="lineNum">     463 </span>            :           case Inst::kIdShl:</a>
+<a name="464"><span class="lineNum">     464 </span>            :           case Inst::kIdShr:</a>
+<a name="465"><span class="lineNum">     465 </span>            :           case Inst::kIdSub:</a>
+<a name="466"><span class="lineNum">     466 </span>            :           case Inst::kIdXor: {</a>
+<a name="467"><span class="lineNum">     467 </span>            :             // Updates [E|R]FLAGS without changing the content.</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineNoCov">          0 :             if (reg.size() != 4 || reg.size() &gt;= workRegSize) {</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineNoCov">          0 :               if (imm.value() == 0)</span></a>
+<a name="470"><span class="lineNum">     470 </span>            :                 sameRegHint = InstSameRegHint::kRO;</a>
+<a name="471"><span class="lineNum">     471 </span>            :             }</a>
+<a name="472"><span class="lineNum">     472 </span>            :             break;</a>
+<a name="473"><span class="lineNum">     473 </span>            :           }</a>
+<a name="474"><span class="lineNum">     474 </span>            :         }</a>
+<a name="475"><span class="lineNum">     475 </span>            :       }</a>
+<a name="476"><span class="lineNum">     476 </span>            : </a>
+<a name="477"><span class="lineNum">     477 </span><span class="lineCov">      35162 :       switch (sameRegHint) {</span></a>
+<a name="478"><span class="lineNum">     478 </span>            :         case InstSameRegHint::kNone:</a>
+<a name="479"><span class="lineNum">     479 </span>            :           break;</a>
+<a name="480"><span class="lineNum">     480 </span>            :         case InstSameRegHint::kRO:</a>
+<a name="481"><span class="lineNum">     481 </span>            :           ib[0]-&gt;makeReadOnly();</a>
+<a name="482"><span class="lineNum">     482 </span>            :           break;</a>
+<a name="483"><span class="lineNum">     483 </span>            :         case InstSameRegHint::kWO:</a>
+<a name="484"><span class="lineNum">     484 </span>            :           ib[0]-&gt;makeWriteOnly();</a>
+<a name="485"><span class="lineNum">     485 </span>            :           break;</a>
+<a name="486"><span class="lineNum">     486 </span>            :       }</a>
+<a name="487"><span class="lineNum">     487 </span>            :     }</a>
+<a name="488"><span class="lineNum">     488 </span>            : </a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">     379614 :     cf = instInfo.controlFlow();</span></a>
+<a name="490"><span class="lineNum">     490 </span>            :   }</a>
+<a name="491"><span class="lineNum">     491 </span>            : </a>
+<a name="492"><span class="lineNum">     492 </span>            :   return kErrorOk;</a>
+<a name="493"><span class="lineNum">     493 </span>            : }</a>
+<a name="494"><span class="lineNum">     494 </span>            : </a>
+<a name="495"><span class="lineNum">     495 </span>            : // x86::RACFGBuilder - OnInvoke</a>
+<a name="496"><span class="lineNum">     496 </span>            : // ============================</a>
+<a name="497"><span class="lineNum">     497 </span>            : </a>
+<a name="498"><span class="lineNum">     498 </span><span class="lineCov">      12472 : Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {</span></a>
+<a name="499"><span class="lineNum">     499 </span>            :   const FuncDetail&amp; fd = invokeNode-&gt;detail();</a>
+<a name="500"><span class="lineNum">     500 </span>            :   uint32_t argCount = invokeNode-&gt;argCount();</a>
+<a name="501"><span class="lineNum">     501 </span>            : </a>
+<a name="502"><span class="lineNum">     502 </span>            :   cc()-&gt;_setCursor(invokeNode-&gt;prev());</a>
+<a name="503"><span class="lineNum">     503 </span>            :   RegType nativeRegType = cc()-&gt;_gpSignature.regType();</a>
+<a name="504"><span class="lineNum">     504 </span>            : </a>
+<a name="505"><span class="lineNum">     505 </span><span class="lineCov">      25206 :   for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="506"><span class="lineNum">     506 </span><span class="lineCov">      12734 :     const FuncValuePack&amp; argPack = fd.argPack(argIndex);</span></a>
+<a name="507"><span class="lineNum">     507 </span><span class="lineCov">      25468 :     for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="508"><span class="lineNum">     508 </span><span class="lineCov">      25468 :       if (!argPack[valueIndex])</span></a>
+<a name="509"><span class="lineNum">     509 </span>            :         break;</a>
+<a name="510"><span class="lineNum">     510 </span>            : </a>
+<a name="511"><span class="lineNum">     511 </span>            :       const FuncValue&amp; arg = argPack[valueIndex];</a>
+<a name="512"><span class="lineNum">     512 </span>            :       const Operand&amp; op = invokeNode-&gt;arg(argIndex, valueIndex);</a>
+<a name="513"><span class="lineNum">     513 </span>            : </a>
+<a name="514"><span class="lineNum">     514 </span><span class="lineCov">      12734 :       if (op.isNone())</span></a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineNoCov">          0 :         continue;</span></a>
+<a name="516"><span class="lineNum">     516 </span>            : </a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineCov">      12734 :       if (op.isReg()) {</span></a>
+<a name="518"><span class="lineNum">     518 </span>            :         const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="519"><span class="lineNum">     519 </span>            :         RAWorkReg* workReg;</a>
+<a name="520"><span class="lineNum">     520 </span><span class="lineCov">      24976 :         ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &amp;workReg));</span></a>
+<a name="521"><span class="lineNum">     521 </span>            : </a>
+<a name="522"><span class="lineNum">     522 </span><span class="lineCov">      12488 :         if (arg.isReg()) {</span></a>
+<a name="523"><span class="lineNum">     523 </span><span class="lineCov">      12488 :           RegGroup regGroup = workReg-&gt;group();</span></a>
+<a name="524"><span class="lineNum">     524 </span>            :           RegGroup argGroup = Reg::groupOf(arg.regType());</a>
+<a name="525"><span class="lineNum">     525 </span>            : </a>
+<a name="526"><span class="lineNum">     526 </span><span class="lineCov">      12488 :           if (arg.isIndirect()) {</span></a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineNoCov">          0 :             if (reg.isGp()) {</span></a>
+<a name="528"><span class="lineNum">     528 </span><span class="lineNoCov">          0 :               if (reg.type() != nativeRegType)</span></a>
+<a name="529"><span class="lineNum">     529 </span><span class="lineNoCov">          0 :                 return DebugUtils::errored(kErrorInvalidAssignment);</span></a>
+<a name="530"><span class="lineNum">     530 </span>            :               // It's considered allocated if this is an indirect argument and the user used GP.</a>
+<a name="531"><span class="lineNum">     531 </span><span class="lineNoCov">          0 :               continue;</span></a>
+<a name="532"><span class="lineNum">     532 </span>            :             }</a>
+<a name="533"><span class="lineNum">     533 </span>            : </a>
+<a name="534"><span class="lineNum">     534 </span><span class="lineNoCov">          0 :             BaseReg indirectReg;</span></a>
+<a name="535"><span class="lineNum">     535 </span><span class="lineNoCov">          0 :             moveVecToPtr(invokeNode, arg, reg.as&lt;Vec&gt;(), &amp;indirectReg);</span></a>
+<a name="536"><span class="lineNum">     536 </span><span class="lineNoCov">          0 :             invokeNode-&gt;_args[argIndex][valueIndex] = indirectReg;</span></a>
+<a name="537"><span class="lineNum">     537 </span>            :           }</a>
+<a name="538"><span class="lineNum">     538 </span>            :           else {</a>
+<a name="539"><span class="lineNum">     539 </span><span class="lineCov">      12488 :             if (regGroup != argGroup) {</span></a>
+<a name="540"><span class="lineNum">     540 </span>            :               // TODO: Conversion is not supported.</a>
+<a name="541"><span class="lineNum">     541 </span>            :               return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="542"><span class="lineNum">     542 </span>            :             }</a>
+<a name="543"><span class="lineNum">     543 </span>            :           }</a>
+<a name="544"><span class="lineNum">     544 </span>            :         }</a>
+<a name="545"><span class="lineNum">     545 </span>            :         else {</a>
+<a name="546"><span class="lineNum">     546 </span><span class="lineNoCov">          0 :           if (arg.isIndirect()) {</span></a>
+<a name="547"><span class="lineNum">     547 </span><span class="lineNoCov">          0 :             if (reg.isGp()) {</span></a>
+<a name="548"><span class="lineNum">     548 </span><span class="lineNoCov">          0 :               if (reg.type() != nativeRegType)</span></a>
+<a name="549"><span class="lineNum">     549 </span><span class="lineNoCov">          0 :                 return DebugUtils::errored(kErrorInvalidAssignment);</span></a>
+<a name="550"><span class="lineNum">     550 </span>            : </a>
+<a name="551"><span class="lineNum">     551 </span><span class="lineNoCov">          0 :               ASMJIT_PROPAGATE(moveRegToStackArg(invokeNode, arg, reg));</span></a>
+<a name="552"><span class="lineNum">     552 </span><span class="lineNoCov">          0 :               continue;</span></a>
+<a name="553"><span class="lineNum">     553 </span><span class="lineNoCov">          0 :             }</span></a>
+<a name="554"><span class="lineNum">     554 </span>            : </a>
+<a name="555"><span class="lineNum">     555 </span><span class="lineNoCov">          0 :             BaseReg indirectReg;</span></a>
+<a name="556"><span class="lineNum">     556 </span><span class="lineNoCov">          0 :             moveVecToPtr(invokeNode, arg, reg.as&lt;Vec&gt;(), &amp;indirectReg);</span></a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(moveRegToStackArg(invokeNode, arg, indirectReg));</span></a>
+<a name="558"><span class="lineNum">     558 </span>            :           }</a>
+<a name="559"><span class="lineNum">     559 </span>            :           else {</a>
+<a name="560"><span class="lineNum">     560 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(moveRegToStackArg(invokeNode, arg, reg));</span></a>
+<a name="561"><span class="lineNum">     561 </span>            :           }</a>
+<a name="562"><span class="lineNum">     562 </span>            :         }</a>
+<a name="563"><span class="lineNum">     563 </span>            :       }</a>
+<a name="564"><span class="lineNum">     564 </span><span class="lineCov">        246 :       else if (op.isImm()) {</span></a>
+<a name="565"><span class="lineNum">     565 </span><span class="lineCov">        246 :         if (arg.isReg()) {</span></a>
+<a name="566"><span class="lineNum">     566 </span><span class="lineCov">        246 :           BaseReg reg;</span></a>
+<a name="567"><span class="lineNum">     567 </span><span class="lineCov">        246 :           ASMJIT_PROPAGATE(moveImmToRegArg(invokeNode, arg, op.as&lt;Imm&gt;(), &amp;reg));</span></a>
+<a name="568"><span class="lineNum">     568 </span><span class="lineCov">        246 :           invokeNode-&gt;_args[argIndex][valueIndex] = reg;</span></a>
+<a name="569"><span class="lineNum">     569 </span>            :         }</a>
+<a name="570"><span class="lineNum">     570 </span>            :         else {</a>
+<a name="571"><span class="lineNum">     571 </span><span class="lineNoCov">          0 :           ASMJIT_PROPAGATE(moveImmToStackArg(invokeNode, arg, op.as&lt;Imm&gt;()));</span></a>
+<a name="572"><span class="lineNum">     572 </span>            :         }</a>
+<a name="573"><span class="lineNum">     573 </span>            :       }</a>
+<a name="574"><span class="lineNum">     574 </span>            :     }</a>
+<a name="575"><span class="lineNum">     575 </span>            :   }</a>
+<a name="576"><span class="lineNum">     576 </span>            : </a>
+<a name="577"><span class="lineNum">     577 </span>            :   cc()-&gt;_setCursor(invokeNode);</a>
+<a name="578"><span class="lineNum">     578 </span><span class="lineCov">      12472 :   if (fd.hasFlag(CallConvFlags::kCalleePopsStack) &amp;&amp; fd.argStackSize() != 0)</span></a>
+<a name="579"><span class="lineNum">     579 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;sub(cc()-&gt;zsp(), fd.argStackSize()));</span></a>
+<a name="580"><span class="lineNum">     580 </span>            : </a>
+<a name="581"><span class="lineNum">     581 </span><span class="lineCov">      12472 :   if (fd.hasRet()) {</span></a>
+<a name="582"><span class="lineNum">     582 </span><span class="lineCov">      24944 :     for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="583"><span class="lineNum">     583 </span><span class="lineCov">      24944 :       const FuncValue&amp; ret = fd.ret(valueIndex);</span></a>
+<a name="584"><span class="lineNum">     584 </span>            :       if (!ret)</a>
+<a name="585"><span class="lineNum">     585 </span>            :         break;</a>
+<a name="586"><span class="lineNum">     586 </span>            : </a>
+<a name="587"><span class="lineNum">     587 </span>            :       const Operand&amp; op = invokeNode-&gt;ret(valueIndex);</a>
+<a name="588"><span class="lineNum">     588 </span><span class="lineCov">      12472 :       if (op.isReg()) {</span></a>
+<a name="589"><span class="lineNum">     589 </span>            :         const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="590"><span class="lineNum">     590 </span>            :         RAWorkReg* workReg;</a>
+<a name="591"><span class="lineNum">     591 </span><span class="lineCov">      24944 :         ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &amp;workReg));</span></a>
+<a name="592"><span class="lineNum">     592 </span>            : </a>
+<a name="593"><span class="lineNum">     593 </span><span class="lineCov">      12472 :         if (ret.isReg()) {</span></a>
+<a name="594"><span class="lineNum">     594 </span><span class="lineCov">      12472 :           if (ret.regType() == RegType::kX86_St) {</span></a>
+<a name="595"><span class="lineNum">     595 </span><span class="lineNoCov">          0 :             if (workReg-&gt;group() != RegGroup::kVec)</span></a>
+<a name="596"><span class="lineNum">     596 </span><span class="lineNoCov">          0 :               return DebugUtils::errored(kErrorInvalidAssignment);</span></a>
+<a name="597"><span class="lineNum">     597 </span>            : </a>
+<a name="598"><span class="lineNum">     598 </span>            :             Reg dst(workReg-&gt;signature(), workReg-&gt;virtId());</a>
+<a name="599"><span class="lineNum">     599 </span><span class="lineNoCov">          0 :             Mem mem;</span></a>
+<a name="600"><span class="lineNum">     600 </span>            : </a>
+<a name="601"><span class="lineNum">     601 </span>            :             TypeId typeId = TypeUtils::scalarOf(workReg-&gt;typeId());</a>
+<a name="602"><span class="lineNum">     602 </span><span class="lineNoCov">          0 :             if (ret.hasTypeId())</span></a>
+<a name="603"><span class="lineNum">     603 </span>            :               typeId = ret.typeId();</a>
+<a name="604"><span class="lineNum">     604 </span>            : </a>
+<a name="605"><span class="lineNum">     605 </span><span class="lineNoCov">          0 :             switch (typeId) {</span></a>
+<a name="606"><span class="lineNum">     606 </span><span class="lineNoCov">          0 :               case TypeId::kFloat32:</span></a>
+<a name="607"><span class="lineNum">     607 </span><span class="lineNoCov">          0 :                 ASMJIT_PROPAGATE(_pass-&gt;useTemporaryMem(mem, 4, 4));</span></a>
+<a name="608"><span class="lineNum">     608 </span>            :                 mem.setSize(4);</a>
+<a name="609"><span class="lineNum">     609 </span><span class="lineNoCov">          0 :                 ASMJIT_PROPAGATE(cc()-&gt;fstp(mem));</span></a>
+<a name="610"><span class="lineNum">     610 </span><span class="lineNoCov">          0 :                 ASMJIT_PROPAGATE(cc()-&gt;emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as&lt;Xmm&gt;(), mem));</span></a>
+<a name="611"><span class="lineNum">     611 </span>            :                 break;</a>
+<a name="612"><span class="lineNum">     612 </span>            : </a>
+<a name="613"><span class="lineNum">     613 </span><span class="lineNoCov">          0 :               case TypeId::kFloat64:</span></a>
+<a name="614"><span class="lineNum">     614 </span><span class="lineNoCov">          0 :                 ASMJIT_PROPAGATE(_pass-&gt;useTemporaryMem(mem, 8, 4));</span></a>
+<a name="615"><span class="lineNum">     615 </span>            :                 mem.setSize(8);</a>
+<a name="616"><span class="lineNum">     616 </span><span class="lineNoCov">          0 :                 ASMJIT_PROPAGATE(cc()-&gt;fstp(mem));</span></a>
+<a name="617"><span class="lineNum">     617 </span><span class="lineNoCov">          0 :                 ASMJIT_PROPAGATE(cc()-&gt;emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as&lt;Xmm&gt;(), mem));</span></a>
+<a name="618"><span class="lineNum">     618 </span>            :                 break;</a>
+<a name="619"><span class="lineNum">     619 </span>            : </a>
+<a name="620"><span class="lineNum">     620 </span>            :               default:</a>
+<a name="621"><span class="lineNum">     621 </span>            :                 return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="622"><span class="lineNum">     622 </span>            :             }</a>
+<a name="623"><span class="lineNum">     623 </span>            :           }</a>
+<a name="624"><span class="lineNum">     624 </span>            :           else {</a>
+<a name="625"><span class="lineNum">     625 </span><span class="lineCov">      12472 :             RegGroup regGroup = workReg-&gt;group();</span></a>
+<a name="626"><span class="lineNum">     626 </span>            :             RegGroup retGroup = Reg::groupOf(ret.regType());</a>
+<a name="627"><span class="lineNum">     627 </span>            : </a>
+<a name="628"><span class="lineNum">     628 </span><span class="lineCov">      12472 :             if (regGroup != retGroup) {</span></a>
+<a name="629"><span class="lineNum">     629 </span>            :               // TODO: Conversion is not supported.</a>
+<a name="630"><span class="lineNum">     630 </span>            :               return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="631"><span class="lineNum">     631 </span>            :             }</a>
+<a name="632"><span class="lineNum">     632 </span>            :           }</a>
+<a name="633"><span class="lineNum">     633 </span>            :         }</a>
+<a name="634"><span class="lineNum">     634 </span>            :       }</a>
+<a name="635"><span class="lineNum">     635 </span>            :     }</a>
+<a name="636"><span class="lineNum">     636 </span>            :   }</a>
+<a name="637"><span class="lineNum">     637 </span>            : </a>
+<a name="638"><span class="lineNum">     638 </span>            :   // This block has function call(s).</a>
+<a name="639"><span class="lineNum">     639 </span><span class="lineCov">      12472 :   _curBlock-&gt;addFlags(RABlockFlags::kHasFuncCalls);</span></a>
+<a name="640"><span class="lineNum">     640 </span><span class="lineCov">      12472 :   _pass-&gt;func()-&gt;frame().addAttributes(FuncAttributes::kHasFuncCalls);</span></a>
+<a name="641"><span class="lineNum">     641 </span><span class="lineCov">      12472 :   _pass-&gt;func()-&gt;frame().updateCallStackSize(fd.argStackSize());</span></a>
+<a name="642"><span class="lineNum">     642 </span>            : </a>
+<a name="643"><span class="lineNum">     643 </span><span class="lineCov">      12472 :   return kErrorOk;</span></a>
+<a name="644"><span class="lineNum">     644 </span>            : }</a>
+<a name="645"><span class="lineNum">     645 </span>            : </a>
+<a name="646"><span class="lineNum">     646 </span><span class="lineCov">      12472 : Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder&amp; ib) noexcept {</span></a>
+<a name="647"><span class="lineNum">     647 </span>            :   uint32_t argCount = invokeNode-&gt;argCount();</a>
+<a name="648"><span class="lineNum">     648 </span>            :   const FuncDetail&amp; fd = invokeNode-&gt;detail();</a>
+<a name="649"><span class="lineNum">     649 </span>            : </a>
+<a name="650"><span class="lineNum">     650 </span><span class="lineCov">      25206 :   for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="651"><span class="lineNum">     651 </span><span class="lineCov">      12734 :     const FuncValuePack&amp; argPack = fd.argPack(argIndex);</span></a>
+<a name="652"><span class="lineNum">     652 </span><span class="lineCov">      63670 :     for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="653"><span class="lineNum">     653 </span><span class="lineCov">      50936 :       if (!argPack[valueIndex])</span></a>
+<a name="654"><span class="lineNum">     654 </span><span class="lineCov">      38202 :         continue;</span></a>
+<a name="655"><span class="lineNum">     655 </span>            : </a>
+<a name="656"><span class="lineNum">     656 </span>            :       const FuncValue&amp; arg = argPack[valueIndex];</a>
+<a name="657"><span class="lineNum">     657 </span>            :       const Operand&amp; op = invokeNode-&gt;arg(argIndex, valueIndex);</a>
+<a name="658"><span class="lineNum">     658 </span>            : </a>
+<a name="659"><span class="lineNum">     659 </span><span class="lineCov">      12734 :       if (op.isNone())</span></a>
+<a name="660"><span class="lineNum">     660 </span><span class="lineNoCov">          0 :         continue;</span></a>
+<a name="661"><span class="lineNum">     661 </span>            : </a>
+<a name="662"><span class="lineNum">     662 </span><span class="lineCov">      12734 :       if (op.isReg()) {</span></a>
+<a name="663"><span class="lineNum">     663 </span>            :         const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="664"><span class="lineNum">     664 </span>            :         RAWorkReg* workReg;</a>
+<a name="665"><span class="lineNum">     665 </span><span class="lineCov">      25468 :         ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &amp;workReg));</span></a>
+<a name="666"><span class="lineNum">     666 </span>            : </a>
+<a name="667"><span class="lineNum">     667 </span><span class="lineCov">      12734 :         if (arg.isIndirect()) {</span></a>
+<a name="668"><span class="lineNum">     668 </span><span class="lineNoCov">          0 :           RegGroup regGroup = workReg-&gt;group();</span></a>
+<a name="669"><span class="lineNum">     669 </span><span class="lineNoCov">          0 :           if (regGroup != RegGroup::kGp)</span></a>
+<a name="670"><span class="lineNum">     670 </span>            :             return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="671"><span class="lineNum">     671 </span><span class="lineNoCov">          0 :           ASMJIT_PROPAGATE(ib.addCallArg(workReg, arg.regId()));</span></a>
+<a name="672"><span class="lineNum">     672 </span>            :         }</a>
+<a name="673"><span class="lineNum">     673 </span><span class="lineCov">      12734 :         else if (arg.isReg()) {</span></a>
+<a name="674"><span class="lineNum">     674 </span><span class="lineCov">      12734 :           RegGroup regGroup = workReg-&gt;group();</span></a>
+<a name="675"><span class="lineNum">     675 </span>            :           RegGroup argGroup = Reg::groupOf(arg.regType());</a>
+<a name="676"><span class="lineNum">     676 </span>            : </a>
+<a name="677"><span class="lineNum">     677 </span><span class="lineCov">      12734 :           if (regGroup == argGroup) {</span></a>
+<a name="678"><span class="lineNum">     678 </span><span class="lineCov">      12734 :             ASMJIT_PROPAGATE(ib.addCallArg(workReg, arg.regId()));</span></a>
+<a name="679"><span class="lineNum">     679 </span>            :           }</a>
+<a name="680"><span class="lineNum">     680 </span>            :         }</a>
+<a name="681"><span class="lineNum">     681 </span>            :       }</a>
+<a name="682"><span class="lineNum">     682 </span>            :     }</a>
+<a name="683"><span class="lineNum">     683 </span>            :   }</a>
+<a name="684"><span class="lineNum">     684 </span>            : </a>
+<a name="685"><span class="lineNum">     685 </span><span class="lineCov">      24944 :   for (uint32_t retIndex = 0; retIndex &lt; Globals::kMaxValuePack; retIndex++) {</span></a>
+<a name="686"><span class="lineNum">     686 </span><span class="lineCov">      24944 :     const FuncValue&amp; ret = fd.ret(retIndex);</span></a>
+<a name="687"><span class="lineNum">     687 </span><span class="lineCov">      24944 :     if (!ret)</span></a>
+<a name="688"><span class="lineNum">     688 </span>            :       break;</a>
+<a name="689"><span class="lineNum">     689 </span>            : </a>
+<a name="690"><span class="lineNum">     690 </span>            :     // Not handled here...</a>
+<a name="691"><span class="lineNum">     691 </span>            :     const Operand&amp; op = invokeNode-&gt;ret(retIndex);</a>
+<a name="692"><span class="lineNum">     692 </span><span class="lineCov">      12472 :     if (ret.regType() == RegType::kX86_St)</span></a>
+<a name="693"><span class="lineNum">     693 </span><span class="lineNoCov">          0 :       continue;</span></a>
+<a name="694"><span class="lineNum">     694 </span>            : </a>
+<a name="695"><span class="lineNum">     695 </span><span class="lineCov">      12472 :     if (op.isReg()) {</span></a>
+<a name="696"><span class="lineNum">     696 </span>            :       const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="697"><span class="lineNum">     697 </span>            :       RAWorkReg* workReg;</a>
+<a name="698"><span class="lineNum">     698 </span><span class="lineCov">      24944 :       ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &amp;workReg));</span></a>
+<a name="699"><span class="lineNum">     699 </span>            : </a>
+<a name="700"><span class="lineNum">     700 </span><span class="lineCov">      12472 :       if (ret.isReg()) {</span></a>
+<a name="701"><span class="lineNum">     701 </span><span class="lineCov">      12472 :         RegGroup regGroup = workReg-&gt;group();</span></a>
+<a name="702"><span class="lineNum">     702 </span>            :         RegGroup retGroup = Reg::groupOf(ret.regType());</a>
+<a name="703"><span class="lineNum">     703 </span>            : </a>
+<a name="704"><span class="lineNum">     704 </span><span class="lineCov">      12472 :         if (regGroup == retGroup) {</span></a>
+<a name="705"><span class="lineNum">     705 </span><span class="lineCov">      12472 :           ASMJIT_PROPAGATE(ib.addCallRet(workReg, ret.regId()));</span></a>
+<a name="706"><span class="lineNum">     706 </span>            :         }</a>
+<a name="707"><span class="lineNum">     707 </span>            :       }</a>
+<a name="708"><span class="lineNum">     708 </span>            :       else {</a>
+<a name="709"><span class="lineNum">     709 </span>            :         return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="710"><span class="lineNum">     710 </span>            :       }</a>
+<a name="711"><span class="lineNum">     711 </span>            :     }</a>
+<a name="712"><span class="lineNum">     712 </span>            :   }</a>
+<a name="713"><span class="lineNum">     713 </span>            : </a>
+<a name="714"><span class="lineNum">     714 </span>            :   // Setup clobbered registers.</a>
+<a name="715"><span class="lineNum">     715 </span><span class="lineCov">      62360 :   for (RegGroup group : RegGroupVirtValues{})</span></a>
+<a name="716"><span class="lineNum">     716 </span><span class="lineCov">      49888 :     ib._clobbered[group] = Support::lsbMask&lt;RegMask&gt;(_pass-&gt;_physRegCount[group]) &amp; ~fd.preservedRegs(group);</span></a>
+<a name="717"><span class="lineNum">     717 </span>            : </a>
+<a name="718"><span class="lineNum">     718 </span>            :   return kErrorOk;</a>
+<a name="719"><span class="lineNum">     719 </span>            : }</a>
+<a name="720"><span class="lineNum">     720 </span>            : </a>
+<a name="721"><span class="lineNum">     721 </span>            : // x86::RACFGBuilder - MoveVecToPtr</a>
+<a name="722"><span class="lineNum">     722 </span>            : // ================================</a>
+<a name="723"><span class="lineNum">     723 </span>            : </a>
+<a name="724"><span class="lineNum">     724 </span>            : static inline OperandSignature x86VecRegSignatureBySize(uint32_t size) noexcept {</a>
+<a name="725"><span class="lineNum">     725 </span><span class="lineNoCov">          0 :   return OperandSignature{size &gt;= 64 ? uint32_t(Zmm::kSignature) :</span></a>
+<a name="726"><span class="lineNum">     726 </span><span class="lineNoCov">          0 :                           size &gt;= 32 ? uint32_t(Ymm::kSignature) : uint32_t(Xmm::kSignature)};</span></a>
+<a name="727"><span class="lineNum">     727 </span>            : }</a>
+<a name="728"><span class="lineNum">     728 </span>            : </a>
+<a name="729"><span class="lineNum">     729 </span><span class="lineNoCov">          0 : Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue&amp; arg, const Vec&amp; src, BaseReg* out) noexcept {</span></a>
+<a name="730"><span class="lineNum">     730 </span>            :   DebugUtils::unused(invokeNode);</a>
+<a name="731"><span class="lineNum">     731 </span>            :   ASMJIT_ASSERT(arg.isReg());</a>
+<a name="732"><span class="lineNum">     732 </span>            : </a>
+<a name="733"><span class="lineNum">     733 </span>            :   uint32_t argSize = TypeUtils::sizeOf(arg.typeId());</a>
+<a name="734"><span class="lineNum">     734 </span><span class="lineNoCov">          0 :   if (argSize == 0)</span></a>
+<a name="735"><span class="lineNum">     735 </span>            :     return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="736"><span class="lineNum">     736 </span>            : </a>
+<a name="737"><span class="lineNum">     737 </span>            :   if (argSize &lt; 16)</a>
+<a name="738"><span class="lineNum">     738 </span>            :     argSize = 16;</a>
+<a name="739"><span class="lineNum">     739 </span>            : </a>
+<a name="740"><span class="lineNum">     740 </span><span class="lineNoCov">          0 :   uint32_t argStackOffset = Support::alignUp(invokeNode-&gt;detail()._argStackSize, argSize);</span></a>
+<a name="741"><span class="lineNum">     741 </span><span class="lineNoCov">          0 :   _funcNode-&gt;frame().updateCallStackAlignment(argSize);</span></a>
+<a name="742"><span class="lineNum">     742 </span><span class="lineNoCov">          0 :   invokeNode-&gt;detail()._argStackSize = argStackOffset + argSize;</span></a>
+<a name="743"><span class="lineNum">     743 </span>            : </a>
+<a name="744"><span class="lineNum">     744 </span>            :   Vec vecReg(x86VecRegSignatureBySize(argSize), src.id());</a>
+<a name="745"><span class="lineNum">     745 </span><span class="lineNoCov">          0 :   Mem vecPtr = ptr(_pass-&gt;_sp.as&lt;Gp&gt;(), int32_t(argStackOffset));</span></a>
+<a name="746"><span class="lineNum">     746 </span>            : </a>
+<a name="747"><span class="lineNum">     747 </span>            :   uint32_t vMovInstId = choose(Inst::kIdMovaps, Inst::kIdVmovaps);</a>
+<a name="748"><span class="lineNum">     748 </span><span class="lineNoCov">          0 :   if (argSize &gt; 16)</span></a>
+<a name="749"><span class="lineNum">     749 </span>            :     vMovInstId = Inst::kIdVmovaps;</a>
+<a name="750"><span class="lineNum">     750 </span>            : </a>
+<a name="751"><span class="lineNum">     751 </span><span class="lineNoCov">          0 :   ASMJIT_PROPAGATE(cc()-&gt;_newReg(out, ArchTraits::byArch(cc()-&gt;arch()).regTypeToTypeId(cc()-&gt;_gpSignature.regType()), nullptr));</span></a>
+<a name="752"><span class="lineNum">     752 </span>            : </a>
+<a name="753"><span class="lineNum">     753 </span>            :   VirtReg* vReg = cc()-&gt;virtRegById(out-&gt;id());</a>
+<a name="754"><span class="lineNum">     754 </span>            :   vReg-&gt;setWeight(BaseRAPass::kCallArgWeight);</a>
+<a name="755"><span class="lineNum">     755 </span>            : </a>
+<a name="756"><span class="lineNum">     756 </span><span class="lineNoCov">          0 :   ASMJIT_PROPAGATE(cc()-&gt;lea(out-&gt;as&lt;Gp&gt;(), vecPtr));</span></a>
+<a name="757"><span class="lineNum">     757 </span><span class="lineNoCov">          0 :   ASMJIT_PROPAGATE(cc()-&gt;emit(vMovInstId, ptr(out-&gt;as&lt;Gp&gt;()), vecReg));</span></a>
+<a name="758"><span class="lineNum">     758 </span>            : </a>
+<a name="759"><span class="lineNum">     759 </span><span class="lineNoCov">          0 :   if (arg.isStack()) {</span></a>
+<a name="760"><span class="lineNum">     760 </span><span class="lineNoCov">          0 :     Mem stackPtr = ptr(_pass-&gt;_sp.as&lt;Gp&gt;(), arg.stackOffset());</span></a>
+<a name="761"><span class="lineNum">     761 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;mov(stackPtr, out-&gt;as&lt;Gp&gt;()));</span></a>
+<a name="762"><span class="lineNum">     762 </span>            :   }</a>
+<a name="763"><span class="lineNum">     763 </span>            : </a>
+<a name="764"><span class="lineNum">     764 </span>            :   return kErrorOk;</a>
+<a name="765"><span class="lineNum">     765 </span>            : }</a>
+<a name="766"><span class="lineNum">     766 </span>            : </a>
+<a name="767"><span class="lineNum">     767 </span>            : // x86::RACFGBuilder - MoveImmToRegArg</a>
+<a name="768"><span class="lineNum">     768 </span>            : // ===================================</a>
+<a name="769"><span class="lineNum">     769 </span>            : </a>
+<a name="770"><span class="lineNum">     770 </span><span class="lineCov">        246 : Error RACFGBuilder::moveImmToRegArg(InvokeNode* invokeNode, const FuncValue&amp; arg, const Imm&amp; imm_, BaseReg* out) noexcept {</span></a>
+<a name="771"><span class="lineNum">     771 </span>            :   DebugUtils::unused(invokeNode);</a>
+<a name="772"><span class="lineNum">     772 </span>            :   ASMJIT_ASSERT(arg.isReg());</a>
+<a name="773"><span class="lineNum">     773 </span>            : </a>
+<a name="774"><span class="lineNum">     774 </span>            :   Imm imm(imm_);</a>
+<a name="775"><span class="lineNum">     775 </span>            :   TypeId rTypeId = TypeId::kUInt32;</a>
+<a name="776"><span class="lineNum">     776 </span>            : </a>
+<a name="777"><span class="lineNum">     777 </span><span class="lineCov">        246 :   switch (arg.typeId()) {</span></a>
+<a name="778"><span class="lineNum">     778 </span><span class="lineNoCov">          0 :     case TypeId::kInt8: imm.signExtend8Bits(); goto MovU32;</span></a>
+<a name="779"><span class="lineNum">     779 </span><span class="lineNoCov">          0 :     case TypeId::kUInt8: imm.zeroExtend8Bits(); goto MovU32;</span></a>
+<a name="780"><span class="lineNum">     780 </span><span class="lineNoCov">          0 :     case TypeId::kInt16: imm.signExtend16Bits(); goto MovU32;</span></a>
+<a name="781"><span class="lineNum">     781 </span><span class="lineNoCov">          0 :     case TypeId::kUInt16: imm.zeroExtend16Bits(); goto MovU32;</span></a>
+<a name="782"><span class="lineNum">     782 </span>            : </a>
+<a name="783"><span class="lineNum">     783 </span>            :     case TypeId::kInt32:</a>
+<a name="784"><span class="lineNum">     784 </span>            :     case TypeId::kUInt32:</a>
+<a name="785"><span class="lineNum">     785 </span><span class="lineNoCov">          0 : MovU32:</span></a>
+<a name="786"><span class="lineNum">     786 </span>            :       imm.zeroExtend32Bits();</a>
+<a name="787"><span class="lineNum">     787 </span>            :       break;</a>
+<a name="788"><span class="lineNum">     788 </span>            : </a>
+<a name="789"><span class="lineNum">     789 </span>            :     case TypeId::kInt64:</a>
+<a name="790"><span class="lineNum">     790 </span>            :     case TypeId::kUInt64:</a>
+<a name="791"><span class="lineNum">     791 </span>            :       // Moving to GPD automatically zero extends in 64-bit mode.</a>
+<a name="792"><span class="lineNum">     792 </span>            :       if (imm.isUInt32()) {</a>
+<a name="793"><span class="lineNum">     793 </span>            :         imm.zeroExtend32Bits();</a>
+<a name="794"><span class="lineNum">     794 </span>            :         break;</a>
+<a name="795"><span class="lineNum">     795 </span>            :       }</a>
+<a name="796"><span class="lineNum">     796 </span>            : </a>
+<a name="797"><span class="lineNum">     797 </span>            :       rTypeId = TypeId::kUInt64;</a>
+<a name="798"><span class="lineNum">     798 </span>            :       break;</a>
+<a name="799"><span class="lineNum">     799 </span>            : </a>
+<a name="800"><span class="lineNum">     800 </span>            :     default:</a>
+<a name="801"><span class="lineNum">     801 </span>            :       return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="802"><span class="lineNum">     802 </span>            :   }</a>
+<a name="803"><span class="lineNum">     803 </span>            : </a>
+<a name="804"><span class="lineNum">     804 </span><span class="lineCov">        246 :   ASMJIT_PROPAGATE(cc()-&gt;_newReg(out, rTypeId, nullptr));</span></a>
+<a name="805"><span class="lineNum">     805 </span>            :   cc()-&gt;virtRegById(out-&gt;id())-&gt;setWeight(BaseRAPass::kCallArgWeight);</a>
+<a name="806"><span class="lineNum">     806 </span>            : </a>
+<a name="807"><span class="lineNum">     807 </span><span class="lineCov">        246 :   return cc()-&gt;mov(out-&gt;as&lt;x86::Gp&gt;(), imm);</span></a>
+<a name="808"><span class="lineNum">     808 </span>            : }</a>
+<a name="809"><span class="lineNum">     809 </span>            : </a>
+<a name="810"><span class="lineNum">     810 </span>            : // x86::RACFGBuilder - MoveImmToStackArg</a>
+<a name="811"><span class="lineNum">     811 </span>            : // =====================================</a>
+<a name="812"><span class="lineNum">     812 </span>            : </a>
+<a name="813"><span class="lineNum">     813 </span><span class="lineNoCov">          0 : Error RACFGBuilder::moveImmToStackArg(InvokeNode* invokeNode, const FuncValue&amp; arg, const Imm&amp; imm_) noexcept {</span></a>
+<a name="814"><span class="lineNum">     814 </span>            :   DebugUtils::unused(invokeNode);</a>
+<a name="815"><span class="lineNum">     815 </span>            :   ASMJIT_ASSERT(arg.isStack());</a>
+<a name="816"><span class="lineNum">     816 </span>            : </a>
+<a name="817"><span class="lineNum">     817 </span><span class="lineNoCov">          0 :   Mem stackPtr = ptr(_pass-&gt;_sp.as&lt;Gp&gt;(), arg.stackOffset());</span></a>
+<a name="818"><span class="lineNum">     818 </span><span class="lineNoCov">          0 :   Imm imm[2];</span></a>
+<a name="819"><span class="lineNum">     819 </span>            : </a>
+<a name="820"><span class="lineNum">     820 </span>            :   stackPtr.setSize(4);</a>
+<a name="821"><span class="lineNum">     821 </span>            :   imm[0] = imm_;</a>
+<a name="822"><span class="lineNum">     822 </span>            :   uint32_t nMovs = 0;</a>
+<a name="823"><span class="lineNum">     823 </span>            : </a>
+<a name="824"><span class="lineNum">     824 </span>            :   // One stack entry has the same size as the native register size. That means that if we want to move a 32-bit</a>
+<a name="825"><span class="lineNum">     825 </span>            :   // integer on the stack in 64-bit mode, we need to extend it to a 64-bit integer first. In 32-bit mode, pushing</a>
+<a name="826"><span class="lineNum">     826 </span>            :   // a 64-bit on stack is done in two steps by pushing low and high parts separately.</a>
+<a name="827"><span class="lineNum">     827 </span><span class="lineNoCov">          0 :   switch (arg.typeId()) {</span></a>
+<a name="828"><span class="lineNum">     828 </span><span class="lineNoCov">          0 :     case TypeId::kInt8: imm[0].signExtend8Bits(); goto MovU32;</span></a>
+<a name="829"><span class="lineNum">     829 </span><span class="lineNoCov">          0 :     case TypeId::kUInt8: imm[0].zeroExtend8Bits(); goto MovU32;</span></a>
+<a name="830"><span class="lineNum">     830 </span><span class="lineNoCov">          0 :     case TypeId::kInt16: imm[0].signExtend16Bits(); goto MovU32;</span></a>
+<a name="831"><span class="lineNum">     831 </span><span class="lineNoCov">          0 :     case TypeId::kUInt16: imm[0].zeroExtend16Bits(); goto MovU32;</span></a>
+<a name="832"><span class="lineNum">     832 </span>            : </a>
+<a name="833"><span class="lineNum">     833 </span>            :     case TypeId::kInt32:</a>
+<a name="834"><span class="lineNum">     834 </span>            :     case TypeId::kUInt32:</a>
+<a name="835"><span class="lineNum">     835 </span>            :     case TypeId::kFloat32:</a>
+<a name="836"><span class="lineNum">     836 </span><span class="lineNoCov">          0 : MovU32:</span></a>
+<a name="837"><span class="lineNum">     837 </span>            :       imm[0].zeroExtend32Bits();</a>
+<a name="838"><span class="lineNum">     838 </span>            :       nMovs = 1;</a>
+<a name="839"><span class="lineNum">     839 </span><span class="lineNoCov">          0 :       break;</span></a>
+<a name="840"><span class="lineNum">     840 </span>            : </a>
+<a name="841"><span class="lineNum">     841 </span><span class="lineNoCov">          0 :     case TypeId::kInt64:</span></a>
+<a name="842"><span class="lineNum">     842 </span>            :     case TypeId::kUInt64:</a>
+<a name="843"><span class="lineNum">     843 </span>            :     case TypeId::kFloat64:</a>
+<a name="844"><span class="lineNum">     844 </span>            :     case TypeId::kMmx32:</a>
+<a name="845"><span class="lineNum">     845 </span>            :     case TypeId::kMmx64:</a>
+<a name="846"><span class="lineNum">     846 </span><span class="lineNoCov">          0 :       if (_is64Bit &amp;&amp; imm[0].isInt32()) {</span></a>
+<a name="847"><span class="lineNum">     847 </span>            :         stackPtr.setSize(8);</a>
+<a name="848"><span class="lineNum">     848 </span>            :         nMovs = 1;</a>
+<a name="849"><span class="lineNum">     849 </span><span class="lineNoCov">          0 :         break;</span></a>
+<a name="850"><span class="lineNum">     850 </span>            :       }</a>
+<a name="851"><span class="lineNum">     851 </span>            : </a>
+<a name="852"><span class="lineNum">     852 </span>            :       imm[1].setValue(imm[0].uint32Hi());</a>
+<a name="853"><span class="lineNum">     853 </span>            :       imm[0].zeroExtend32Bits();</a>
+<a name="854"><span class="lineNum">     854 </span>            :       nMovs = 2;</a>
+<a name="855"><span class="lineNum">     855 </span><span class="lineNoCov">          0 :       break;</span></a>
+<a name="856"><span class="lineNum">     856 </span>            : </a>
+<a name="857"><span class="lineNum">     857 </span>            :     default:</a>
+<a name="858"><span class="lineNum">     858 </span>            :       return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="859"><span class="lineNum">     859 </span>            :   }</a>
+<a name="860"><span class="lineNum">     860 </span>            : </a>
+<a name="861"><span class="lineNum">     861 </span><span class="lineNoCov">          0 :   for (uint32_t i = 0; i &lt; nMovs; i++) {</span></a>
+<a name="862"><span class="lineNum">     862 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;mov(stackPtr, imm[i]));</span></a>
+<a name="863"><span class="lineNum">     863 </span>            :     stackPtr.addOffsetLo32(int32_t(stackPtr.size()));</a>
+<a name="864"><span class="lineNum">     864 </span>            :   }</a>
+<a name="865"><span class="lineNum">     865 </span>            : </a>
+<a name="866"><span class="lineNum">     866 </span>            :   return kErrorOk;</a>
+<a name="867"><span class="lineNum">     867 </span>            : }</a>
+<a name="868"><span class="lineNum">     868 </span>            : </a>
+<a name="869"><span class="lineNum">     869 </span>            : // x86::RACFGBuilder - MoveRegToStackArg</a>
+<a name="870"><span class="lineNum">     870 </span>            : // =====================================</a>
+<a name="871"><span class="lineNum">     871 </span>            : </a>
+<a name="872"><span class="lineNum">     872 </span><span class="lineNoCov">          0 : Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue&amp; arg, const BaseReg&amp; reg) noexcept {</span></a>
+<a name="873"><span class="lineNum">     873 </span>            :   DebugUtils::unused(invokeNode);</a>
+<a name="874"><span class="lineNum">     874 </span>            :   ASMJIT_ASSERT(arg.isStack());</a>
+<a name="875"><span class="lineNum">     875 </span>            : </a>
+<a name="876"><span class="lineNum">     876 </span><span class="lineNoCov">          0 :   Mem stackPtr = ptr(_pass-&gt;_sp.as&lt;Gp&gt;(), arg.stackOffset());</span></a>
+<a name="877"><span class="lineNum">     877 </span><span class="lineNoCov">          0 :   Reg r0, r1;</span></a>
+<a name="878"><span class="lineNum">     878 </span>            : </a>
+<a name="879"><span class="lineNum">     879 </span>            :   VirtReg* vr = cc()-&gt;virtRegById(reg.id());</a>
+<a name="880"><span class="lineNum">     880 </span>            :   uint32_t registerSize = cc()-&gt;registerSize();</a>
+<a name="881"><span class="lineNum">     881 </span>            :   InstId instId = 0;</a>
+<a name="882"><span class="lineNum">     882 </span>            : </a>
+<a name="883"><span class="lineNum">     883 </span>            :   TypeId dstTypeId = arg.typeId();</a>
+<a name="884"><span class="lineNum">     884 </span>            :   TypeId srcTypeId = vr-&gt;typeId();</a>
+<a name="885"><span class="lineNum">     885 </span>            : </a>
+<a name="886"><span class="lineNum">     886 </span><span class="lineNoCov">          0 :   switch (dstTypeId) {</span></a>
+<a name="887"><span class="lineNum">     887 </span>            :     case TypeId::kInt64:</a>
+<a name="888"><span class="lineNum">     888 </span>            :     case TypeId::kUInt64:</a>
+<a name="889"><span class="lineNum">     889 </span>            :       // Extend BYTE-&gt;QWORD (GP).</a>
+<a name="890"><span class="lineNum">     890 </span>            :       if (TypeUtils::isGp8(srcTypeId)) {</a>
+<a name="891"><span class="lineNum">     891 </span>            :         r1.setRegT&lt;RegType::kX86_GpbLo&gt;(reg.id());</a>
+<a name="892"><span class="lineNum">     892 </span>            : </a>
+<a name="893"><span class="lineNum">     893 </span><span class="lineNoCov">          0 :         instId = (dstTypeId == TypeId::kInt64 &amp;&amp; srcTypeId == TypeId::kInt8) ? Inst::kIdMovsx : Inst::kIdMovzx;</span></a>
+<a name="894"><span class="lineNum">     894 </span><span class="lineNoCov">          0 :         goto ExtendMovGpXQ;</span></a>
+<a name="895"><span class="lineNum">     895 </span>            :       }</a>
+<a name="896"><span class="lineNum">     896 </span>            : </a>
+<a name="897"><span class="lineNum">     897 </span>            :       // Extend WORD-&gt;QWORD (GP).</a>
+<a name="898"><span class="lineNum">     898 </span>            :       if (TypeUtils::isGp16(srcTypeId)) {</a>
+<a name="899"><span class="lineNum">     899 </span>            :         r1.setRegT&lt;RegType::kX86_Gpw&gt;(reg.id());</a>
+<a name="900"><span class="lineNum">     900 </span>            : </a>
+<a name="901"><span class="lineNum">     901 </span><span class="lineNoCov">          0 :         instId = (dstTypeId == TypeId::kInt64 &amp;&amp; srcTypeId == TypeId::kInt16) ? Inst::kIdMovsx : Inst::kIdMovzx;</span></a>
+<a name="902"><span class="lineNum">     902 </span><span class="lineNoCov">          0 :         goto ExtendMovGpXQ;</span></a>
+<a name="903"><span class="lineNum">     903 </span>            :       }</a>
+<a name="904"><span class="lineNum">     904 </span>            : </a>
+<a name="905"><span class="lineNum">     905 </span>            :       // Extend DWORD-&gt;QWORD (GP).</a>
+<a name="906"><span class="lineNum">     906 </span>            :       if (TypeUtils::isGp32(srcTypeId)) {</a>
+<a name="907"><span class="lineNum">     907 </span>            :         r1.setRegT&lt;RegType::kX86_Gpd&gt;(reg.id());</a>
+<a name="908"><span class="lineNum">     908 </span>            : </a>
+<a name="909"><span class="lineNum">     909 </span>            :         instId = Inst::kIdMovsxd;</a>
+<a name="910"><span class="lineNum">     910 </span><span class="lineNoCov">          0 :         if (dstTypeId == TypeId::kInt64 &amp;&amp; srcTypeId == TypeId::kInt32)</span></a>
+<a name="911"><span class="lineNum">     911 </span><span class="lineNoCov">          0 :           goto ExtendMovGpXQ;</span></a>
+<a name="912"><span class="lineNum">     912 </span>            :         else</a>
+<a name="913"><span class="lineNum">     913 </span><span class="lineNoCov">          0 :           goto ZeroExtendGpDQ;</span></a>
+<a name="914"><span class="lineNum">     914 </span>            :       }</a>
+<a name="915"><span class="lineNum">     915 </span>            : </a>
+<a name="916"><span class="lineNum">     916 </span>            :       // Move QWORD (GP).</a>
+<a name="917"><span class="lineNum">     917 </span><span class="lineNoCov">          0 :       if (TypeUtils::isGp64(srcTypeId)) goto MovGpQ;</span></a>
+<a name="918"><span class="lineNum">     918 </span><span class="lineNoCov">          0 :       if (TypeUtils::isMmx(srcTypeId)) goto MovMmQ;</span></a>
+<a name="919"><span class="lineNum">     919 </span><span class="lineNoCov">          0 :       if (TypeUtils::isVec(srcTypeId)) goto MovXmmQ;</span></a>
+<a name="920"><span class="lineNum">     920 </span>            :       break;</a>
+<a name="921"><span class="lineNum">     921 </span>            : </a>
+<a name="922"><span class="lineNum">     922 </span>            :     case TypeId::kInt32:</a>
+<a name="923"><span class="lineNum">     923 </span>            :     case TypeId::kUInt32:</a>
+<a name="924"><span class="lineNum">     924 </span>            :     case TypeId::kInt16:</a>
+<a name="925"><span class="lineNum">     925 </span>            :     case TypeId::kUInt16:</a>
+<a name="926"><span class="lineNum">     926 </span>            :       // DWORD &lt;- WORD (Zero|Sign Extend).</a>
+<a name="927"><span class="lineNum">     927 </span>            :       if (TypeUtils::isGp16(srcTypeId)) {</a>
+<a name="928"><span class="lineNum">     928 </span><span class="lineNoCov">          0 :         bool isDstSigned = dstTypeId == TypeId::kInt16 || dstTypeId == TypeId::kInt32;</span></a>
+<a name="929"><span class="lineNum">     929 </span><span class="lineNoCov">          0 :         bool isSrcSigned = srcTypeId == TypeId::kInt8  || srcTypeId == TypeId::kInt16;</span></a>
+<a name="930"><span class="lineNum">     930 </span>            : </a>
+<a name="931"><span class="lineNum">     931 </span>            :         r1.setRegT&lt;RegType::kX86_Gpw&gt;(reg.id());</a>
+<a name="932"><span class="lineNum">     932 </span><span class="lineNoCov">          0 :         instId = isDstSigned &amp;&amp; isSrcSigned ? Inst::kIdMovsx : Inst::kIdMovzx;</span></a>
+<a name="933"><span class="lineNum">     933 </span><span class="lineNoCov">          0 :         goto ExtendMovGpD;</span></a>
+<a name="934"><span class="lineNum">     934 </span>            :       }</a>
+<a name="935"><span class="lineNum">     935 </span>            : </a>
+<a name="936"><span class="lineNum">     936 </span>            :       // DWORD &lt;- BYTE (Zero|Sign Extend).</a>
+<a name="937"><span class="lineNum">     937 </span>            :       if (TypeUtils::isGp8(srcTypeId)) {</a>
+<a name="938"><span class="lineNum">     938 </span><span class="lineNoCov">          0 :         bool isDstSigned = dstTypeId == TypeId::kInt16 || dstTypeId == TypeId::kInt32;</span></a>
+<a name="939"><span class="lineNum">     939 </span><span class="lineNoCov">          0 :         bool isSrcSigned = srcTypeId == TypeId::kInt8  || srcTypeId == TypeId::kInt16;</span></a>
+<a name="940"><span class="lineNum">     940 </span>            : </a>
+<a name="941"><span class="lineNum">     941 </span>            :         r1.setRegT&lt;RegType::kX86_GpbLo&gt;(reg.id());</a>
+<a name="942"><span class="lineNum">     942 </span><span class="lineNoCov">          0 :         instId = isDstSigned &amp;&amp; isSrcSigned ? Inst::kIdMovsx : Inst::kIdMovzx;</span></a>
+<a name="943"><span class="lineNum">     943 </span><span class="lineNoCov">          0 :         goto ExtendMovGpD;</span></a>
+<a name="944"><span class="lineNum">     944 </span>            :       }</a>
+<a name="945"><span class="lineNum">     945 </span>            :       ASMJIT_FALLTHROUGH;</a>
+<a name="946"><span class="lineNum">     946 </span>            : </a>
+<a name="947"><span class="lineNum">     947 </span>            :     case TypeId::kInt8:</a>
+<a name="948"><span class="lineNum">     948 </span>            :     case TypeId::kUInt8:</a>
+<a name="949"><span class="lineNum">     949 </span><span class="lineNoCov">          0 :       if (TypeUtils::isInt(srcTypeId)) goto MovGpD;</span></a>
+<a name="950"><span class="lineNum">     950 </span><span class="lineNoCov">          0 :       if (TypeUtils::isMmx(srcTypeId)) goto MovMmD;</span></a>
+<a name="951"><span class="lineNum">     951 </span><span class="lineNoCov">          0 :       if (TypeUtils::isVec(srcTypeId)) goto MovXmmD;</span></a>
+<a name="952"><span class="lineNum">     952 </span>            :       break;</a>
+<a name="953"><span class="lineNum">     953 </span>            : </a>
+<a name="954"><span class="lineNum">     954 </span>            :     case TypeId::kMmx32:</a>
+<a name="955"><span class="lineNum">     955 </span>            :     case TypeId::kMmx64:</a>
+<a name="956"><span class="lineNum">     956 </span>            :       // Extend BYTE-&gt;QWORD (GP).</a>
+<a name="957"><span class="lineNum">     957 </span>            :       if (TypeUtils::isGp8(srcTypeId)) {</a>
+<a name="958"><span class="lineNum">     958 </span>            :         r1.setRegT&lt;RegType::kX86_GpbLo&gt;(reg.id());</a>
+<a name="959"><span class="lineNum">     959 </span>            : </a>
+<a name="960"><span class="lineNum">     960 </span>            :         instId = Inst::kIdMovzx;</a>
+<a name="961"><span class="lineNum">     961 </span><span class="lineNoCov">          0 :         goto ExtendMovGpXQ;</span></a>
+<a name="962"><span class="lineNum">     962 </span>            :       }</a>
+<a name="963"><span class="lineNum">     963 </span>            : </a>
+<a name="964"><span class="lineNum">     964 </span>            :       // Extend WORD-&gt;QWORD (GP).</a>
+<a name="965"><span class="lineNum">     965 </span>            :       if (TypeUtils::isGp16(srcTypeId)) {</a>
+<a name="966"><span class="lineNum">     966 </span>            :         r1.setRegT&lt;RegType::kX86_Gpw&gt;(reg.id());</a>
+<a name="967"><span class="lineNum">     967 </span>            : </a>
+<a name="968"><span class="lineNum">     968 </span>            :         instId = Inst::kIdMovzx;</a>
+<a name="969"><span class="lineNum">     969 </span><span class="lineNoCov">          0 :         goto ExtendMovGpXQ;</span></a>
+<a name="970"><span class="lineNum">     970 </span>            :       }</a>
+<a name="971"><span class="lineNum">     971 </span>            : </a>
+<a name="972"><span class="lineNum">     972 </span><span class="lineNoCov">          0 :       if (TypeUtils::isGp32(srcTypeId)) goto ExtendMovGpDQ;</span></a>
+<a name="973"><span class="lineNum">     973 </span><span class="lineNoCov">          0 :       if (TypeUtils::isGp64(srcTypeId)) goto MovGpQ;</span></a>
+<a name="974"><span class="lineNum">     974 </span><span class="lineNoCov">          0 :       if (TypeUtils::isMmx(srcTypeId)) goto MovMmQ;</span></a>
+<a name="975"><span class="lineNum">     975 </span><span class="lineNoCov">          0 :       if (TypeUtils::isVec(srcTypeId)) goto MovXmmQ;</span></a>
+<a name="976"><span class="lineNum">     976 </span>            :       break;</a>
+<a name="977"><span class="lineNum">     977 </span>            : </a>
+<a name="978"><span class="lineNum">     978 </span>            :     case TypeId::kFloat32:</a>
+<a name="979"><span class="lineNum">     979 </span>            :     case TypeId::kFloat32x1:</a>
+<a name="980"><span class="lineNum">     980 </span><span class="lineNoCov">          0 :       if (TypeUtils::isVec(srcTypeId)) goto MovXmmD;</span></a>
+<a name="981"><span class="lineNum">     981 </span>            :       break;</a>
+<a name="982"><span class="lineNum">     982 </span>            : </a>
+<a name="983"><span class="lineNum">     983 </span>            :     case TypeId::kFloat64:</a>
+<a name="984"><span class="lineNum">     984 </span>            :     case TypeId::kFloat64x1:</a>
+<a name="985"><span class="lineNum">     985 </span><span class="lineNoCov">          0 :       if (TypeUtils::isVec(srcTypeId)) goto MovXmmQ;</span></a>
+<a name="986"><span class="lineNum">     986 </span>            :       break;</a>
+<a name="987"><span class="lineNum">     987 </span>            : </a>
+<a name="988"><span class="lineNum">     988 </span>            :     default:</a>
+<a name="989"><span class="lineNum">     989 </span><span class="lineNoCov">          0 :       if (TypeUtils::isVec(dstTypeId) &amp;&amp; reg.as&lt;Reg&gt;().isVec()) {</span></a>
+<a name="990"><span class="lineNum">     990 </span>            :         stackPtr.setSize(TypeUtils::sizeOf(dstTypeId));</a>
+<a name="991"><span class="lineNum">     991 </span>            :         uint32_t vMovInstId = choose(Inst::kIdMovaps, Inst::kIdVmovaps);</a>
+<a name="992"><span class="lineNum">     992 </span>            : </a>
+<a name="993"><span class="lineNum">     993 </span>            :         if (TypeUtils::isVec128(dstTypeId))</a>
+<a name="994"><span class="lineNum">     994 </span>            :           r0.setRegT&lt;RegType::kX86_Xmm&gt;(reg.id());</a>
+<a name="995"><span class="lineNum">     995 </span>            :         else if (TypeUtils::isVec256(dstTypeId))</a>
+<a name="996"><span class="lineNum">     996 </span>            :           r0.setRegT&lt;RegType::kX86_Ymm&gt;(reg.id());</a>
+<a name="997"><span class="lineNum">     997 </span>            :         else if (TypeUtils::isVec512(dstTypeId))</a>
+<a name="998"><span class="lineNum">     998 </span>            :           r0.setRegT&lt;RegType::kX86_Zmm&gt;(reg.id());</a>
+<a name="999"><span class="lineNum">     999 </span>            :         else</a>
+<a name="1000"><span class="lineNum">    1000 </span>            :           break;</a>
+<a name="1001"><span class="lineNum">    1001 </span>            : </a>
+<a name="1002"><span class="lineNum">    1002 </span><span class="lineNoCov">          0 :         return cc()-&gt;emit(vMovInstId, stackPtr, r0);</span></a>
+<a name="1003"><span class="lineNum">    1003 </span>            :       }</a>
+<a name="1004"><span class="lineNum">    1004 </span>            :       break;</a>
+<a name="1005"><span class="lineNum">    1005 </span>            :   }</a>
+<a name="1006"><span class="lineNum">    1006 </span>            :   return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="1007"><span class="lineNum">    1007 </span>            : </a>
+<a name="1008"><span class="lineNum">    1008 </span>            :   // Extend+Move Gp.</a>
+<a name="1009"><span class="lineNum">    1009 </span><span class="lineNoCov">          0 : ExtendMovGpD:</span></a>
+<a name="1010"><span class="lineNum">    1010 </span>            :   stackPtr.setSize(4);</a>
+<a name="1011"><span class="lineNum">    1011 </span>            :   r0.setRegT&lt;RegType::kX86_Gpd&gt;(reg.id());</a>
+<a name="1012"><span class="lineNum">    1012 </span>            : </a>
+<a name="1013"><span class="lineNum">    1013 </span><span class="lineNoCov">          0 :   ASMJIT_PROPAGATE(cc()-&gt;emit(instId, r0, r1));</span></a>
+<a name="1014"><span class="lineNum">    1014 </span><span class="lineNoCov">          0 :   ASMJIT_PROPAGATE(cc()-&gt;emit(Inst::kIdMov, stackPtr, r0));</span></a>
+<a name="1015"><span class="lineNum">    1015 </span>            :   return kErrorOk;</a>
+<a name="1016"><span class="lineNum">    1016 </span>            : </a>
+<a name="1017"><span class="lineNum">    1017 </span><span class="lineNoCov">          0 : ExtendMovGpXQ:</span></a>
+<a name="1018"><span class="lineNum">    1018 </span><span class="lineNoCov">          0 :   if (registerSize == 8) {</span></a>
+<a name="1019"><span class="lineNum">    1019 </span>            :     stackPtr.setSize(8);</a>
+<a name="1020"><span class="lineNum">    1020 </span>            :     r0.setRegT&lt;RegType::kX86_Gpq&gt;(reg.id());</a>
+<a name="1021"><span class="lineNum">    1021 </span>            : </a>
+<a name="1022"><span class="lineNum">    1022 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;emit(instId, r0, r1));</span></a>
+<a name="1023"><span class="lineNum">    1023 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;emit(Inst::kIdMov, stackPtr, r0));</span></a>
+<a name="1024"><span class="lineNum">    1024 </span>            :   }</a>
+<a name="1025"><span class="lineNum">    1025 </span>            :   else {</a>
+<a name="1026"><span class="lineNum">    1026 </span>            :     stackPtr.setSize(4);</a>
+<a name="1027"><span class="lineNum">    1027 </span>            :     r0.setRegT&lt;RegType::kX86_Gpd&gt;(reg.id());</a>
+<a name="1028"><span class="lineNum">    1028 </span>            : </a>
+<a name="1029"><span class="lineNum">    1029 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;emit(instId, r0, r1));</span></a>
+<a name="1030"><span class="lineNum">    1030 </span>            : </a>
+<a name="1031"><span class="lineNum">    1031 </span><span class="lineNoCov">          0 : ExtendMovGpDQ:</span></a>
+<a name="1032"><span class="lineNum">    1032 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;emit(Inst::kIdMov, stackPtr, r0));</span></a>
+<a name="1033"><span class="lineNum">    1033 </span>            :     stackPtr.addOffsetLo32(4);</a>
+<a name="1034"><span class="lineNum">    1034 </span><span class="lineNoCov">          0 :     ASMJIT_PROPAGATE(cc()-&gt;emit(Inst::kIdAnd, stackPtr, 0));</span></a>
+<a name="1035"><span class="lineNum">    1035 </span>            :   }</a>
+<a name="1036"><span class="lineNum">    1036 </span>            :   return kErrorOk;</a>
+<a name="1037"><span class="lineNum">    1037 </span>            : </a>
+<a name="1038"><span class="lineNum">    1038 </span>            : ZeroExtendGpDQ:</a>
+<a name="1039"><span class="lineNum">    1039 </span>            :   stackPtr.setSize(4);</a>
+<a name="1040"><span class="lineNum">    1040 </span>            :   r0.setRegT&lt;RegType::kX86_Gpd&gt;(reg.id());</a>
+<a name="1041"><span class="lineNum">    1041 </span><span class="lineNoCov">          0 :   goto ExtendMovGpDQ;</span></a>
+<a name="1042"><span class="lineNum">    1042 </span>            : </a>
+<a name="1043"><span class="lineNum">    1043 </span>            : MovGpD:</a>
+<a name="1044"><span class="lineNum">    1044 </span>            :   stackPtr.setSize(4);</a>
+<a name="1045"><span class="lineNum">    1045 </span>            :   r0.setRegT&lt;RegType::kX86_Gpd&gt;(reg.id());</a>
+<a name="1046"><span class="lineNum">    1046 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(Inst::kIdMov, stackPtr, r0);</span></a>
+<a name="1047"><span class="lineNum">    1047 </span>            : </a>
+<a name="1048"><span class="lineNum">    1048 </span><span class="lineNoCov">          0 : MovGpQ:</span></a>
+<a name="1049"><span class="lineNum">    1049 </span>            :   stackPtr.setSize(8);</a>
+<a name="1050"><span class="lineNum">    1050 </span>            :   r0.setRegT&lt;RegType::kX86_Gpq&gt;(reg.id());</a>
+<a name="1051"><span class="lineNum">    1051 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(Inst::kIdMov, stackPtr, r0);</span></a>
+<a name="1052"><span class="lineNum">    1052 </span>            : </a>
+<a name="1053"><span class="lineNum">    1053 </span>            : MovMmD:</a>
+<a name="1054"><span class="lineNum">    1054 </span>            :   stackPtr.setSize(4);</a>
+<a name="1055"><span class="lineNum">    1055 </span>            :   r0.setRegT&lt;RegType::kX86_Mm&gt;(reg.id());</a>
+<a name="1056"><span class="lineNum">    1056 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(choose(Inst::kIdMovd, Inst::kIdVmovd), stackPtr, r0);</span></a>
+<a name="1057"><span class="lineNum">    1057 </span>            : </a>
+<a name="1058"><span class="lineNum">    1058 </span><span class="lineNoCov">          0 : MovMmQ:</span></a>
+<a name="1059"><span class="lineNum">    1059 </span>            :   stackPtr.setSize(8);</a>
+<a name="1060"><span class="lineNum">    1060 </span>            :   r0.setRegT&lt;RegType::kX86_Mm&gt;(reg.id());</a>
+<a name="1061"><span class="lineNum">    1061 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(choose(Inst::kIdMovq, Inst::kIdVmovq), stackPtr, r0);</span></a>
+<a name="1062"><span class="lineNum">    1062 </span>            : </a>
+<a name="1063"><span class="lineNum">    1063 </span><span class="lineNoCov">          0 : MovXmmD:</span></a>
+<a name="1064"><span class="lineNum">    1064 </span>            :   stackPtr.setSize(4);</a>
+<a name="1065"><span class="lineNum">    1065 </span>            :   r0.setRegT&lt;RegType::kX86_Xmm&gt;(reg.id());</a>
+<a name="1066"><span class="lineNum">    1066 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(choose(Inst::kIdMovss, Inst::kIdVmovss), stackPtr, r0);</span></a>
+<a name="1067"><span class="lineNum">    1067 </span>            : </a>
+<a name="1068"><span class="lineNum">    1068 </span><span class="lineNoCov">          0 : MovXmmQ:</span></a>
+<a name="1069"><span class="lineNum">    1069 </span>            :   stackPtr.setSize(8);</a>
+<a name="1070"><span class="lineNum">    1070 </span>            :   r0.setRegT&lt;RegType::kX86_Xmm&gt;(reg.id());</a>
+<a name="1071"><span class="lineNum">    1071 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(choose(Inst::kIdMovlps, Inst::kIdVmovlps), stackPtr, r0);</span></a>
+<a name="1072"><span class="lineNum">    1072 </span>            : }</a>
+<a name="1073"><span class="lineNum">    1073 </span>            : </a>
+<a name="1074"><span class="lineNum">    1074 </span>            : // x86::RACFGBuilder - OnReg</a>
+<a name="1075"><span class="lineNum">    1075 </span>            : // =========================</a>
+<a name="1076"><span class="lineNum">    1076 </span>            : </a>
+<a name="1077"><span class="lineNum">    1077 </span><span class="lineCov">      33600 : Error RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {</span></a>
+<a name="1078"><span class="lineNum">    1078 </span><span class="lineCov">      33600 :   const FuncDetail&amp; funcDetail = _pass-&gt;func()-&gt;detail();</span></a>
+<a name="1079"><span class="lineNum">    1079 </span>            :   const Operand* opArray = funcRet-&gt;operands();</a>
+<a name="1080"><span class="lineNum">    1080 </span>            :   uint32_t opCount = funcRet-&gt;opCount();</a>
+<a name="1081"><span class="lineNum">    1081 </span>            : </a>
+<a name="1082"><span class="lineNum">    1082 </span>            :   cc()-&gt;_setCursor(funcRet-&gt;prev());</a>
+<a name="1083"><span class="lineNum">    1083 </span>            : </a>
+<a name="1084"><span class="lineNum">    1084 </span><span class="lineCov">      67200 :   for (uint32_t i = 0; i &lt; opCount; i++) {</span></a>
+<a name="1085"><span class="lineNum">    1085 </span><span class="lineCov">      33600 :     const Operand&amp; op = opArray[i];</span></a>
+<a name="1086"><span class="lineNum">    1086 </span>            :     const FuncValue&amp; ret = funcDetail.ret(i);</a>
+<a name="1087"><span class="lineNum">    1087 </span>            : </a>
+<a name="1088"><span class="lineNum">    1088 </span><span class="lineCov">      33600 :     if (!op.isReg())</span></a>
+<a name="1089"><span class="lineNum">    1089 </span><span class="lineNoCov">          0 :       continue;</span></a>
+<a name="1090"><span class="lineNum">    1090 </span>            : </a>
+<a name="1091"><span class="lineNum">    1091 </span><span class="lineCov">      33600 :     if (ret.regType() == RegType::kX86_St) {</span></a>
+<a name="1092"><span class="lineNum">    1092 </span>            :       const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="1093"><span class="lineNum">    1093 </span>            :       uint32_t vIndex = Operand::virtIdToIndex(reg.id());</a>
+<a name="1094"><span class="lineNum">    1094 </span>            : </a>
+<a name="1095"><span class="lineNum">    1095 </span><span class="lineNoCov">          0 :       if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="1096"><span class="lineNum">    1096 </span>            :         RAWorkReg* workReg;</a>
+<a name="1097"><span class="lineNum">    1097 </span><span class="lineNoCov">          0 :         ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(vIndex, &amp;workReg));</span></a>
+<a name="1098"><span class="lineNum">    1098 </span>            : </a>
+<a name="1099"><span class="lineNum">    1099 </span><span class="lineNoCov">          0 :         if (workReg-&gt;group() != RegGroup::kVec)</span></a>
+<a name="1100"><span class="lineNum">    1100 </span>            :           return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="1101"><span class="lineNum">    1101 </span>            : </a>
+<a name="1102"><span class="lineNum">    1102 </span>            :         Reg src(workReg-&gt;signature(), workReg-&gt;virtId());</a>
+<a name="1103"><span class="lineNum">    1103 </span><span class="lineNoCov">          0 :         Mem mem;</span></a>
+<a name="1104"><span class="lineNum">    1104 </span>            : </a>
+<a name="1105"><span class="lineNum">    1105 </span>            :         TypeId typeId = TypeUtils::scalarOf(workReg-&gt;typeId());</a>
+<a name="1106"><span class="lineNum">    1106 </span><span class="lineNoCov">          0 :         if (ret.hasTypeId())</span></a>
+<a name="1107"><span class="lineNum">    1107 </span>            :           typeId = ret.typeId();</a>
+<a name="1108"><span class="lineNum">    1108 </span>            : </a>
+<a name="1109"><span class="lineNum">    1109 </span><span class="lineNoCov">          0 :         switch (typeId) {</span></a>
+<a name="1110"><span class="lineNum">    1110 </span><span class="lineNoCov">          0 :           case TypeId::kFloat32:</span></a>
+<a name="1111"><span class="lineNum">    1111 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(_pass-&gt;useTemporaryMem(mem, 4, 4));</span></a>
+<a name="1112"><span class="lineNum">    1112 </span>            :             mem.setSize(4);</a>
+<a name="1113"><span class="lineNum">    1113 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(cc()-&gt;emit(choose(Inst::kIdMovss, Inst::kIdVmovss), mem, src.as&lt;Xmm&gt;()));</span></a>
+<a name="1114"><span class="lineNum">    1114 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(cc()-&gt;fld(mem));</span></a>
+<a name="1115"><span class="lineNum">    1115 </span>            :             break;</a>
+<a name="1116"><span class="lineNum">    1116 </span>            : </a>
+<a name="1117"><span class="lineNum">    1117 </span><span class="lineNoCov">          0 :           case TypeId::kFloat64:</span></a>
+<a name="1118"><span class="lineNum">    1118 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(_pass-&gt;useTemporaryMem(mem, 8, 4));</span></a>
+<a name="1119"><span class="lineNum">    1119 </span>            :             mem.setSize(8);</a>
+<a name="1120"><span class="lineNum">    1120 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(cc()-&gt;emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), mem, src.as&lt;Xmm&gt;()));</span></a>
+<a name="1121"><span class="lineNum">    1121 </span><span class="lineNoCov">          0 :             ASMJIT_PROPAGATE(cc()-&gt;fld(mem));</span></a>
+<a name="1122"><span class="lineNum">    1122 </span>            :             break;</a>
+<a name="1123"><span class="lineNum">    1123 </span>            : </a>
+<a name="1124"><span class="lineNum">    1124 </span>            :           default:</a>
+<a name="1125"><span class="lineNum">    1125 </span>            :             return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="1126"><span class="lineNum">    1126 </span>            :         }</a>
+<a name="1127"><span class="lineNum">    1127 </span>            :       }</a>
+<a name="1128"><span class="lineNum">    1128 </span>            :     }</a>
+<a name="1129"><span class="lineNum">    1129 </span>            :   }</a>
+<a name="1130"><span class="lineNum">    1130 </span>            : </a>
+<a name="1131"><span class="lineNum">    1131 </span>            :   return kErrorOk;</a>
+<a name="1132"><span class="lineNum">    1132 </span>            : }</a>
+<a name="1133"><span class="lineNum">    1133 </span>            : </a>
+<a name="1134"><span class="lineNum">    1134 </span><span class="lineCov">      33600 : Error RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder&amp; ib) noexcept {</span></a>
+<a name="1135"><span class="lineNum">    1135 </span><span class="lineCov">      33600 :   const FuncDetail&amp; funcDetail = _pass-&gt;func()-&gt;detail();</span></a>
+<a name="1136"><span class="lineNum">    1136 </span>            :   const Operand* opArray = funcRet-&gt;operands();</a>
+<a name="1137"><span class="lineNum">    1137 </span>            :   uint32_t opCount = funcRet-&gt;opCount();</a>
+<a name="1138"><span class="lineNum">    1138 </span>            : </a>
+<a name="1139"><span class="lineNum">    1139 </span><span class="lineCov">      67200 :   for (uint32_t i = 0; i &lt; opCount; i++) {</span></a>
+<a name="1140"><span class="lineNum">    1140 </span><span class="lineCov">      33600 :     const Operand&amp; op = opArray[i];</span></a>
+<a name="1141"><span class="lineNum">    1141 </span><span class="lineCov">      33600 :     if (op.isNone()) continue;</span></a>
+<a name="1142"><span class="lineNum">    1142 </span>            : </a>
+<a name="1143"><span class="lineNum">    1143 </span>            :     const FuncValue&amp; ret = funcDetail.ret(i);</a>
+<a name="1144"><span class="lineNum">    1144 </span><span class="lineCov">      33600 :     if (ASMJIT_UNLIKELY(!ret.isReg()))</span></a>
+<a name="1145"><span class="lineNum">    1145 </span>            :       return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="1146"><span class="lineNum">    1146 </span>            : </a>
+<a name="1147"><span class="lineNum">    1147 </span>            :     // Not handled here...</a>
+<a name="1148"><span class="lineNum">    1148 </span><span class="lineCov">      33600 :     if (ret.regType() == RegType::kX86_St)</span></a>
+<a name="1149"><span class="lineNum">    1149 </span><span class="lineNoCov">          0 :       continue;</span></a>
+<a name="1150"><span class="lineNum">    1150 </span>            : </a>
+<a name="1151"><span class="lineNum">    1151 </span><span class="lineCov">      33600 :     if (op.isReg()) {</span></a>
+<a name="1152"><span class="lineNum">    1152 </span>            :       // Register return value.</a>
+<a name="1153"><span class="lineNum">    1153 </span>            :       const Reg&amp; reg = op.as&lt;Reg&gt;();</a>
+<a name="1154"><span class="lineNum">    1154 </span>            :       uint32_t vIndex = Operand::virtIdToIndex(reg.id());</a>
+<a name="1155"><span class="lineNum">    1155 </span>            : </a>
+<a name="1156"><span class="lineNum">    1156 </span><span class="lineCov">      33600 :       if (vIndex &lt; Operand::kVirtIdCount) {</span></a>
+<a name="1157"><span class="lineNum">    1157 </span>            :         RAWorkReg* workReg;</a>
+<a name="1158"><span class="lineNum">    1158 </span><span class="lineCov">      67200 :         ASMJIT_PROPAGATE(_pass-&gt;virtIndexAsWorkReg(vIndex, &amp;workReg));</span></a>
+<a name="1159"><span class="lineNum">    1159 </span>            : </a>
+<a name="1160"><span class="lineNum">    1160 </span><span class="lineCov">      33600 :         RegGroup group = workReg-&gt;group();</span></a>
+<a name="1161"><span class="lineNum">    1161 </span><span class="lineCov">      33600 :         RegMask inOutRegs = _pass-&gt;_availableRegs[group];</span></a>
+<a name="1162"><span class="lineNum">    1162 </span><span class="lineCov">      33600 :         ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, ret.regId(), 0, inOutRegs, BaseReg::kIdBad, 0));</span></a>
+<a name="1163"><span class="lineNum">    1163 </span>            :       }</a>
+<a name="1164"><span class="lineNum">    1164 </span>            :     }</a>
+<a name="1165"><span class="lineNum">    1165 </span>            :     else {</a>
+<a name="1166"><span class="lineNum">    1166 </span>            :       return DebugUtils::errored(kErrorInvalidAssignment);</a>
+<a name="1167"><span class="lineNum">    1167 </span>            :     }</a>
+<a name="1168"><span class="lineNum">    1168 </span>            :   }</a>
+<a name="1169"><span class="lineNum">    1169 </span>            : </a>
+<a name="1170"><span class="lineNum">    1170 </span>            :   return kErrorOk;</a>
+<a name="1171"><span class="lineNum">    1171 </span>            : }</a>
+<a name="1172"><span class="lineNum">    1172 </span>            : </a>
+<a name="1173"><span class="lineNum">    1173 </span>            : // x86::X86RAPass - Construction &amp; Destruction</a>
+<a name="1174"><span class="lineNum">    1174 </span>            : // ===========================================</a>
+<a name="1175"><span class="lineNum">    1175 </span>            : </a>
+<a name="1176"><span class="lineNum">    1176 </span><span class="lineCov">      33600 : X86RAPass::X86RAPass() noexcept</span></a>
+<a name="1177"><span class="lineNum">    1177 </span><span class="lineCov">      33600 :   : BaseRAPass() { _iEmitHelper = &amp;_emitHelper; }</span></a>
+<a name="1178"><span class="lineNum">    1178 </span><span class="lineCov">      33600 : X86RAPass::~X86RAPass() noexcept {}</span></a>
+<a name="1179"><span class="lineNum">    1179 </span>            : </a>
+<a name="1180"><span class="lineNum">    1180 </span>            : // x86::X86RAPass - OnInit &amp; OnDone</a>
+<a name="1181"><span class="lineNum">    1181 </span>            : // ================================</a>
+<a name="1182"><span class="lineNum">    1182 </span>            : </a>
+<a name="1183"><span class="lineNum">    1183 </span><span class="lineCov">      33600 : void X86RAPass::onInit() noexcept {</span></a>
+<a name="1184"><span class="lineNum">    1184 </span>            :   Arch arch = cc()-&gt;arch();</a>
+<a name="1185"><span class="lineNum">    1185 </span><span class="lineCov">      33600 :   uint32_t baseRegCount = Environment::is32Bit(arch) ? 8u : 16u;</span></a>
+<a name="1186"><span class="lineNum">    1186 </span>            :   uint32_t simdRegCount = baseRegCount;</a>
+<a name="1187"><span class="lineNum">    1187 </span>            : </a>
+<a name="1188"><span class="lineNum">    1188 </span><span class="lineCov">      33600 :   if (Environment::is64Bit(arch) &amp;&amp; _func-&gt;frame().isAvx512Enabled())</span></a>
+<a name="1189"><span class="lineNum">    1189 </span>            :     simdRegCount = 32u;</a>
+<a name="1190"><span class="lineNum">    1190 </span>            : </a>
+<a name="1191"><span class="lineNum">    1191 </span><span class="lineCov">      33600 :   bool avxEnabled = _func-&gt;frame().isAvxEnabled();</span></a>
+<a name="1192"><span class="lineNum">    1192 </span>            :   bool avx512Enabled = _func-&gt;frame().isAvx512Enabled();</a>
+<a name="1193"><span class="lineNum">    1193 </span>            : </a>
+<a name="1194"><span class="lineNum">    1194 </span><span class="lineCov">      33600 :   _emitHelper._emitter = _cb;</span></a>
+<a name="1195"><span class="lineNum">    1195 </span><span class="lineCov">      33600 :   _emitHelper._avxEnabled = avxEnabled || avx512Enabled;</span></a>
+<a name="1196"><span class="lineNum">    1196 </span><span class="lineCov">      33600 :   _emitHelper._avx512Enabled = avx512Enabled;</span></a>
+<a name="1197"><span class="lineNum">    1197 </span>            : </a>
+<a name="1198"><span class="lineNum">    1198 </span><span class="lineCov">      33600 :   _archTraits = &amp;ArchTraits::byArch(arch);</span></a>
+<a name="1199"><span class="lineNum">    1199 </span>            :   _physRegCount.set(RegGroup::kGp, baseRegCount);</a>
+<a name="1200"><span class="lineNum">    1200 </span>            :   _physRegCount.set(RegGroup::kVec, simdRegCount);</a>
+<a name="1201"><span class="lineNum">    1201 </span>            :   _physRegCount.set(RegGroup::kX86_K, 8);</a>
+<a name="1202"><span class="lineNum">    1202 </span>            :   _physRegCount.set(RegGroup::kX86_MM, 8);</a>
+<a name="1203"><span class="lineNum">    1203 </span><span class="lineCov">      33600 :   _buildPhysIndex();</span></a>
+<a name="1204"><span class="lineNum">    1204 </span>            : </a>
+<a name="1205"><span class="lineNum">    1205 </span><span class="lineCov">      33600 :   _availableRegCount = _physRegCount;</span></a>
+<a name="1206"><span class="lineNum">    1206 </span><span class="lineCov">      33600 :   _availableRegs[RegGroup::kGp] = Support::lsbMask&lt;RegMask&gt;(_physRegCount.get(RegGroup::kGp));</span></a>
+<a name="1207"><span class="lineNum">    1207 </span><span class="lineCov">      33600 :   _availableRegs[RegGroup::kVec] = Support::lsbMask&lt;RegMask&gt;(_physRegCount.get(RegGroup::kVec));</span></a>
+<a name="1208"><span class="lineNum">    1208 </span><span class="lineCov">      33600 :   _availableRegs[RegGroup::kX86_K] = Support::lsbMask&lt;RegMask&gt;(_physRegCount.get(RegGroup::kX86_K)) ^ 1u;</span></a>
+<a name="1209"><span class="lineNum">    1209 </span><span class="lineCov">      33600 :   _availableRegs[RegGroup::kX86_MM] = Support::lsbMask&lt;RegMask&gt;(_physRegCount.get(RegGroup::kX86_MM));</span></a>
+<a name="1210"><span class="lineNum">    1210 </span>            : </a>
+<a name="1211"><span class="lineNum">    1211 </span><span class="lineCov">      33600 :   _scratchRegIndexes[0] = uint8_t(Gp::kIdCx);</span></a>
+<a name="1212"><span class="lineNum">    1212 </span><span class="lineCov">      33600 :   _scratchRegIndexes[1] = uint8_t(baseRegCount - 1);</span></a>
+<a name="1213"><span class="lineNum">    1213 </span>            : </a>
+<a name="1214"><span class="lineNum">    1214 </span>            :   // The architecture specific setup makes implicitly all registers available. So</a>
+<a name="1215"><span class="lineNum">    1215 </span>            :   // make unavailable all registers that are special and cannot be used in general.</a>
+<a name="1216"><span class="lineNum">    1216 </span>            :   bool hasFP = _func-&gt;frame().hasPreservedFP();</a>
+<a name="1217"><span class="lineNum">    1217 </span>            : </a>
+<a name="1218"><span class="lineNum">    1218 </span>            :   makeUnavailable(RegGroup::kGp, Gp::kIdSp);            // ESP|RSP used as a stack-pointer (SP).</a>
+<a name="1219"><span class="lineNum">    1219 </span><span class="lineCov">      33600 :   if (hasFP) makeUnavailable(RegGroup::kGp, Gp::kIdBp); // EBP|RBP used as a frame-pointer (FP).</span></a>
+<a name="1220"><span class="lineNum">    1220 </span>            : </a>
+<a name="1221"><span class="lineNum">    1221 </span><span class="lineCov">      33600 :   _sp = cc()-&gt;zsp();</span></a>
+<a name="1222"><span class="lineNum">    1222 </span><span class="lineCov">      33600 :   _fp = cc()-&gt;zbp();</span></a>
+<a name="1223"><span class="lineNum">    1223 </span><span class="lineCov">      33600 : }</span></a>
+<a name="1224"><span class="lineNum">    1224 </span>            : </a>
+<a name="1225"><span class="lineNum">    1225 </span><span class="lineCov">      33600 : void X86RAPass::onDone() noexcept {}</span></a>
+<a name="1226"><span class="lineNum">    1226 </span>            : </a>
+<a name="1227"><span class="lineNum">    1227 </span>            : // x86::X86RAPass - BuildCFG</a>
+<a name="1228"><span class="lineNum">    1228 </span>            : // =========================</a>
+<a name="1229"><span class="lineNum">    1229 </span>            : </a>
+<a name="1230"><span class="lineNum">    1230 </span><span class="lineCov">      33600 : Error X86RAPass::buildCFG() noexcept {</span></a>
+<a name="1231"><span class="lineNum">    1231 </span><span class="lineCov">      33600 :   return RACFGBuilder(this).run();</span></a>
+<a name="1232"><span class="lineNum">    1232 </span>            : }</a>
+<a name="1233"><span class="lineNum">    1233 </span>            : </a>
+<a name="1234"><span class="lineNum">    1234 </span>            : // x86::X86RAPass - Rewrite</a>
+<a name="1235"><span class="lineNum">    1235 </span>            : // ========================</a>
+<a name="1236"><span class="lineNum">    1236 </span>            : </a>
+<a name="1237"><span class="lineNum">    1237 </span><span class="lineNoCov">          0 : static InstId transformVexToEvex(InstId instId) {</span></a>
+<a name="1238"><span class="lineNum">    1238 </span><span class="lineNoCov">          0 :   switch (instId) {</span></a>
+<a name="1239"><span class="lineNum">    1239 </span>            :     case Inst::kIdVbroadcastf128: return Inst::kIdVbroadcastf32x4;</a>
+<a name="1240"><span class="lineNum">    1240 </span><span class="lineNoCov">          0 :     case Inst::kIdVbroadcasti128: return Inst::kIdVbroadcasti32x4;</span></a>
+<a name="1241"><span class="lineNum">    1241 </span><span class="lineNoCov">          0 :     case Inst::kIdVextractf128: return Inst::kIdVextractf32x4;</span></a>
+<a name="1242"><span class="lineNum">    1242 </span><span class="lineNoCov">          0 :     case Inst::kIdVextracti128: return Inst::kIdVextracti32x4;</span></a>
+<a name="1243"><span class="lineNum">    1243 </span><span class="lineNoCov">          0 :     case Inst::kIdVinsertf128: return Inst::kIdVinsertf32x4;</span></a>
+<a name="1244"><span class="lineNum">    1244 </span><span class="lineNoCov">          0 :     case Inst::kIdVinserti128: return Inst::kIdVinserti32x4;</span></a>
+<a name="1245"><span class="lineNum">    1245 </span><span class="lineNoCov">          0 :     case Inst::kIdVmovdqa: return Inst::kIdVmovdqa32;</span></a>
+<a name="1246"><span class="lineNum">    1246 </span><span class="lineNoCov">          0 :     case Inst::kIdVmovdqu: return Inst::kIdVmovdqu32;</span></a>
+<a name="1247"><span class="lineNum">    1247 </span><span class="lineNoCov">          0 :     case Inst::kIdVpand: return Inst::kIdVpandd;</span></a>
+<a name="1248"><span class="lineNum">    1248 </span><span class="lineNoCov">          0 :     case Inst::kIdVpandn: return Inst::kIdVpandnd;</span></a>
+<a name="1249"><span class="lineNum">    1249 </span><span class="lineNoCov">          0 :     case Inst::kIdVpor: return Inst::kIdVpord;</span></a>
+<a name="1250"><span class="lineNum">    1250 </span><span class="lineNoCov">          0 :     case Inst::kIdVpxor: return Inst::kIdVpxord;</span></a>
+<a name="1251"><span class="lineNum">    1251 </span><span class="lineNoCov">          0 :     case Inst::kIdVroundpd: return Inst::kIdVrndscalepd;</span></a>
+<a name="1252"><span class="lineNum">    1252 </span><span class="lineNoCov">          0 :     case Inst::kIdVroundps: return Inst::kIdVrndscaleps;</span></a>
+<a name="1253"><span class="lineNum">    1253 </span><span class="lineNoCov">          0 :     case Inst::kIdVroundsd: return Inst::kIdVrndscalesd;</span></a>
+<a name="1254"><span class="lineNum">    1254 </span><span class="lineNoCov">          0 :     case Inst::kIdVroundss: return Inst::kIdVrndscaless;</span></a>
+<a name="1255"><span class="lineNum">    1255 </span>            : </a>
+<a name="1256"><span class="lineNum">    1256 </span><span class="lineNoCov">          0 :     default:</span></a>
+<a name="1257"><span class="lineNum">    1257 </span>            :       // This should never happen as only transformable instructions should go this path.</a>
+<a name="1258"><span class="lineNum">    1258 </span>            :       ASMJIT_ASSERT(false);</a>
+<a name="1259"><span class="lineNum">    1259 </span><span class="lineNoCov">          0 :       return 0;</span></a>
+<a name="1260"><span class="lineNum">    1260 </span>            :   }</a>
+<a name="1261"><span class="lineNum">    1261 </span>            : }</a>
+<a name="1262"><span class="lineNum">    1262 </span>            : </a>
+<a name="1263"><span class="lineNum">    1263 </span><span class="lineCov">      33600 : ASMJIT_FAVOR_SPEED Error X86RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexcept {</span></a>
+<a name="1264"><span class="lineNum">    1264 </span>            :   uint32_t virtCount = cc()-&gt;_vRegArray.size();</a>
+<a name="1265"><span class="lineNum">    1265 </span>            : </a>
+<a name="1266"><span class="lineNum">    1266 </span>            :   BaseNode* node = first;</a>
+<a name="1267"><span class="lineNum">    1267 </span><span class="lineCov">     659762 :   while (node != stop) {</span></a>
+<a name="1268"><span class="lineNum">    1268 </span>            :     BaseNode* next = node-&gt;next();</a>
+<a name="1269"><span class="lineNum">    1269 </span><span class="lineCov">     626162 :     if (node-&gt;isInst()) {</span></a>
+<a name="1270"><span class="lineNum">    1270 </span>            :       InstNode* inst = node-&gt;as&lt;InstNode&gt;();</a>
+<a name="1271"><span class="lineNum">    1271 </span>            :       RAInst* raInst = node-&gt;passData&lt;RAInst&gt;();</a>
+<a name="1272"><span class="lineNum">    1272 </span>            : </a>
+<a name="1273"><span class="lineNum">    1273 </span>            :       Operand* operands = inst-&gt;operands();</a>
+<a name="1274"><span class="lineNum">    1274 </span>            :       uint32_t opCount = inst-&gt;opCount();</a>
+<a name="1275"><span class="lineNum">    1275 </span>            :       uint32_t maxRegId = 0;</a>
+<a name="1276"><span class="lineNum">    1276 </span>            : </a>
+<a name="1277"><span class="lineNum">    1277 </span>            :       uint32_t i;</a>
+<a name="1278"><span class="lineNum">    1278 </span>            : </a>
+<a name="1279"><span class="lineNum">    1279 </span>            :       // Rewrite virtual registers into physical registers.</a>
+<a name="1280"><span class="lineNum">    1280 </span><span class="lineCov">     525362 :       if (raInst) {</span></a>
+<a name="1281"><span class="lineNum">    1281 </span>            :         // This data is allocated by Zone passed to `runOnFunction()`, which will be reset after the RA pass finishes.</a>
+<a name="1282"><span class="lineNum">    1282 </span>            :         // So reset this data to prevent having a dead pointer after the RA pass is complete.</a>
+<a name="1283"><span class="lineNum">    1283 </span>            :         node-&gt;resetPassData();</a>
+<a name="1284"><span class="lineNum">    1284 </span>            : </a>
+<a name="1285"><span class="lineNum">    1285 </span>            :         // If the instruction contains pass data (raInst) then it was a subject for register allocation and must be</a>
+<a name="1286"><span class="lineNum">    1286 </span>            :         // rewritten to use physical regs.</a>
+<a name="1287"><span class="lineNum">    1287 </span>            :         RATiedReg* tiedRegs = raInst-&gt;tiedRegs();</a>
+<a name="1288"><span class="lineNum">    1288 </span>            :         uint32_t tiedCount = raInst-&gt;tiedCount();</a>
+<a name="1289"><span class="lineNum">    1289 </span>            : </a>
+<a name="1290"><span class="lineNum">    1290 </span><span class="lineCov">    1182967 :         for (i = 0; i &lt; tiedCount; i++) {</span></a>
+<a name="1291"><span class="lineNum">    1291 </span><span class="lineCov">     769753 :           RATiedReg* tiedReg = &amp;tiedRegs[i];</span></a>
+<a name="1292"><span class="lineNum">    1292 </span>            : </a>
+<a name="1293"><span class="lineNum">    1293 </span>            :           Support::BitWordIterator&lt;uint32_t&gt; useIt(tiedReg-&gt;useRewriteMask());</a>
+<a name="1294"><span class="lineNum">    1294 </span>            :           uint32_t useId = tiedReg-&gt;useId();</a>
+<a name="1295"><span class="lineNum">    1295 </span><span class="lineCov">    1170250 :           while (useIt.hasNext()) {</span></a>
+<a name="1296"><span class="lineNum">    1296 </span>            :             maxRegId = Support::max(maxRegId, useId);</a>
+<a name="1297"><span class="lineNum">    1297 </span>            :             inst-&gt;rewriteIdAtIndex(useIt.next(), useId);</a>
+<a name="1298"><span class="lineNum">    1298 </span>            :           }</a>
+<a name="1299"><span class="lineNum">    1299 </span>            : </a>
+<a name="1300"><span class="lineNum">    1300 </span>            :           Support::BitWordIterator&lt;uint32_t&gt; outIt(tiedReg-&gt;outRewriteMask());</a>
+<a name="1301"><span class="lineNum">    1301 </span>            :           uint32_t outId = tiedReg-&gt;outId();</a>
+<a name="1302"><span class="lineNum">    1302 </span><span class="lineCov">    1147478 :           while (outIt.hasNext()) {</span></a>
+<a name="1303"><span class="lineNum">    1303 </span>            :             maxRegId = Support::max(maxRegId, outId);</a>
+<a name="1304"><span class="lineNum">    1304 </span>            :             inst-&gt;rewriteIdAtIndex(outIt.next(), outId);</a>
+<a name="1305"><span class="lineNum">    1305 </span>            :           }</a>
+<a name="1306"><span class="lineNum">    1306 </span>            :         }</a>
+<a name="1307"><span class="lineNum">    1307 </span>            : </a>
+<a name="1308"><span class="lineNum">    1308 </span>            :         // Transform VEX instruction to EVEX when necessary.</a>
+<a name="1309"><span class="lineNum">    1309 </span><span class="lineCov">     413214 :         if (raInst-&gt;isTransformable()) {</span></a>
+<a name="1310"><span class="lineNum">    1310 </span><span class="lineCov">          8 :           if (maxRegId &gt; 15) {</span></a>
+<a name="1311"><span class="lineNum">    1311 </span><span class="lineNoCov">          0 :             inst-&gt;setId(transformVexToEvex(inst-&gt;id()));</span></a>
+<a name="1312"><span class="lineNum">    1312 </span>            :           }</a>
+<a name="1313"><span class="lineNum">    1313 </span>            :         }</a>
+<a name="1314"><span class="lineNum">    1314 </span>            : </a>
+<a name="1315"><span class="lineNum">    1315 </span>            :         // Remove moves that do not do anything.</a>
+<a name="1316"><span class="lineNum">    1316 </span>            :         //</a>
+<a name="1317"><span class="lineNum">    1317 </span>            :         // Usually these moves are inserted during code generation and originally they used different registers. If RA</a>
+<a name="1318"><span class="lineNum">    1318 </span>            :         // allocated these into the same register such redundant mov would appear.</a>
+<a name="1319"><span class="lineNum">    1319 </span><span class="lineCov">     413214 :         if (raInst-&gt;hasInstRWFlag(InstRWFlags::kMovOp) &amp;&amp; !inst-&gt;hasExtraReg()) {</span></a>
+<a name="1320"><span class="lineNum">    1320 </span><span class="lineNoCov">          0 :           if (inst-&gt;opCount() == 2) {</span></a>
+<a name="1321"><span class="lineNum">    1321 </span><span class="lineNoCov">          0 :             if (inst-&gt;op(0) == inst-&gt;op(1)) {</span></a>
+<a name="1322"><span class="lineNum">    1322 </span><span class="lineNoCov">          0 :               cc()-&gt;removeNode(node);</span></a>
+<a name="1323"><span class="lineNum">    1323 </span><span class="lineNoCov">          0 :               goto Next;</span></a>
+<a name="1324"><span class="lineNum">    1324 </span>            :             }</a>
+<a name="1325"><span class="lineNum">    1325 </span>            :           }</a>
+<a name="1326"><span class="lineNum">    1326 </span>            :         }</a>
+<a name="1327"><span class="lineNum">    1327 </span>            : </a>
+<a name="1328"><span class="lineNum">    1328 </span><span class="lineCov">     413214 :         if (ASMJIT_UNLIKELY(node-&gt;type() != NodeType::kInst)) {</span></a>
+<a name="1329"><span class="lineNum">    1329 </span>            :           // FuncRet terminates the flow, it must either be removed if the exit label is next to it (optimization) or</a>
+<a name="1330"><span class="lineNum">    1330 </span>            :           // patched to an architecture dependent jump instruction that jumps to the function's exit before the epilog.</a>
+<a name="1331"><span class="lineNum">    1331 </span><span class="lineCov">      46072 :           if (node-&gt;type() == NodeType::kFuncRet) {</span></a>
+<a name="1332"><span class="lineNum">    1332 </span>            :             RABlock* block = raInst-&gt;block();</a>
+<a name="1333"><span class="lineNum">    1333 </span><span class="lineCov">      33600 :             if (!isNextTo(node, _func-&gt;exitNode())) {</span></a>
+<a name="1334"><span class="lineNum">    1334 </span>            :               cc()-&gt;_setCursor(node-&gt;prev());</a>
+<a name="1335"><span class="lineNum">    1335 </span><span class="lineNoCov">          0 :               ASMJIT_PROPAGATE(emitJump(_func-&gt;exitNode()-&gt;label()));</span></a>
+<a name="1336"><span class="lineNum">    1336 </span>            :             }</a>
+<a name="1337"><span class="lineNum">    1337 </span>            : </a>
+<a name="1338"><span class="lineNum">    1338 </span>            :             BaseNode* prev = node-&gt;prev();</a>
+<a name="1339"><span class="lineNum">    1339 </span><span class="lineCov">      33600 :             cc()-&gt;removeNode(node);</span></a>
+<a name="1340"><span class="lineNum">    1340 </span>            :             block-&gt;setLast(prev);</a>
+<a name="1341"><span class="lineNum">    1341 </span>            :           }</a>
+<a name="1342"><span class="lineNum">    1342 </span>            :         }</a>
+<a name="1343"><span class="lineNum">    1343 </span>            :       }</a>
+<a name="1344"><span class="lineNum">    1344 </span>            : </a>
+<a name="1345"><span class="lineNum">    1345 </span>            :       // Rewrite stack slot addresses.</a>
+<a name="1346"><span class="lineNum">    1346 </span><span class="lineCov">    1635260 :       for (i = 0; i &lt; opCount; i++) {</span></a>
+<a name="1347"><span class="lineNum">    1347 </span><span class="lineCov">    1109898 :         Operand&amp; op = operands[i];</span></a>
+<a name="1348"><span class="lineNum">    1348 </span><span class="lineCov">    1109898 :         if (op.isMem()) {</span></a>
+<a name="1349"><span class="lineNum">    1349 </span>            :           BaseMem&amp; mem = op.as&lt;BaseMem&gt;();</a>
+<a name="1350"><span class="lineNum">    1350 </span><span class="lineCov">     181480 :           if (mem.isRegHome()) {</span></a>
+<a name="1351"><span class="lineNum">    1351 </span>            :             uint32_t virtIndex = Operand::virtIdToIndex(mem.baseId());</a>
+<a name="1352"><span class="lineNum">    1352 </span><span class="lineCov">      93458 :             if (ASMJIT_UNLIKELY(virtIndex &gt;= virtCount))</span></a>
+<a name="1353"><span class="lineNum">    1353 </span>            :               return DebugUtils::errored(kErrorInvalidVirtId);</a>
+<a name="1354"><span class="lineNum">    1354 </span>            : </a>
+<a name="1355"><span class="lineNum">    1355 </span>            :             VirtReg* virtReg = cc()-&gt;virtRegByIndex(virtIndex);</a>
+<a name="1356"><span class="lineNum">    1356 </span>            :             RAWorkReg* workReg = virtReg-&gt;workReg();</a>
+<a name="1357"><span class="lineNum">    1357 </span>            :             ASMJIT_ASSERT(workReg != nullptr);</a>
+<a name="1358"><span class="lineNum">    1358 </span>            : </a>
+<a name="1359"><span class="lineNum">    1359 </span>            :             RAStackSlot* slot = workReg-&gt;stackSlot();</a>
+<a name="1360"><span class="lineNum">    1360 </span>            :             int32_t offset = slot-&gt;offset();</a>
+<a name="1361"><span class="lineNum">    1361 </span>            : </a>
+<a name="1362"><span class="lineNum">    1362 </span>            :             mem._setBase(_sp.type(), slot-&gt;baseRegId());</a>
+<a name="1363"><span class="lineNum">    1363 </span>            :             mem.clearRegHome();</a>
+<a name="1364"><span class="lineNum">    1364 </span>            :             mem.addOffsetLo32(offset);</a>
+<a name="1365"><span class="lineNum">    1365 </span>            :           }</a>
+<a name="1366"><span class="lineNum">    1366 </span>            :         }</a>
+<a name="1367"><span class="lineNum">    1367 </span>            :       }</a>
+<a name="1368"><span class="lineNum">    1368 </span>            :     }</a>
+<a name="1369"><span class="lineNum">    1369 </span>            : </a>
+<a name="1370"><span class="lineNum">    1370 </span><span class="lineCov">     100800 : Next:</span></a>
+<a name="1371"><span class="lineNum">    1371 </span>            :     node = next;</a>
+<a name="1372"><span class="lineNum">    1372 </span>            :   }</a>
+<a name="1373"><span class="lineNum">    1373 </span>            : </a>
+<a name="1374"><span class="lineNum">    1374 </span>            :   return kErrorOk;</a>
+<a name="1375"><span class="lineNum">    1375 </span>            : }</a>
+<a name="1376"><span class="lineNum">    1376 </span>            : </a>
+<a name="1377"><span class="lineNum">    1377 </span>            : // x86::X86RAPass - OnEmit</a>
+<a name="1378"><span class="lineNum">    1378 </span>            : // =======================</a>
+<a name="1379"><span class="lineNum">    1379 </span>            : </a>
+<a name="1380"><span class="lineNum">    1380 </span><span class="lineCov">       2321 : Error X86RAPass::emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {</span></a>
+<a name="1381"><span class="lineNum">    1381 </span>            :   RAWorkReg* wReg = workRegById(workId);</a>
+<a name="1382"><span class="lineNum">    1382 </span>            :   BaseReg dst(wReg-&gt;signature(), dstPhysId);</a>
+<a name="1383"><span class="lineNum">    1383 </span>            :   BaseReg src(wReg-&gt;signature(), srcPhysId);</a>
+<a name="1384"><span class="lineNum">    1384 </span>            : </a>
+<a name="1385"><span class="lineNum">    1385 </span>            :   const char* comment = nullptr;</a>
+<a name="1386"><span class="lineNum">    1386 </span>            : </a>
+<a name="1387"><span class="lineNum">    1387 </span>            : #ifndef ASMJIT_NO_LOGGING</a>
+<a name="1388"><span class="lineNum">    1388 </span><span class="lineCov">       2321 :   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {</span></a>
+<a name="1389"><span class="lineNum">    1389 </span><span class="lineNoCov">          0 :     _tmpString.assignFormat(&quot;&lt;MOVE&gt; %s&quot;, workRegById(workId)-&gt;name());</span></a>
+<a name="1390"><span class="lineNum">    1390 </span>            :     comment = _tmpString.data();</a>
+<a name="1391"><span class="lineNum">    1391 </span>            :   }</a>
+<a name="1392"><span class="lineNum">    1392 </span>            : #endif</a>
+<a name="1393"><span class="lineNum">    1393 </span>            : </a>
+<a name="1394"><span class="lineNum">    1394 </span><span class="lineCov">       2321 :   return _emitHelper.emitRegMove(dst, src, wReg-&gt;typeId(), comment);</span></a>
+<a name="1395"><span class="lineNum">    1395 </span>            : }</a>
+<a name="1396"><span class="lineNum">    1396 </span>            : </a>
+<a name="1397"><span class="lineNum">    1397 </span><span class="lineNoCov">          0 : Error X86RAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept {</span></a>
+<a name="1398"><span class="lineNum">    1398 </span>            :   RAWorkReg* waReg = workRegById(aWorkId);</a>
+<a name="1399"><span class="lineNum">    1399 </span>            :   RAWorkReg* wbReg = workRegById(bWorkId);</a>
+<a name="1400"><span class="lineNum">    1400 </span>            : </a>
+<a name="1401"><span class="lineNum">    1401 </span>            :   bool is64Bit = Support::max(waReg-&gt;typeId(), wbReg-&gt;typeId()) &gt;= TypeId::kInt64;</a>
+<a name="1402"><span class="lineNum">    1402 </span><span class="lineNoCov">          0 :   OperandSignature sign = is64Bit ? OperandSignature{RegTraits&lt;RegType::kX86_Gpq&gt;::kSignature}</span></a>
+<a name="1403"><span class="lineNum">    1403 </span>            :                                   : OperandSignature{RegTraits&lt;RegType::kX86_Gpd&gt;::kSignature};</a>
+<a name="1404"><span class="lineNum">    1404 </span>            : </a>
+<a name="1405"><span class="lineNum">    1405 </span>            : #ifndef ASMJIT_NO_LOGGING</a>
+<a name="1406"><span class="lineNum">    1406 </span><span class="lineNoCov">          0 :   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {</span></a>
+<a name="1407"><span class="lineNum">    1407 </span><span class="lineNoCov">          0 :     _tmpString.assignFormat(&quot;&lt;SWAP&gt; %s, %s&quot;, waReg-&gt;name(), wbReg-&gt;name());</span></a>
+<a name="1408"><span class="lineNum">    1408 </span>            :     cc()-&gt;setInlineComment(_tmpString.data());</a>
+<a name="1409"><span class="lineNum">    1409 </span>            :   }</a>
+<a name="1410"><span class="lineNum">    1410 </span>            : #endif</a>
+<a name="1411"><span class="lineNum">    1411 </span>            : </a>
+<a name="1412"><span class="lineNum">    1412 </span><span class="lineNoCov">          0 :   return cc()-&gt;emit(Inst::kIdXchg, Reg(sign, aPhysId), Reg(sign, bPhysId));</span></a>
+<a name="1413"><span class="lineNum">    1413 </span>            : }</a>
+<a name="1414"><span class="lineNum">    1414 </span>            : </a>
+<a name="1415"><span class="lineNum">    1415 </span><span class="lineCov">      23189 : Error X86RAPass::emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {</span></a>
+<a name="1416"><span class="lineNum">    1416 </span>            :   RAWorkReg* wReg = workRegById(workId);</a>
+<a name="1417"><span class="lineNum">    1417 </span>            :   BaseReg dstReg(wReg-&gt;signature(), dstPhysId);</a>
+<a name="1418"><span class="lineNum">    1418 </span><span class="lineCov">      23189 :   BaseMem srcMem(workRegAsMem(wReg));</span></a>
+<a name="1419"><span class="lineNum">    1419 </span>            : </a>
+<a name="1420"><span class="lineNum">    1420 </span>            :   const char* comment = nullptr;</a>
+<a name="1421"><span class="lineNum">    1421 </span>            : </a>
+<a name="1422"><span class="lineNum">    1422 </span>            : #ifndef ASMJIT_NO_LOGGING</a>
+<a name="1423"><span class="lineNum">    1423 </span><span class="lineCov">      23189 :   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {</span></a>
+<a name="1424"><span class="lineNum">    1424 </span><span class="lineNoCov">          0 :     _tmpString.assignFormat(&quot;&lt;LOAD&gt; %s&quot;, workRegById(workId)-&gt;name());</span></a>
+<a name="1425"><span class="lineNum">    1425 </span>            :     comment = _tmpString.data();</a>
+<a name="1426"><span class="lineNum">    1426 </span>            :   }</a>
+<a name="1427"><span class="lineNum">    1427 </span>            : #endif</a>
+<a name="1428"><span class="lineNum">    1428 </span>            : </a>
+<a name="1429"><span class="lineNum">    1429 </span><span class="lineCov">      23189 :   return _emitHelper.emitRegMove(dstReg, srcMem, wReg-&gt;typeId(), comment);</span></a>
+<a name="1430"><span class="lineNum">    1430 </span>            : }</a>
+<a name="1431"><span class="lineNum">    1431 </span>            : </a>
+<a name="1432"><span class="lineNum">    1432 </span><span class="lineCov">      40408 : Error X86RAPass::emitSave(uint32_t workId, uint32_t srcPhysId) noexcept {</span></a>
+<a name="1433"><span class="lineNum">    1433 </span>            :   RAWorkReg* wReg = workRegById(workId);</a>
+<a name="1434"><span class="lineNum">    1434 </span><span class="lineCov">      40408 :   BaseMem dstMem(workRegAsMem(wReg));</span></a>
+<a name="1435"><span class="lineNum">    1435 </span>            :   BaseReg srcReg(wReg-&gt;signature(), srcPhysId);</a>
+<a name="1436"><span class="lineNum">    1436 </span>            : </a>
+<a name="1437"><span class="lineNum">    1437 </span>            :   const char* comment = nullptr;</a>
+<a name="1438"><span class="lineNum">    1438 </span>            : </a>
+<a name="1439"><span class="lineNum">    1439 </span>            : #ifndef ASMJIT_NO_LOGGING</a>
+<a name="1440"><span class="lineNum">    1440 </span><span class="lineCov">      40408 :   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {</span></a>
+<a name="1441"><span class="lineNum">    1441 </span><span class="lineNoCov">          0 :     _tmpString.assignFormat(&quot;&lt;SAVE&gt; %s&quot;, workRegById(workId)-&gt;name());</span></a>
+<a name="1442"><span class="lineNum">    1442 </span>            :     comment = _tmpString.data();</a>
+<a name="1443"><span class="lineNum">    1443 </span>            :   }</a>
+<a name="1444"><span class="lineNum">    1444 </span>            : #endif</a>
+<a name="1445"><span class="lineNum">    1445 </span>            : </a>
+<a name="1446"><span class="lineNum">    1446 </span><span class="lineCov">      40408 :   return _emitHelper.emitRegMove(dstMem, srcReg, wReg-&gt;typeId(), comment);</span></a>
+<a name="1447"><span class="lineNum">    1447 </span>            : }</a>
+<a name="1448"><span class="lineNum">    1448 </span>            : </a>
+<a name="1449"><span class="lineNum">    1449 </span><span class="lineNoCov">          0 : Error X86RAPass::emitJump(const Label&amp; label) noexcept {</span></a>
+<a name="1450"><span class="lineNum">    1450 </span><span class="lineNoCov">          0 :   return cc()-&gt;jmp(label);</span></a>
+<a name="1451"><span class="lineNum">    1451 </span>            : }</a>
+<a name="1452"><span class="lineNum">    1452 </span>            : </a>
+<a name="1453"><span class="lineNum">    1453 </span><span class="lineCov">      12472 : Error X86RAPass::emitPreCall(InvokeNode* invokeNode) noexcept {</span></a>
+<a name="1454"><span class="lineNum">    1454 </span><span class="lineCov">      12472 :   if (invokeNode-&gt;detail().hasVarArgs() &amp;&amp; cc()-&gt;is64Bit()) {</span></a>
+<a name="1455"><span class="lineNum">    1455 </span>            :     const FuncDetail&amp; fd = invokeNode-&gt;detail();</a>
+<a name="1456"><span class="lineNum">    1456 </span>            :     uint32_t argCount = invokeNode-&gt;argCount();</a>
+<a name="1457"><span class="lineNum">    1457 </span>            : </a>
+<a name="1458"><span class="lineNum">    1458 </span><span class="lineNoCov">          0 :     switch (invokeNode-&gt;detail().callConv().id()) {</span></a>
+<a name="1459"><span class="lineNum">    1459 </span>            :       case CallConvId::kX64SystemV: {</a>
+<a name="1460"><span class="lineNum">    1460 </span>            :         // AL register contains the number of arguments passed in XMM register(s).</a>
+<a name="1461"><span class="lineNum">    1461 </span>            :         uint32_t n = 0;</a>
+<a name="1462"><span class="lineNum">    1462 </span><span class="lineNoCov">          0 :         for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="1463"><span class="lineNum">    1463 </span><span class="lineNoCov">          0 :           const FuncValuePack&amp; argPack = fd.argPack(argIndex);</span></a>
+<a name="1464"><span class="lineNum">    1464 </span><span class="lineNoCov">          0 :           for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="1465"><span class="lineNum">    1465 </span><span class="lineNoCov">          0 :             const FuncValue&amp; arg = argPack[valueIndex];</span></a>
+<a name="1466"><span class="lineNum">    1466 </span><span class="lineNoCov">          0 :             if (!arg)</span></a>
+<a name="1467"><span class="lineNum">    1467 </span>            :               break;</a>
+<a name="1468"><span class="lineNum">    1468 </span>            : </a>
+<a name="1469"><span class="lineNum">    1469 </span><span class="lineNoCov">          0 :             if (arg.isReg() &amp;&amp; Reg::groupOf(arg.regType()) == RegGroup::kVec)</span></a>
+<a name="1470"><span class="lineNum">    1470 </span><span class="lineNoCov">          0 :               n++;</span></a>
+<a name="1471"><span class="lineNum">    1471 </span>            :           }</a>
+<a name="1472"><span class="lineNum">    1472 </span>            :         }</a>
+<a name="1473"><span class="lineNum">    1473 </span>            : </a>
+<a name="1474"><span class="lineNum">    1474 </span><span class="lineNoCov">          0 :         if (!n)</span></a>
+<a name="1475"><span class="lineNum">    1475 </span><span class="lineNoCov">          0 :           ASMJIT_PROPAGATE(cc()-&gt;xor_(eax, eax));</span></a>
+<a name="1476"><span class="lineNum">    1476 </span>            :         else</a>
+<a name="1477"><span class="lineNum">    1477 </span><span class="lineNoCov">          0 :           ASMJIT_PROPAGATE(cc()-&gt;mov(eax, n));</span></a>
+<a name="1478"><span class="lineNum">    1478 </span>            :         break;</a>
+<a name="1479"><span class="lineNum">    1479 </span>            :       }</a>
+<a name="1480"><span class="lineNum">    1480 </span>            : </a>
+<a name="1481"><span class="lineNum">    1481 </span>            :       case CallConvId::kX64Windows: {</a>
+<a name="1482"><span class="lineNum">    1482 </span>            :         // Each double-precision argument passed in XMM must be also passed in GP.</a>
+<a name="1483"><span class="lineNum">    1483 </span><span class="lineNoCov">          0 :         for (uint32_t argIndex = 0; argIndex &lt; argCount; argIndex++) {</span></a>
+<a name="1484"><span class="lineNum">    1484 </span><span class="lineNoCov">          0 :           const FuncValuePack&amp; argPack = fd.argPack(argIndex);</span></a>
+<a name="1485"><span class="lineNum">    1485 </span><span class="lineNoCov">          0 :           for (uint32_t valueIndex = 0; valueIndex &lt; Globals::kMaxValuePack; valueIndex++) {</span></a>
+<a name="1486"><span class="lineNum">    1486 </span><span class="lineNoCov">          0 :             const FuncValue&amp; arg = argPack[valueIndex];</span></a>
+<a name="1487"><span class="lineNum">    1487 </span><span class="lineNoCov">          0 :             if (!arg)</span></a>
+<a name="1488"><span class="lineNum">    1488 </span>            :               break;</a>
+<a name="1489"><span class="lineNum">    1489 </span>            : </a>
+<a name="1490"><span class="lineNum">    1490 </span><span class="lineNoCov">          0 :             if (arg.isReg() &amp;&amp; Reg::groupOf(arg.regType()) == RegGroup::kVec) {</span></a>
+<a name="1491"><span class="lineNum">    1491 </span><span class="lineNoCov">          0 :               Gp dst = gpq(fd.callConv().passedOrder(RegGroup::kGp)[argIndex]);</span></a>
+<a name="1492"><span class="lineNum">    1492 </span>            :               Xmm src = xmm(arg.regId());</a>
+<a name="1493"><span class="lineNum">    1493 </span><span class="lineNoCov">          0 :               ASMJIT_PROPAGATE(cc()-&gt;emit(choose(Inst::kIdMovq, Inst::kIdVmovq), dst, src));</span></a>
+<a name="1494"><span class="lineNum">    1494 </span>            :             }</a>
+<a name="1495"><span class="lineNum">    1495 </span>            :           }</a>
+<a name="1496"><span class="lineNum">    1496 </span>            :         }</a>
+<a name="1497"><span class="lineNum">    1497 </span>            :         break;</a>
+<a name="1498"><span class="lineNum">    1498 </span>            :       }</a>
+<a name="1499"><span class="lineNum">    1499 </span>            : </a>
+<a name="1500"><span class="lineNum">    1500 </span>            :       default:</a>
+<a name="1501"><span class="lineNum">    1501 </span>            :         return DebugUtils::errored(kErrorInvalidState);</a>
+<a name="1502"><span class="lineNum">    1502 </span>            :     }</a>
+<a name="1503"><span class="lineNum">    1503 </span>            :   }</a>
+<a name="1504"><span class="lineNum">    1504 </span>            : </a>
+<a name="1505"><span class="lineNum">    1505 </span>            :   return kErrorOk;</a>
+<a name="1506"><span class="lineNum">    1506 </span>            : }</a>
+<a name="1507"><span class="lineNum">    1507 </span>            : </a>
+<a name="1508"><span class="lineNum">    1508 </span>            : ASMJIT_END_SUB_NAMESPACE</a>
+<a name="1509"><span class="lineNum">    1509 </span>            : </a>
+<a name="1510"><span class="lineNum">    1510 </span>            : #endif // !ASMJIT_NO_X86 &amp;&amp; !ASMJIT_NO_COMPILER</a>
+<a name="1511"><span class="lineNum">    1511 </span>            : </a>
+<a name="1512"><span class="lineNum">    1512 </span>            : #endif // __PLUMED_HAS_ASMJIT</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,1305 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage (other modules) - asmjit/a64emitter.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">asmjit</a> - a64emitter.h<span style="font-size: 80%;"> (source / <a href="a64emitter.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage (other modules)</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-10-31 16:48:53</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : // This file is part of AsmJit project &lt;https://asmjit.com&gt;</a>
+<a name="2"><span class="lineNum">       2 </span>            : //</a>
+<a name="3"><span class="lineNum">       3 </span>            : // See asmjit.h or LICENSE.md for license and copyright information</a>
+<a name="4"><span class="lineNum">       4 </span>            : // SPDX-License-Identifier: Zlib</a>
+<a name="5"><span class="lineNum">       5 </span>            : </a>
+<a name="6"><span class="lineNum">       6 </span>            : #ifndef ASMJIT_ARM_A64EMITTER_H_INCLUDED</a>
+<a name="7"><span class="lineNum">       7 </span>            : #define ASMJIT_ARM_A64EMITTER_H_INCLUDED</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            : #include &quot;emitter.h&quot;</a>
+<a name="10"><span class="lineNum">      10 </span>            : #include &quot;support.h&quot;</a>
+<a name="11"><span class="lineNum">      11 </span>            : #include &quot;a64instdb.h&quot;</a>
+<a name="12"><span class="lineNum">      12 </span>            : #include &quot;a64operand.h&quot;</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            : ASMJIT_BEGIN_SUB_NAMESPACE(a64)</a>
+<a name="15"><span class="lineNum">      15 </span>            : </a>
+<a name="16"><span class="lineNum">      16 </span>            : #define ASMJIT_INST_0x(NAME, ID) \</a>
+<a name="17"><span class="lineNum">      17 </span>            :   inline Error NAME() { return _emitter()-&gt;_emitI(Inst::kId##ID); }</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            : #define ASMJIT_INST_1x(NAME, ID, T0) \</a>
+<a name="20"><span class="lineNum">      20 </span>            :   inline Error NAME(const T0&amp; o0) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0); }</a>
+<a name="21"><span class="lineNum">      21 </span>            : </a>
+<a name="22"><span class="lineNum">      22 </span>            : #define ASMJIT_INST_2x(NAME, ID, T0, T1) \</a>
+<a name="23"><span class="lineNum">      23 </span>            :   inline Error NAME(const T0&amp; o0, const T1&amp; o1) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0, o1); }</a>
+<a name="24"><span class="lineNum">      24 </span>            : </a>
+<a name="25"><span class="lineNum">      25 </span>            : #define ASMJIT_INST_3x(NAME, ID, T0, T1, T2) \</a>
+<a name="26"><span class="lineNum">      26 </span>            :   inline Error NAME(const T0&amp; o0, const T1&amp; o1, const T2&amp; o2) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0, o1, o2); }</a>
+<a name="27"><span class="lineNum">      27 </span>            : </a>
+<a name="28"><span class="lineNum">      28 </span>            : #define ASMJIT_INST_4x(NAME, ID, T0, T1, T2, T3) \</a>
+<a name="29"><span class="lineNum">      29 </span>            :   inline Error NAME(const T0&amp; o0, const T1&amp; o1, const T2&amp; o2, const T3&amp; o3) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0, o1, o2, o3); }</a>
+<a name="30"><span class="lineNum">      30 </span>            : </a>
+<a name="31"><span class="lineNum">      31 </span>            : #define ASMJIT_INST_5x(NAME, ID, T0, T1, T2, T3, T4) \</a>
+<a name="32"><span class="lineNum">      32 </span>            :   inline Error NAME(const T0&amp; o0, const T1&amp; o1, const T2&amp; o2, const T3&amp; o3, const T4&amp; o4) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0, o1, o2, o3, o4); }</a>
+<a name="33"><span class="lineNum">      33 </span>            : </a>
+<a name="34"><span class="lineNum">      34 </span>            : #define ASMJIT_INST_6x(NAME, ID, T0, T1, T2, T3, T4, T5) \</a>
+<a name="35"><span class="lineNum">      35 </span>            :   inline Error NAME(const T0&amp; o0, const T1&amp; o1, const T2&amp; o2, const T3&amp; o3, const T4&amp; o4, const T5&amp; o5) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0, o1, o2, o3, o4, o5); }</a>
+<a name="36"><span class="lineNum">      36 </span>            : </a>
+<a name="37"><span class="lineNum">      37 </span>            : #define ASMJIT_INST_1cc(NAME, ID, T0) \</a>
+<a name="38"><span class="lineNum">      38 </span>            :   inline Error NAME(const T0&amp; o0) { return _emitter()-&gt;_emitI(Inst::kId##ID, o0); } \</a>
+<a name="39"><span class="lineNum">      39 </span>            :   \</a>
+<a name="40"><span class="lineNum">      40 </span>            :   inline Error NAME(CondCode cc, const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, cc), o0); } \</a>
+<a name="41"><span class="lineNum">      41 </span>            :   \</a>
+<a name="42"><span class="lineNum">      42 </span>            :   inline Error NAME##_eq(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kEQ), o0); } \</a>
+<a name="43"><span class="lineNum">      43 </span>            :   inline Error NAME##_ne(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kNE), o0); } \</a>
+<a name="44"><span class="lineNum">      44 </span>            :   inline Error NAME##_cs(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kCS), o0); } \</a>
+<a name="45"><span class="lineNum">      45 </span>            :   inline Error NAME##_hs(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kHS), o0); } \</a>
+<a name="46"><span class="lineNum">      46 </span>            :   inline Error NAME##_cc(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kCC), o0); } \</a>
+<a name="47"><span class="lineNum">      47 </span>            :   inline Error NAME##_lo(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLO), o0); } \</a>
+<a name="48"><span class="lineNum">      48 </span>            :   inline Error NAME##_mi(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kMI), o0); } \</a>
+<a name="49"><span class="lineNum">      49 </span>            :   inline Error NAME##_pl(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kPL), o0); } \</a>
+<a name="50"><span class="lineNum">      50 </span>            :   inline Error NAME##_vs(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kVS), o0); } \</a>
+<a name="51"><span class="lineNum">      51 </span>            :   inline Error NAME##_vc(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kVC), o0); } \</a>
+<a name="52"><span class="lineNum">      52 </span>            :   inline Error NAME##_hi(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kHI), o0); } \</a>
+<a name="53"><span class="lineNum">      53 </span>            :   inline Error NAME##_ls(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLS), o0); } \</a>
+<a name="54"><span class="lineNum">      54 </span>            :   inline Error NAME##_ge(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kGE), o0); } \</a>
+<a name="55"><span class="lineNum">      55 </span>            :   inline Error NAME##_lt(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLT), o0); } \</a>
+<a name="56"><span class="lineNum">      56 </span>            :   inline Error NAME##_gt(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kGT), o0); } \</a>
+<a name="57"><span class="lineNum">      57 </span>            :   inline Error NAME##_le(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kLE), o0); } \</a>
+<a name="58"><span class="lineNum">      58 </span>            :   inline Error NAME##_al(const T0&amp; o0) { return _emitter()-&gt;_emitI(BaseInst::composeARMInstId(Inst::kId##ID, CondCode::kAL), o0); }</a>
+<a name="59"><span class="lineNum">      59 </span>            : </a>
+<a name="60"><span class="lineNum">      60 </span>            : //! \addtogroup asmjit_a64</a>
+<a name="61"><span class="lineNum">      61 </span>            : //! \{</a>
+<a name="62"><span class="lineNum">      62 </span>            : </a>
+<a name="63"><span class="lineNum">      63 </span>            : //! ARM emitter.</a>
+<a name="64"><span class="lineNum">      64 </span>            : //!</a>
+<a name="65"><span class="lineNum">      65 </span>            : //! NOTE: This class cannot be instantiated, you can only cast to it and use it as emitter that emits to either</a>
+<a name="66"><span class="lineNum">      66 </span>            : //! \ref Assembler, \ref Builder, or \ref Compiler (use withcaution with \ref Compiler as it expects virtual</a>
+<a name="67"><span class="lineNum">      67 </span>            : //! registers to be used).</a>
+<a name="68"><span class="lineNum">      68 </span>            : template&lt;typename This&gt;</a>
+<a name="69"><span class="lineNum">      69 </span>            : struct EmitterExplicitT {</a>
+<a name="70"><span class="lineNum">      70 </span>            :   //! \cond</a>
+<a name="71"><span class="lineNum">      71 </span>            : </a>
+<a name="72"><span class="lineNum">      72 </span>            :   // These two are unfortunately reported by the sanitizer. We know what we do, however, the sanitizer doesn't.</a>
+<a name="73"><span class="lineNum">      73 </span>            :   // I have tried to use reinterpret_cast instead, but that would generate bad code when compiled by MSC.</a>
+<a name="74"><span class="lineNum">      74 </span>            :   ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF inline This* _emitter() noexcept { return static_cast&lt;This*&gt;(this); }</a>
+<a name="75"><span class="lineNum">      75 </span>            :   ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF inline const This* _emitter() const noexcept { return static_cast&lt;const This*&gt;(this); }</a>
+<a name="76"><span class="lineNum">      76 </span>            : </a>
+<a name="77"><span class="lineNum">      77 </span>            :   //! \endcond</a>
+<a name="78"><span class="lineNum">      78 </span>            : </a>
+<a name="79"><span class="lineNum">      79 </span>            :   // --------------------------------------------------------------------------</a>
+<a name="80"><span class="lineNum">      80 </span>            :   // [Options]</a>
+<a name="81"><span class="lineNum">      81 </span>            :   // --------------------------------------------------------------------------</a>
+<a name="82"><span class="lineNum">      82 </span>            : </a>
+<a name="83"><span class="lineNum">      83 </span>            : protected:</a>
+<a name="84"><span class="lineNum">      84 </span>            :   inline This&amp; _addInstOptions(InstOptions options) noexcept {</a>
+<a name="85"><span class="lineNum">      85 </span>            :     static_cast&lt;This*&gt;(this)-&gt;addInstOptions(options);</a>
+<a name="86"><span class="lineNum">      86 </span>            :     return *static_cast&lt;This*&gt;(this);</a>
+<a name="87"><span class="lineNum">      87 </span>            :   }</a>
+<a name="88"><span class="lineNum">      88 </span>            : </a>
+<a name="89"><span class="lineNum">      89 </span>            : public:</a>
+<a name="90"><span class="lineNum">      90 </span>            :   //! \name General Purpose Instructions</a>
+<a name="91"><span class="lineNum">      91 </span>            :   //! \{</a>
+<a name="92"><span class="lineNum">      92 </span>            : </a>
+<a name="93"><span class="lineNum">      93 </span>            :   ASMJIT_INST_3x(adc, Adc, Gp, Gp, Gp)</a>
+<a name="94"><span class="lineNum">      94 </span>            :   ASMJIT_INST_3x(adcs, Adcs, Gp, Gp, Gp)</a>
+<a name="95"><span class="lineNum">      95 </span>            : </a>
+<a name="96"><span class="lineNum">      96 </span>            :   ASMJIT_INST_3x(add, Add, Gp, Gp, Gp)</a>
+<a name="97"><span class="lineNum">      97 </span>            :   ASMJIT_INST_4x(add, Add, Gp, Gp, Gp, Imm)</a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineNoCov">          0 :   ASMJIT_INST_3x(add, Add, Gp, Gp, Imm)</span></a>
+<a name="99"><span class="lineNum">      99 </span>            :   ASMJIT_INST_4x(add, Add, Gp, Gp, Imm, Imm)</a>
+<a name="100"><span class="lineNum">     100 </span>            :   ASMJIT_INST_3x(adds, Adds, Gp, Gp, Gp)</a>
+<a name="101"><span class="lineNum">     101 </span>            :   ASMJIT_INST_3x(adds, Adds, Gp, Gp, Imm)</a>
+<a name="102"><span class="lineNum">     102 </span>            :   ASMJIT_INST_4x(adds, Adds, Gp, Gp, Gp, Imm)</a>
+<a name="103"><span class="lineNum">     103 </span>            :   ASMJIT_INST_4x(adds, Adds, Gp, Gp, Imm, Imm)</a>
+<a name="104"><span class="lineNum">     104 </span>            : </a>
+<a name="105"><span class="lineNum">     105 </span>            :   ASMJIT_INST_2x(adr, Adr, Gp, Imm)</a>
+<a name="106"><span class="lineNum">     106 </span>            :   ASMJIT_INST_2x(adr, Adr, Gp, Label)</a>
+<a name="107"><span class="lineNum">     107 </span>            :   ASMJIT_INST_2x(adrp, Adrp, Gp, Imm)</a>
+<a name="108"><span class="lineNum">     108 </span>            :   ASMJIT_INST_2x(adrp, Adrp, Gp, Label)</a>
+<a name="109"><span class="lineNum">     109 </span>            : </a>
+<a name="110"><span class="lineNum">     110 </span>            :   ASMJIT_INST_3x(and_, And, Gp, Gp, Imm)</a>
+<a name="111"><span class="lineNum">     111 </span>            :   ASMJIT_INST_3x(and_, And, Gp, Gp, Gp)</a>
+<a name="112"><span class="lineNum">     112 </span>            :   ASMJIT_INST_4x(and_, And, Gp, Gp, Gp, Imm)</a>
+<a name="113"><span class="lineNum">     113 </span>            :   ASMJIT_INST_3x(ands, Ands, Gp, Gp, Imm)</a>
+<a name="114"><span class="lineNum">     114 </span>            :   ASMJIT_INST_3x(ands, Ands, Gp, Gp, Gp)</a>
+<a name="115"><span class="lineNum">     115 </span>            :   ASMJIT_INST_4x(ands, Ands, Gp, Gp, Gp, Imm)</a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span>            :   ASMJIT_INST_3x(asr, Asr, Gp, Gp, Imm)</a>
+<a name="118"><span class="lineNum">     118 </span>            :   ASMJIT_INST_3x(asr, Asr, Gp, Gp, Gp)</a>
+<a name="119"><span class="lineNum">     119 </span>            :   ASMJIT_INST_3x(asrv, Asrv, Gp, Gp, Gp)</a>
+<a name="120"><span class="lineNum">     120 </span>            : </a>
+<a name="121"><span class="lineNum">     121 </span>            :   ASMJIT_INST_2x(at, At, Imm, Gp)</a>
+<a name="122"><span class="lineNum">     122 </span>            : </a>
+<a name="123"><span class="lineNum">     123 </span>            :   ASMJIT_INST_3x(bfc, Bfc, Gp, Imm, Imm)</a>
+<a name="124"><span class="lineNum">     124 </span>            :   ASMJIT_INST_4x(bfi, Bfi, Gp, Gp, Imm, Imm)</a>
+<a name="125"><span class="lineNum">     125 </span>            :   ASMJIT_INST_4x(bfm, Bfm, Gp, Gp, Imm, Imm)</a>
+<a name="126"><span class="lineNum">     126 </span>            :   ASMJIT_INST_4x(bfxil, Bfxil, Gp, Gp, Imm, Imm)</a>
+<a name="127"><span class="lineNum">     127 </span>            : </a>
+<a name="128"><span class="lineNum">     128 </span>            :   ASMJIT_INST_3x(bic, Bic, Gp, Gp, Imm);</a>
+<a name="129"><span class="lineNum">     129 </span>            :   ASMJIT_INST_3x(bic, Bic, Gp, Gp, Gp);</a>
+<a name="130"><span class="lineNum">     130 </span>            :   ASMJIT_INST_4x(bic, Bic, Gp, Gp, Gp, Imm);</a>
+<a name="131"><span class="lineNum">     131 </span>            :   ASMJIT_INST_3x(bics, Bics, Gp, Gp, Imm);</a>
+<a name="132"><span class="lineNum">     132 </span>            :   ASMJIT_INST_3x(bics, Bics, Gp, Gp, Gp);</a>
+<a name="133"><span class="lineNum">     133 </span>            :   ASMJIT_INST_4x(bics, Bics, Gp, Gp, Gp, Imm);</a>
+<a name="134"><span class="lineNum">     134 </span>            : </a>
+<a name="135"><span class="lineNum">     135 </span>            :   ASMJIT_INST_1x(brk, Brk, Imm)</a>
+<a name="136"><span class="lineNum">     136 </span>            : </a>
+<a name="137"><span class="lineNum">     137 </span>            :   ASMJIT_INST_4x(ccmn, Ccmn, Gp, Gp, Imm, Imm);</a>
+<a name="138"><span class="lineNum">     138 </span>            :   ASMJIT_INST_4x(ccmn, Ccmn, Gp, Imm, Imm, Imm);</a>
+<a name="139"><span class="lineNum">     139 </span>            :   ASMJIT_INST_4x(ccmp, Ccmp, Gp, Gp, Imm, Imm);</a>
+<a name="140"><span class="lineNum">     140 </span>            :   ASMJIT_INST_4x(ccmp, Ccmp, Gp, Imm, Imm, Imm);</a>
+<a name="141"><span class="lineNum">     141 </span>            : </a>
+<a name="142"><span class="lineNum">     142 </span>            :   ASMJIT_INST_3x(cinc, Cinc, Gp, Gp, Imm);</a>
+<a name="143"><span class="lineNum">     143 </span>            :   ASMJIT_INST_3x(cinv, Cinv, Gp, Gp, Imm);</a>
+<a name="144"><span class="lineNum">     144 </span>            : </a>
+<a name="145"><span class="lineNum">     145 </span>            :   ASMJIT_INST_1x(clrex, Clrex, Imm)</a>
+<a name="146"><span class="lineNum">     146 </span>            : </a>
+<a name="147"><span class="lineNum">     147 </span>            :   ASMJIT_INST_2x(cls, Cls, Gp, Gp)</a>
+<a name="148"><span class="lineNum">     148 </span>            :   ASMJIT_INST_2x(clz, Clz, Gp, Gp)</a>
+<a name="149"><span class="lineNum">     149 </span>            : </a>
+<a name="150"><span class="lineNum">     150 </span>            :   ASMJIT_INST_2x(cmn, Cmn, Gp, Gp)</a>
+<a name="151"><span class="lineNum">     151 </span>            :   ASMJIT_INST_3x(cmn, Cmn, Gp, Gp, Imm)</a>
+<a name="152"><span class="lineNum">     152 </span>            :   ASMJIT_INST_2x(cmn, Cmn, Gp, Imm)</a>
+<a name="153"><span class="lineNum">     153 </span>            :   ASMJIT_INST_3x(cmn, Cmn, Gp, Imm, Imm)</a>
+<a name="154"><span class="lineNum">     154 </span>            :   ASMJIT_INST_2x(cmp, Cmp, Gp, Gp)</a>
+<a name="155"><span class="lineNum">     155 </span>            :   ASMJIT_INST_3x(cmp, Cmp, Gp, Gp, Imm)</a>
+<a name="156"><span class="lineNum">     156 </span>            :   ASMJIT_INST_2x(cmp, Cmp, Gp, Imm)</a>
+<a name="157"><span class="lineNum">     157 </span>            :   ASMJIT_INST_3x(cmp, Cmp, Gp, Imm, Imm)</a>
+<a name="158"><span class="lineNum">     158 </span>            : </a>
+<a name="159"><span class="lineNum">     159 </span>            :   ASMJIT_INST_3x(cneg, Cneg, Gp, Gp, Imm);</a>
+<a name="160"><span class="lineNum">     160 </span>            : </a>
+<a name="161"><span class="lineNum">     161 </span>            :   ASMJIT_INST_4x(csel, Csel, Gp, Gp, Gp, Imm);</a>
+<a name="162"><span class="lineNum">     162 </span>            :   ASMJIT_INST_2x(cset, Cset, Gp, Imm);</a>
+<a name="163"><span class="lineNum">     163 </span>            :   ASMJIT_INST_2x(csetm, Csetm, Gp, Imm);</a>
+<a name="164"><span class="lineNum">     164 </span>            : </a>
+<a name="165"><span class="lineNum">     165 </span>            :   ASMJIT_INST_4x(csinc, Csinc, Gp, Gp, Gp, Imm);</a>
+<a name="166"><span class="lineNum">     166 </span>            :   ASMJIT_INST_4x(csinv, Csinv, Gp, Gp, Gp, Imm);</a>
+<a name="167"><span class="lineNum">     167 </span>            :   ASMJIT_INST_4x(csneg, Csneg, Gp, Gp, Gp, Imm);</a>
+<a name="168"><span class="lineNum">     168 </span>            : </a>
+<a name="169"><span class="lineNum">     169 </span>            :   ASMJIT_INST_2x(dc, Dc, Imm, Gp)</a>
+<a name="170"><span class="lineNum">     170 </span>            :   ASMJIT_INST_1x(dmb, Dmb, Imm)</a>
+<a name="171"><span class="lineNum">     171 </span>            :   ASMJIT_INST_1x(dsb, Dsb, Imm)</a>
+<a name="172"><span class="lineNum">     172 </span>            :   ASMJIT_INST_0x(drps, Drps)</a>
+<a name="173"><span class="lineNum">     173 </span>            : </a>
+<a name="174"><span class="lineNum">     174 </span>            :   ASMJIT_INST_3x(eon, Eon, Gp, Gp, Gp)</a>
+<a name="175"><span class="lineNum">     175 </span>            :   ASMJIT_INST_4x(eon, Eon, Gp, Gp, Gp, Imm)</a>
+<a name="176"><span class="lineNum">     176 </span>            : </a>
+<a name="177"><span class="lineNum">     177 </span>            :   ASMJIT_INST_3x(eor, Eor, Gp, Gp, Imm)</a>
+<a name="178"><span class="lineNum">     178 </span>            :   ASMJIT_INST_3x(eor, Eor, Gp, Gp, Gp)</a>
+<a name="179"><span class="lineNum">     179 </span>            :   ASMJIT_INST_4x(eor, Eor, Gp, Gp, Gp, Imm)</a>
+<a name="180"><span class="lineNum">     180 </span>            : </a>
+<a name="181"><span class="lineNum">     181 </span>            :   ASMJIT_INST_0x(eret, Eret)</a>
+<a name="182"><span class="lineNum">     182 </span>            :   ASMJIT_INST_0x(esb, Esb)</a>
+<a name="183"><span class="lineNum">     183 </span>            : </a>
+<a name="184"><span class="lineNum">     184 </span>            :   ASMJIT_INST_4x(extr, Extr, Gp, Gp, Gp, Imm)</a>
+<a name="185"><span class="lineNum">     185 </span>            : </a>
+<a name="186"><span class="lineNum">     186 </span>            :   ASMJIT_INST_1x(hlt, Hlt, Imm)</a>
+<a name="187"><span class="lineNum">     187 </span>            :   ASMJIT_INST_1x(hvc, Hvc, Imm)</a>
+<a name="188"><span class="lineNum">     188 </span>            :   ASMJIT_INST_2x(ic, Ic, Imm, Gp)</a>
+<a name="189"><span class="lineNum">     189 </span>            :   ASMJIT_INST_1x(isb, Isb, Imm)</a>
+<a name="190"><span class="lineNum">     190 </span>            : </a>
+<a name="191"><span class="lineNum">     191 </span>            :   ASMJIT_INST_3x(lsl, Lsl, Gp, Gp, Imm)</a>
+<a name="192"><span class="lineNum">     192 </span>            :   ASMJIT_INST_3x(lsl, Lsl, Gp, Gp, Gp)</a>
+<a name="193"><span class="lineNum">     193 </span>            :   ASMJIT_INST_3x(lslv, Lslv, Gp, Gp, Gp)</a>
+<a name="194"><span class="lineNum">     194 </span>            : </a>
+<a name="195"><span class="lineNum">     195 </span>            :   ASMJIT_INST_3x(lsr, Lsr, Gp, Gp, Imm)</a>
+<a name="196"><span class="lineNum">     196 </span>            :   ASMJIT_INST_3x(lsr, Lsr, Gp, Gp, Gp)</a>
+<a name="197"><span class="lineNum">     197 </span>            :   ASMJIT_INST_3x(lsrv, Lsrv, Gp, Gp, Gp)</a>
+<a name="198"><span class="lineNum">     198 </span>            : </a>
+<a name="199"><span class="lineNum">     199 </span>            :   ASMJIT_INST_4x(madd, Madd, Gp, Gp, Gp, Gp)</a>
+<a name="200"><span class="lineNum">     200 </span>            :   ASMJIT_INST_3x(mneg, Mneg, Gp, Gp, Gp)</a>
+<a name="201"><span class="lineNum">     201 </span>            : </a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(mov, Mov, Gp, Gp)</span></a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(mov, Mov, Gp, Imm)</span></a>
+<a name="204"><span class="lineNum">     204 </span>            :   ASMJIT_INST_2x(movk, Movk, Gp, Imm)</a>
+<a name="205"><span class="lineNum">     205 </span>            :   ASMJIT_INST_3x(movk, Movk, Gp, Imm, Imm)</a>
+<a name="206"><span class="lineNum">     206 </span>            :   ASMJIT_INST_2x(movn, Movn, Gp, Imm)</a>
+<a name="207"><span class="lineNum">     207 </span>            :   ASMJIT_INST_3x(movn, Movn, Gp, Imm, Imm)</a>
+<a name="208"><span class="lineNum">     208 </span>            :   ASMJIT_INST_2x(movz, Movz, Gp, Imm)</a>
+<a name="209"><span class="lineNum">     209 </span>            :   ASMJIT_INST_3x(movz, Movz, Gp, Imm, Imm)</a>
+<a name="210"><span class="lineNum">     210 </span>            : </a>
+<a name="211"><span class="lineNum">     211 </span>            :   ASMJIT_INST_2x(mrs, Mrs, Gp, Imm)</a>
+<a name="212"><span class="lineNum">     212 </span>            :   ASMJIT_INST_2x(msr, Msr, Imm, Gp)</a>
+<a name="213"><span class="lineNum">     213 </span>            :   ASMJIT_INST_2x(msr, Msr, Imm, Imm)</a>
+<a name="214"><span class="lineNum">     214 </span>            : </a>
+<a name="215"><span class="lineNum">     215 </span>            :   ASMJIT_INST_4x(msub, Msub, Gp, Gp, Gp, Gp)</a>
+<a name="216"><span class="lineNum">     216 </span>            :   ASMJIT_INST_3x(mul, Mul, Gp, Gp, Gp)</a>
+<a name="217"><span class="lineNum">     217 </span>            : </a>
+<a name="218"><span class="lineNum">     218 </span>            :   ASMJIT_INST_2x(mvn, Mvn, Gp, Gp)</a>
+<a name="219"><span class="lineNum">     219 </span>            :   ASMJIT_INST_3x(mvn, Mvn, Gp, Gp, Imm)</a>
+<a name="220"><span class="lineNum">     220 </span>            : </a>
+<a name="221"><span class="lineNum">     221 </span>            :   ASMJIT_INST_2x(neg, Neg, Gp, Gp)</a>
+<a name="222"><span class="lineNum">     222 </span>            :   ASMJIT_INST_3x(neg, Neg, Gp, Gp, Imm)</a>
+<a name="223"><span class="lineNum">     223 </span>            :   ASMJIT_INST_2x(negs, Negs, Gp, Gp)</a>
+<a name="224"><span class="lineNum">     224 </span>            :   ASMJIT_INST_3x(negs, Negs, Gp, Gp, Imm)</a>
+<a name="225"><span class="lineNum">     225 </span>            : </a>
+<a name="226"><span class="lineNum">     226 </span>            :   ASMJIT_INST_2x(ngc, Ngc, Gp, Gp)</a>
+<a name="227"><span class="lineNum">     227 </span>            :   ASMJIT_INST_2x(ngcs, Ngcs, Gp, Gp)</a>
+<a name="228"><span class="lineNum">     228 </span>            : </a>
+<a name="229"><span class="lineNum">     229 </span>            :   ASMJIT_INST_3x(orn, Orn, Gp, Gp, Gp)</a>
+<a name="230"><span class="lineNum">     230 </span>            :   ASMJIT_INST_4x(orn, Orn, Gp, Gp, Gp, Imm)</a>
+<a name="231"><span class="lineNum">     231 </span>            : </a>
+<a name="232"><span class="lineNum">     232 </span>            :   ASMJIT_INST_3x(orr, Orr, Gp, Gp, Imm)</a>
+<a name="233"><span class="lineNum">     233 </span>            :   ASMJIT_INST_3x(orr, Orr, Gp, Gp, Gp)</a>
+<a name="234"><span class="lineNum">     234 </span>            :   ASMJIT_INST_4x(orr, Orr, Gp, Gp, Gp, Imm)</a>
+<a name="235"><span class="lineNum">     235 </span>            : </a>
+<a name="236"><span class="lineNum">     236 </span>            :   ASMJIT_INST_2x(rbit, Rbit, Gp, Gp)</a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineNoCov">          0 :   ASMJIT_INST_1x(ret, Ret, Gp)</span></a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span>            :   ASMJIT_INST_2x(rev, Rev, Gp, Gp)</a>
+<a name="240"><span class="lineNum">     240 </span>            :   ASMJIT_INST_2x(rev16, Rev16, Gp, Gp)</a>
+<a name="241"><span class="lineNum">     241 </span>            :   ASMJIT_INST_2x(rev32, Rev32, Gp, Gp)</a>
+<a name="242"><span class="lineNum">     242 </span>            :   ASMJIT_INST_2x(rev64, Rev64, Gp, Gp)</a>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<a name="244"><span class="lineNum">     244 </span>            :   ASMJIT_INST_3x(ror, Ror, Gp, Gp, Imm)</a>
+<a name="245"><span class="lineNum">     245 </span>            :   ASMJIT_INST_3x(ror, Ror, Gp, Gp, Gp)</a>
+<a name="246"><span class="lineNum">     246 </span>            :   ASMJIT_INST_3x(rorv, Rorv, Gp, Gp, Gp)</a>
+<a name="247"><span class="lineNum">     247 </span>            : </a>
+<a name="248"><span class="lineNum">     248 </span>            :   ASMJIT_INST_3x(sbc, Sbc, Gp, Gp, Gp)</a>
+<a name="249"><span class="lineNum">     249 </span>            :   ASMJIT_INST_3x(sbcs, Sbcs, Gp, Gp, Gp)</a>
+<a name="250"><span class="lineNum">     250 </span>            : </a>
+<a name="251"><span class="lineNum">     251 </span>            :   ASMJIT_INST_4x(sbfiz, Sbfiz, Gp, Gp, Imm, Imm)</a>
+<a name="252"><span class="lineNum">     252 </span>            :   ASMJIT_INST_4x(sbfm, Sbfm, Gp, Gp, Imm, Imm)</a>
+<a name="253"><span class="lineNum">     253 </span>            :   ASMJIT_INST_4x(sbfx, Sbfx, Gp, Gp, Imm, Imm)</a>
+<a name="254"><span class="lineNum">     254 </span>            : </a>
+<a name="255"><span class="lineNum">     255 </span>            :   ASMJIT_INST_3x(sdiv, Sdiv, Gp, Gp, Gp)</a>
+<a name="256"><span class="lineNum">     256 </span>            : </a>
+<a name="257"><span class="lineNum">     257 </span>            :   ASMJIT_INST_4x(smaddl, Smaddl, Gp, Gp, Gp, Gp)</a>
+<a name="258"><span class="lineNum">     258 </span>            :   ASMJIT_INST_1x(smc, Smc, Imm)</a>
+<a name="259"><span class="lineNum">     259 </span>            :   ASMJIT_INST_3x(smnegl, Smnegl, Gp, Gp, Gp)</a>
+<a name="260"><span class="lineNum">     260 </span>            :   ASMJIT_INST_4x(smsubl, Smsubl, Gp, Gp, Gp, Gp)</a>
+<a name="261"><span class="lineNum">     261 </span>            :   ASMJIT_INST_3x(smulh, Smulh, Gp, Gp, Gp)</a>
+<a name="262"><span class="lineNum">     262 </span>            :   ASMJIT_INST_3x(smull, Smull, Gp, Gp, Gp)</a>
+<a name="263"><span class="lineNum">     263 </span>            : </a>
+<a name="264"><span class="lineNum">     264 </span>            :   ASMJIT_INST_3x(sub, Sub, Gp, Gp, Gp)</a>
+<a name="265"><span class="lineNum">     265 </span>            :   ASMJIT_INST_4x(sub, Sub, Gp, Gp, Gp, Imm)</a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineNoCov">          0 :   ASMJIT_INST_3x(sub, Sub, Gp, Gp, Imm)</span></a>
+<a name="267"><span class="lineNum">     267 </span>            :   ASMJIT_INST_4x(sub, Sub, Gp, Gp, Imm, Imm)</a>
+<a name="268"><span class="lineNum">     268 </span>            :   ASMJIT_INST_3x(subs, Subs, Gp, Gp, Gp)</a>
+<a name="269"><span class="lineNum">     269 </span>            :   ASMJIT_INST_4x(subs, Subs, Gp, Gp, Gp, Imm)</a>
+<a name="270"><span class="lineNum">     270 </span>            :   ASMJIT_INST_3x(subs, Subs, Gp, Gp, Imm)</a>
+<a name="271"><span class="lineNum">     271 </span>            :   ASMJIT_INST_4x(subs, Subs, Gp, Gp, Imm, Imm)</a>
+<a name="272"><span class="lineNum">     272 </span>            : </a>
+<a name="273"><span class="lineNum">     273 </span>            :   ASMJIT_INST_1x(svc, Svc, Imm)</a>
+<a name="274"><span class="lineNum">     274 </span>            : </a>
+<a name="275"><span class="lineNum">     275 </span>            :   ASMJIT_INST_2x(sxtb, Sxtb, Gp, Gp)</a>
+<a name="276"><span class="lineNum">     276 </span>            :   ASMJIT_INST_2x(sxth, Sxth, Gp, Gp)</a>
+<a name="277"><span class="lineNum">     277 </span>            :   ASMJIT_INST_2x(sxtw, Sxtw, Gp, Gp)</a>
+<a name="278"><span class="lineNum">     278 </span>            : </a>
+<a name="279"><span class="lineNum">     279 </span>            :   ASMJIT_INST_4x(sys, Sys, Imm, Imm, Imm, Imm)</a>
+<a name="280"><span class="lineNum">     280 </span>            :   ASMJIT_INST_5x(sys, Sys, Imm, Imm, Imm, Imm, Gp)</a>
+<a name="281"><span class="lineNum">     281 </span>            : </a>
+<a name="282"><span class="lineNum">     282 </span>            :   ASMJIT_INST_2x(tlbi, Tlbi, Imm, Gp)</a>
+<a name="283"><span class="lineNum">     283 </span>            :   ASMJIT_INST_2x(tst, Tst, Gp, Imm)</a>
+<a name="284"><span class="lineNum">     284 </span>            :   ASMJIT_INST_2x(tst, Tst, Gp, Gp)</a>
+<a name="285"><span class="lineNum">     285 </span>            :   ASMJIT_INST_3x(tst, Tst, Gp, Gp, Imm)</a>
+<a name="286"><span class="lineNum">     286 </span>            : </a>
+<a name="287"><span class="lineNum">     287 </span>            :   ASMJIT_INST_3x(udiv, Udiv, Gp, Gp, Gp)</a>
+<a name="288"><span class="lineNum">     288 </span>            : </a>
+<a name="289"><span class="lineNum">     289 </span>            :   ASMJIT_INST_4x(ubfiz, Ubfiz, Gp, Gp, Imm, Imm)</a>
+<a name="290"><span class="lineNum">     290 </span>            :   ASMJIT_INST_4x(ubfm, Ubfm, Gp, Gp, Imm, Imm)</a>
+<a name="291"><span class="lineNum">     291 </span>            :   ASMJIT_INST_4x(ubfx, Ubfx, Gp, Gp, Imm, Imm)</a>
+<a name="292"><span class="lineNum">     292 </span>            : </a>
+<a name="293"><span class="lineNum">     293 </span>            :   ASMJIT_INST_4x(umaddl, Umaddl, Gp, Gp, Gp, Gp)</a>
+<a name="294"><span class="lineNum">     294 </span>            :   ASMJIT_INST_3x(umnegl, Umnegl, Gp, Gp, Gp)</a>
+<a name="295"><span class="lineNum">     295 </span>            :   ASMJIT_INST_4x(umsubl, Umsubl, Gp, Gp, Gp, Gp)</a>
+<a name="296"><span class="lineNum">     296 </span>            :   ASMJIT_INST_3x(umull, Umull, Gp, Gp, Gp)</a>
+<a name="297"><span class="lineNum">     297 </span>            :   ASMJIT_INST_3x(umulh, Umulh, Gp, Gp, Gp)</a>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<a name="299"><span class="lineNum">     299 </span>            :   ASMJIT_INST_2x(uxtb, Uxtb, Gp, Gp)</a>
+<a name="300"><span class="lineNum">     300 </span>            :   ASMJIT_INST_2x(uxth, Uxth, Gp, Gp)</a>
+<a name="301"><span class="lineNum">     301 </span>            : </a>
+<a name="302"><span class="lineNum">     302 </span>            :   ASMJIT_INST_0x(csdb, Csdb)</a>
+<a name="303"><span class="lineNum">     303 </span>            :   ASMJIT_INST_1x(dcps1, Dcps1, Imm)</a>
+<a name="304"><span class="lineNum">     304 </span>            :   ASMJIT_INST_1x(dcps2, Dcps2, Imm)</a>
+<a name="305"><span class="lineNum">     305 </span>            :   ASMJIT_INST_1x(dcps3, Dcps3, Imm)</a>
+<a name="306"><span class="lineNum">     306 </span>            :   ASMJIT_INST_0x(dgh, Dgh)</a>
+<a name="307"><span class="lineNum">     307 </span>            :   ASMJIT_INST_0x(pssbb, Pssbb)</a>
+<a name="308"><span class="lineNum">     308 </span>            :   ASMJIT_INST_0x(ssbb, Ssbb)</a>
+<a name="309"><span class="lineNum">     309 </span>            :   ASMJIT_INST_1x(udf, Udf, Imm)</a>
+<a name="310"><span class="lineNum">     310 </span>            :   ASMJIT_INST_1x(setf8, Setf8, Gp)</a>
+<a name="311"><span class="lineNum">     311 </span>            :   ASMJIT_INST_1x(setf16, Setf16, Gp)</a>
+<a name="312"><span class="lineNum">     312 </span>            : </a>
+<a name="313"><span class="lineNum">     313 </span>            :   //! \}</a>
+<a name="314"><span class="lineNum">     314 </span>            : </a>
+<a name="315"><span class="lineNum">     315 </span>            :   //! \name ARMv8.4 Instructions</a>
+<a name="316"><span class="lineNum">     316 </span>            :   //! \{</a>
+<a name="317"><span class="lineNum">     317 </span>            : </a>
+<a name="318"><span class="lineNum">     318 </span>            :   ASMJIT_INST_0x(cfinv, Cfinv)</a>
+<a name="319"><span class="lineNum">     319 </span>            : </a>
+<a name="320"><span class="lineNum">     320 </span>            :   //! \}</a>
+<a name="321"><span class="lineNum">     321 </span>            : </a>
+<a name="322"><span class="lineNum">     322 </span>            :   //! \name ARMv8.5 Instructions</a>
+<a name="323"><span class="lineNum">     323 </span>            :   //! \{</a>
+<a name="324"><span class="lineNum">     324 </span>            : </a>
+<a name="325"><span class="lineNum">     325 </span>            :   ASMJIT_INST_0x(axflag, Axflag)</a>
+<a name="326"><span class="lineNum">     326 </span>            :   ASMJIT_INST_0x(xaflag, Xaflag)</a>
+<a name="327"><span class="lineNum">     327 </span>            : </a>
+<a name="328"><span class="lineNum">     328 </span>            :   //! \}</a>
+<a name="329"><span class="lineNum">     329 </span>            : </a>
+<a name="330"><span class="lineNum">     330 </span>            :   //! \name Branch Instructions</a>
+<a name="331"><span class="lineNum">     331 </span>            :   //! \{</a>
+<a name="332"><span class="lineNum">     332 </span>            : </a>
+<a name="333"><span class="lineNum">     333 </span>            :   ASMJIT_INST_1cc(b, B, Imm)</a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineNoCov">          0 :   ASMJIT_INST_1cc(b, B, Label)</span></a>
+<a name="335"><span class="lineNum">     335 </span>            :   ASMJIT_INST_1x(bl, Bl, Imm)</a>
+<a name="336"><span class="lineNum">     336 </span>            :   ASMJIT_INST_1x(bl, Bl, Label)</a>
+<a name="337"><span class="lineNum">     337 </span>            :   ASMJIT_INST_1x(blr, Blr, Gp)</a>
+<a name="338"><span class="lineNum">     338 </span>            :   ASMJIT_INST_1x(br, Br, Gp)</a>
+<a name="339"><span class="lineNum">     339 </span>            :   ASMJIT_INST_2x(cbz, Cbz, Gp, Imm)</a>
+<a name="340"><span class="lineNum">     340 </span>            :   ASMJIT_INST_2x(cbz, Cbz, Gp, Label)</a>
+<a name="341"><span class="lineNum">     341 </span>            :   ASMJIT_INST_2x(cbnz, Cbnz, Gp, Imm)</a>
+<a name="342"><span class="lineNum">     342 </span>            :   ASMJIT_INST_2x(cbnz, Cbnz, Gp, Label)</a>
+<a name="343"><span class="lineNum">     343 </span>            :   ASMJIT_INST_3x(tbnz, Tbnz, Gp, Imm, Imm)</a>
+<a name="344"><span class="lineNum">     344 </span>            :   ASMJIT_INST_3x(tbnz, Tbnz, Gp, Imm, Label)</a>
+<a name="345"><span class="lineNum">     345 </span>            :   ASMJIT_INST_3x(tbz, Tbz, Gp, Imm, Imm)</a>
+<a name="346"><span class="lineNum">     346 </span>            :   ASMJIT_INST_3x(tbz, Tbz, Gp, Imm, Label)</a>
+<a name="347"><span class="lineNum">     347 </span>            : </a>
+<a name="348"><span class="lineNum">     348 </span>            :   //! \}</a>
+<a name="349"><span class="lineNum">     349 </span>            : </a>
+<a name="350"><span class="lineNum">     350 </span>            :   //! \name Load &amp; Store Instructions</a>
+<a name="351"><span class="lineNum">     351 </span>            :   //! \{</a>
+<a name="352"><span class="lineNum">     352 </span>            : </a>
+<a name="353"><span class="lineNum">     353 </span>            :   ASMJIT_INST_3x(cas, Cas, Gp, Gp, Mem)</a>
+<a name="354"><span class="lineNum">     354 </span>            :   ASMJIT_INST_3x(casa, Casa, Gp, Gp, Mem)</a>
+<a name="355"><span class="lineNum">     355 </span>            :   ASMJIT_INST_3x(casab, Casab, Gp, Gp, Mem)</a>
+<a name="356"><span class="lineNum">     356 </span>            :   ASMJIT_INST_3x(casah, Casah, Gp, Gp, Mem)</a>
+<a name="357"><span class="lineNum">     357 </span>            :   ASMJIT_INST_3x(casal, Casal, Gp, Gp, Mem)</a>
+<a name="358"><span class="lineNum">     358 </span>            :   ASMJIT_INST_3x(casalb, Casalb, Gp, Gp, Mem)</a>
+<a name="359"><span class="lineNum">     359 </span>            :   ASMJIT_INST_3x(casalh, Casalh, Gp, Gp, Mem)</a>
+<a name="360"><span class="lineNum">     360 </span>            :   ASMJIT_INST_3x(casb, Casb, Gp, Gp, Mem)</a>
+<a name="361"><span class="lineNum">     361 </span>            :   ASMJIT_INST_3x(cash, Cash, Gp, Gp, Mem)</a>
+<a name="362"><span class="lineNum">     362 </span>            :   ASMJIT_INST_3x(casl, Casl, Gp, Gp, Mem)</a>
+<a name="363"><span class="lineNum">     363 </span>            :   ASMJIT_INST_3x(caslb, Caslb, Gp, Gp, Mem)</a>
+<a name="364"><span class="lineNum">     364 </span>            :   ASMJIT_INST_3x(caslh, Caslh, Gp, Gp, Mem)</a>
+<a name="365"><span class="lineNum">     365 </span>            : </a>
+<a name="366"><span class="lineNum">     366 </span>            :   ASMJIT_INST_5x(casp, Casp, Gp, Gp, Gp, Gp, Mem)</a>
+<a name="367"><span class="lineNum">     367 </span>            :   ASMJIT_INST_5x(caspa, Caspa, Gp, Gp, Gp, Gp, Mem)</a>
+<a name="368"><span class="lineNum">     368 </span>            :   ASMJIT_INST_5x(caspal, Caspal, Gp, Gp, Gp, Gp, Mem)</a>
+<a name="369"><span class="lineNum">     369 </span>            :   ASMJIT_INST_5x(caspl, Caspl, Gp, Gp, Gp, Gp, Mem)</a>
+<a name="370"><span class="lineNum">     370 </span>            : </a>
+<a name="371"><span class="lineNum">     371 </span>            :   ASMJIT_INST_3x(ldadd, Ldadd, Gp, Gp, Mem)</a>
+<a name="372"><span class="lineNum">     372 </span>            :   ASMJIT_INST_3x(ldadda, Ldadda, Gp, Gp, Mem)</a>
+<a name="373"><span class="lineNum">     373 </span>            :   ASMJIT_INST_3x(ldaddab, Ldaddab, Gp, Gp, Mem)</a>
+<a name="374"><span class="lineNum">     374 </span>            :   ASMJIT_INST_3x(ldaddah, Ldaddah, Gp, Gp, Mem)</a>
+<a name="375"><span class="lineNum">     375 </span>            :   ASMJIT_INST_3x(ldaddal, Ldaddal, Gp, Gp, Mem)</a>
+<a name="376"><span class="lineNum">     376 </span>            :   ASMJIT_INST_3x(ldaddalb, Ldaddalb, Gp, Gp, Mem)</a>
+<a name="377"><span class="lineNum">     377 </span>            :   ASMJIT_INST_3x(ldaddalh, Ldaddalh, Gp, Gp, Mem)</a>
+<a name="378"><span class="lineNum">     378 </span>            :   ASMJIT_INST_3x(ldaddb, Ldaddb, Gp, Gp, Mem)</a>
+<a name="379"><span class="lineNum">     379 </span>            :   ASMJIT_INST_3x(ldaddh, Ldaddh, Gp, Gp, Mem)</a>
+<a name="380"><span class="lineNum">     380 </span>            :   ASMJIT_INST_3x(ldaddl, Ldaddl, Gp, Gp, Mem)</a>
+<a name="381"><span class="lineNum">     381 </span>            :   ASMJIT_INST_3x(ldaddlb, Ldaddlb, Gp, Gp, Mem)</a>
+<a name="382"><span class="lineNum">     382 </span>            :   ASMJIT_INST_3x(ldaddlh, Ldaddlh, Gp, Gp, Mem)</a>
+<a name="383"><span class="lineNum">     383 </span>            : </a>
+<a name="384"><span class="lineNum">     384 </span>            :   ASMJIT_INST_2x(ldar, Ldar, Gp, Mem)</a>
+<a name="385"><span class="lineNum">     385 </span>            :   ASMJIT_INST_2x(ldarb, Ldarb, Gp, Mem)</a>
+<a name="386"><span class="lineNum">     386 </span>            :   ASMJIT_INST_2x(ldarh, Ldarh, Gp, Mem)</a>
+<a name="387"><span class="lineNum">     387 </span>            : </a>
+<a name="388"><span class="lineNum">     388 </span>            :   ASMJIT_INST_2x(ldaxr, Ldaxr, Gp, Mem)</a>
+<a name="389"><span class="lineNum">     389 </span>            :   ASMJIT_INST_2x(ldaxrb, Ldaxrb, Gp, Mem)</a>
+<a name="390"><span class="lineNum">     390 </span>            :   ASMJIT_INST_2x(ldaxrh, Ldaxrh, Gp, Mem)</a>
+<a name="391"><span class="lineNum">     391 </span>            : </a>
+<a name="392"><span class="lineNum">     392 </span>            :   ASMJIT_INST_3x(ldclr, Ldclr, Gp, Gp, Mem)</a>
+<a name="393"><span class="lineNum">     393 </span>            :   ASMJIT_INST_3x(ldclra, Ldclra, Gp, Gp, Mem)</a>
+<a name="394"><span class="lineNum">     394 </span>            :   ASMJIT_INST_3x(ldclrab, Ldclrab, Gp, Gp, Mem)</a>
+<a name="395"><span class="lineNum">     395 </span>            :   ASMJIT_INST_3x(ldclrah, Ldclrah, Gp, Gp, Mem)</a>
+<a name="396"><span class="lineNum">     396 </span>            :   ASMJIT_INST_3x(ldclral, Ldclral, Gp, Gp, Mem)</a>
+<a name="397"><span class="lineNum">     397 </span>            :   ASMJIT_INST_3x(ldclralb, Ldclralb, Gp, Gp, Mem)</a>
+<a name="398"><span class="lineNum">     398 </span>            :   ASMJIT_INST_3x(ldclralh, Ldclralh, Gp, Gp, Mem)</a>
+<a name="399"><span class="lineNum">     399 </span>            :   ASMJIT_INST_3x(ldclrb, Ldclrb, Gp, Gp, Mem)</a>
+<a name="400"><span class="lineNum">     400 </span>            :   ASMJIT_INST_3x(ldclrh, Ldclrh, Gp, Gp, Mem)</a>
+<a name="401"><span class="lineNum">     401 </span>            :   ASMJIT_INST_3x(ldclrl, Ldclrl, Gp, Gp, Mem)</a>
+<a name="402"><span class="lineNum">     402 </span>            :   ASMJIT_INST_3x(ldclrlb, Ldclrlb, Gp, Gp, Mem)</a>
+<a name="403"><span class="lineNum">     403 </span>            :   ASMJIT_INST_3x(ldclrlh, Ldclrlh, Gp, Gp, Mem)</a>
+<a name="404"><span class="lineNum">     404 </span>            : </a>
+<a name="405"><span class="lineNum">     405 </span>            :   ASMJIT_INST_3x(ldeor, Ldeor, Gp, Gp, Mem)</a>
+<a name="406"><span class="lineNum">     406 </span>            :   ASMJIT_INST_3x(ldeora, Ldeora, Gp, Gp, Mem)</a>
+<a name="407"><span class="lineNum">     407 </span>            :   ASMJIT_INST_3x(ldeorab, Ldeorab, Gp, Gp, Mem)</a>
+<a name="408"><span class="lineNum">     408 </span>            :   ASMJIT_INST_3x(ldeorah, Ldeorah, Gp, Gp, Mem)</a>
+<a name="409"><span class="lineNum">     409 </span>            :   ASMJIT_INST_3x(ldeoral, Ldeoral, Gp, Gp, Mem)</a>
+<a name="410"><span class="lineNum">     410 </span>            :   ASMJIT_INST_3x(ldeoralb, Ldeoralb, Gp, Gp, Mem)</a>
+<a name="411"><span class="lineNum">     411 </span>            :   ASMJIT_INST_3x(ldeoralh, Ldeoralh, Gp, Gp, Mem)</a>
+<a name="412"><span class="lineNum">     412 </span>            :   ASMJIT_INST_3x(ldeorb, Ldeorb, Gp, Gp, Mem)</a>
+<a name="413"><span class="lineNum">     413 </span>            :   ASMJIT_INST_3x(ldeorh, Ldeorh, Gp, Gp, Mem)</a>
+<a name="414"><span class="lineNum">     414 </span>            :   ASMJIT_INST_3x(ldeorl, Ldeorl, Gp, Gp, Mem)</a>
+<a name="415"><span class="lineNum">     415 </span>            :   ASMJIT_INST_3x(ldeorlb, Ldeorlb, Gp, Gp, Mem)</a>
+<a name="416"><span class="lineNum">     416 </span>            :   ASMJIT_INST_3x(ldeorlh, Ldeorlh, Gp, Gp, Mem)</a>
+<a name="417"><span class="lineNum">     417 </span>            : </a>
+<a name="418"><span class="lineNum">     418 </span>            :   ASMJIT_INST_2x(ldlar, Ldlar, Gp, Mem)</a>
+<a name="419"><span class="lineNum">     419 </span>            :   ASMJIT_INST_2x(ldlarb, Ldlarb, Gp, Mem)</a>
+<a name="420"><span class="lineNum">     420 </span>            :   ASMJIT_INST_2x(ldlarh, Ldlarh, Gp, Mem)</a>
+<a name="421"><span class="lineNum">     421 </span>            : </a>
+<a name="422"><span class="lineNum">     422 </span>            :   ASMJIT_INST_3x(ldnp, Ldnp, Gp, Gp, Mem)</a>
+<a name="423"><span class="lineNum">     423 </span>            : </a>
+<a name="424"><span class="lineNum">     424 </span>            :   ASMJIT_INST_3x(ldp, Ldp, Gp, Gp, Mem)</a>
+<a name="425"><span class="lineNum">     425 </span>            :   ASMJIT_INST_3x(ldpsw, Ldpsw, Gp, Gp, Mem)</a>
+<a name="426"><span class="lineNum">     426 </span>            : </a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(ldr, Ldr, Gp, Mem)</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(ldrb, Ldrb, Gp, Mem)</span></a>
+<a name="429"><span class="lineNum">     429 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(ldrh, Ldrh, Gp, Mem)</span></a>
+<a name="430"><span class="lineNum">     430 </span>            :   ASMJIT_INST_2x(ldrsb, Ldrsb, Gp, Mem)</a>
+<a name="431"><span class="lineNum">     431 </span>            :   ASMJIT_INST_2x(ldrsh, Ldrsh, Gp, Mem)</a>
+<a name="432"><span class="lineNum">     432 </span>            :   ASMJIT_INST_2x(ldrsw, Ldrsw, Gp, Mem)</a>
+<a name="433"><span class="lineNum">     433 </span>            : </a>
+<a name="434"><span class="lineNum">     434 </span>            :   ASMJIT_INST_3x(ldset, Ldset, Gp, Gp, Mem)</a>
+<a name="435"><span class="lineNum">     435 </span>            :   ASMJIT_INST_3x(ldseta, Ldseta, Gp, Gp, Mem)</a>
+<a name="436"><span class="lineNum">     436 </span>            :   ASMJIT_INST_3x(ldsetab, Ldsetab, Gp, Gp, Mem)</a>
+<a name="437"><span class="lineNum">     437 </span>            :   ASMJIT_INST_3x(ldsetah, Ldsetah, Gp, Gp, Mem)</a>
+<a name="438"><span class="lineNum">     438 </span>            :   ASMJIT_INST_3x(ldsetal, Ldsetal, Gp, Gp, Mem)</a>
+<a name="439"><span class="lineNum">     439 </span>            :   ASMJIT_INST_3x(ldsetalb, Ldsetalb, Gp, Gp, Mem)</a>
+<a name="440"><span class="lineNum">     440 </span>            :   ASMJIT_INST_3x(ldsetalh, Ldsetalh, Gp, Gp, Mem)</a>
+<a name="441"><span class="lineNum">     441 </span>            :   ASMJIT_INST_3x(ldsetb, Ldsetb, Gp, Gp, Mem)</a>
+<a name="442"><span class="lineNum">     442 </span>            :   ASMJIT_INST_3x(ldseth, Ldseth, Gp, Gp, Mem)</a>
+<a name="443"><span class="lineNum">     443 </span>            :   ASMJIT_INST_3x(ldsetl, Ldsetl, Gp, Gp, Mem)</a>
+<a name="444"><span class="lineNum">     444 </span>            :   ASMJIT_INST_3x(ldsetlb, Ldsetlb, Gp, Gp, Mem)</a>
+<a name="445"><span class="lineNum">     445 </span>            :   ASMJIT_INST_3x(ldsetlh, Ldsetlh, Gp, Gp, Mem)</a>
+<a name="446"><span class="lineNum">     446 </span>            : </a>
+<a name="447"><span class="lineNum">     447 </span>            :   ASMJIT_INST_3x(ldsmax, Ldsmax, Gp, Gp, Mem)</a>
+<a name="448"><span class="lineNum">     448 </span>            :   ASMJIT_INST_3x(ldsmaxa, Ldsmaxa, Gp, Gp, Mem)</a>
+<a name="449"><span class="lineNum">     449 </span>            :   ASMJIT_INST_3x(ldsmaxab, Ldsmaxab, Gp, Gp, Mem)</a>
+<a name="450"><span class="lineNum">     450 </span>            :   ASMJIT_INST_3x(ldsmaxah, Ldsmaxah, Gp, Gp, Mem)</a>
+<a name="451"><span class="lineNum">     451 </span>            :   ASMJIT_INST_3x(ldsmaxal, Ldsmaxal, Gp, Gp, Mem)</a>
+<a name="452"><span class="lineNum">     452 </span>            :   ASMJIT_INST_3x(ldsmaxalb, Ldsmaxalb, Gp, Gp, Mem)</a>
+<a name="453"><span class="lineNum">     453 </span>            :   ASMJIT_INST_3x(ldsmaxalh, Ldsmaxalh, Gp, Gp, Mem)</a>
+<a name="454"><span class="lineNum">     454 </span>            :   ASMJIT_INST_3x(ldsmaxb, Ldsmaxb, Gp, Gp, Mem)</a>
+<a name="455"><span class="lineNum">     455 </span>            :   ASMJIT_INST_3x(ldsmaxh, Ldsmaxh, Gp, Gp, Mem)</a>
+<a name="456"><span class="lineNum">     456 </span>            :   ASMJIT_INST_3x(ldsmaxl, Ldsmaxl, Gp, Gp, Mem)</a>
+<a name="457"><span class="lineNum">     457 </span>            :   ASMJIT_INST_3x(ldsmaxlb, Ldsmaxlb, Gp, Gp, Mem)</a>
+<a name="458"><span class="lineNum">     458 </span>            :   ASMJIT_INST_3x(ldsmaxlh, Ldsmaxlh, Gp, Gp, Mem)</a>
+<a name="459"><span class="lineNum">     459 </span>            : </a>
+<a name="460"><span class="lineNum">     460 </span>            :   ASMJIT_INST_3x(ldsmin, Ldsmin, Gp, Gp, Mem)</a>
+<a name="461"><span class="lineNum">     461 </span>            :   ASMJIT_INST_3x(ldsmina, Ldsmina, Gp, Gp, Mem)</a>
+<a name="462"><span class="lineNum">     462 </span>            :   ASMJIT_INST_3x(ldsminab, Ldsminab, Gp, Gp, Mem)</a>
+<a name="463"><span class="lineNum">     463 </span>            :   ASMJIT_INST_3x(ldsminah, Ldsminah, Gp, Gp, Mem)</a>
+<a name="464"><span class="lineNum">     464 </span>            :   ASMJIT_INST_3x(ldsminal, Ldsminal, Gp, Gp, Mem)</a>
+<a name="465"><span class="lineNum">     465 </span>            :   ASMJIT_INST_3x(ldsminalb, Ldsminalb, Gp, Gp, Mem)</a>
+<a name="466"><span class="lineNum">     466 </span>            :   ASMJIT_INST_3x(ldsminalh, Ldsminalh, Gp, Gp, Mem)</a>
+<a name="467"><span class="lineNum">     467 </span>            :   ASMJIT_INST_3x(ldsminb, Ldsminb, Gp, Gp, Mem)</a>
+<a name="468"><span class="lineNum">     468 </span>            :   ASMJIT_INST_3x(ldsminh, Ldsminh, Gp, Gp, Mem)</a>
+<a name="469"><span class="lineNum">     469 </span>            :   ASMJIT_INST_3x(ldsminl, Ldsminl, Gp, Gp, Mem)</a>
+<a name="470"><span class="lineNum">     470 </span>            :   ASMJIT_INST_3x(ldsminlb, Ldsminlb, Gp, Gp, Mem)</a>
+<a name="471"><span class="lineNum">     471 </span>            :   ASMJIT_INST_3x(ldsminlh, Ldsminlh, Gp, Gp, Mem)</a>
+<a name="472"><span class="lineNum">     472 </span>            : </a>
+<a name="473"><span class="lineNum">     473 </span>            :   ASMJIT_INST_2x(ldtr, Ldtr, Gp, Mem)</a>
+<a name="474"><span class="lineNum">     474 </span>            :   ASMJIT_INST_2x(ldtrb, Ldtrb, Gp, Mem)</a>
+<a name="475"><span class="lineNum">     475 </span>            :   ASMJIT_INST_2x(ldtrh, Ldtrh, Gp, Mem)</a>
+<a name="476"><span class="lineNum">     476 </span>            :   ASMJIT_INST_2x(ldtrsb, Ldtrsb, Gp, Mem)</a>
+<a name="477"><span class="lineNum">     477 </span>            :   ASMJIT_INST_2x(ldtrsh, Ldtrsh, Gp, Mem)</a>
+<a name="478"><span class="lineNum">     478 </span>            :   ASMJIT_INST_2x(ldtrsw, Ldtrsw, Gp, Mem)</a>
+<a name="479"><span class="lineNum">     479 </span>            : </a>
+<a name="480"><span class="lineNum">     480 </span>            :   ASMJIT_INST_3x(ldumax, Ldumax, Gp, Gp, Mem)</a>
+<a name="481"><span class="lineNum">     481 </span>            :   ASMJIT_INST_3x(ldumaxa, Ldumaxa, Gp, Gp, Mem)</a>
+<a name="482"><span class="lineNum">     482 </span>            :   ASMJIT_INST_3x(ldumaxab, Ldumaxab, Gp, Gp, Mem)</a>
+<a name="483"><span class="lineNum">     483 </span>            :   ASMJIT_INST_3x(ldumaxah, Ldumaxah, Gp, Gp, Mem)</a>
+<a name="484"><span class="lineNum">     484 </span>            :   ASMJIT_INST_3x(ldumaxal, Ldumaxal, Gp, Gp, Mem)</a>
+<a name="485"><span class="lineNum">     485 </span>            :   ASMJIT_INST_3x(ldumaxalb, Ldumaxalb, Gp, Gp, Mem)</a>
+<a name="486"><span class="lineNum">     486 </span>            :   ASMJIT_INST_3x(ldumaxalh, Ldumaxalh, Gp, Gp, Mem)</a>
+<a name="487"><span class="lineNum">     487 </span>            :   ASMJIT_INST_3x(ldumaxb, Ldumaxb, Gp, Gp, Mem)</a>
+<a name="488"><span class="lineNum">     488 </span>            :   ASMJIT_INST_3x(ldumaxh, Ldumaxh, Gp, Gp, Mem)</a>
+<a name="489"><span class="lineNum">     489 </span>            :   ASMJIT_INST_3x(ldumaxl, Ldumaxl, Gp, Gp, Mem)</a>
+<a name="490"><span class="lineNum">     490 </span>            :   ASMJIT_INST_3x(ldumaxlb, Ldumaxlb, Gp, Gp, Mem)</a>
+<a name="491"><span class="lineNum">     491 </span>            :   ASMJIT_INST_3x(ldumaxlh, Ldumaxlh, Gp, Gp, Mem)</a>
+<a name="492"><span class="lineNum">     492 </span>            : </a>
+<a name="493"><span class="lineNum">     493 </span>            :   ASMJIT_INST_3x(ldumin, Ldumin, Gp, Gp, Mem)</a>
+<a name="494"><span class="lineNum">     494 </span>            :   ASMJIT_INST_3x(ldumina, Ldumina, Gp, Gp, Mem)</a>
+<a name="495"><span class="lineNum">     495 </span>            :   ASMJIT_INST_3x(lduminab, Lduminab, Gp, Gp, Mem)</a>
+<a name="496"><span class="lineNum">     496 </span>            :   ASMJIT_INST_3x(lduminah, Lduminah, Gp, Gp, Mem)</a>
+<a name="497"><span class="lineNum">     497 </span>            :   ASMJIT_INST_3x(lduminal, Lduminal, Gp, Gp, Mem)</a>
+<a name="498"><span class="lineNum">     498 </span>            :   ASMJIT_INST_3x(lduminalb, Lduminalb, Gp, Gp, Mem)</a>
+<a name="499"><span class="lineNum">     499 </span>            :   ASMJIT_INST_3x(lduminalh, Lduminalh, Gp, Gp, Mem)</a>
+<a name="500"><span class="lineNum">     500 </span>            :   ASMJIT_INST_3x(lduminb, Lduminb, Gp, Gp, Mem)</a>
+<a name="501"><span class="lineNum">     501 </span>            :   ASMJIT_INST_3x(lduminh, Lduminh, Gp, Gp, Mem)</a>
+<a name="502"><span class="lineNum">     502 </span>            :   ASMJIT_INST_3x(lduminl, Lduminl, Gp, Gp, Mem)</a>
+<a name="503"><span class="lineNum">     503 </span>            :   ASMJIT_INST_3x(lduminlb, Lduminlb, Gp, Gp, Mem)</a>
+<a name="504"><span class="lineNum">     504 </span>            :   ASMJIT_INST_3x(lduminlh, Lduminlh, Gp, Gp, Mem)</a>
+<a name="505"><span class="lineNum">     505 </span>            : </a>
+<a name="506"><span class="lineNum">     506 </span>            :   ASMJIT_INST_2x(ldur, Ldur, Gp, Mem)</a>
+<a name="507"><span class="lineNum">     507 </span>            :   ASMJIT_INST_2x(ldurb, Ldurb, Gp, Mem)</a>
+<a name="508"><span class="lineNum">     508 </span>            :   ASMJIT_INST_2x(ldurh, Ldurh, Gp, Mem)</a>
+<a name="509"><span class="lineNum">     509 </span>            :   ASMJIT_INST_2x(ldursb, Ldursb, Gp, Mem)</a>
+<a name="510"><span class="lineNum">     510 </span>            :   ASMJIT_INST_2x(ldursh, Ldursh, Gp, Mem)</a>
+<a name="511"><span class="lineNum">     511 </span>            :   ASMJIT_INST_2x(ldursw, Ldursw, Gp, Mem)</a>
+<a name="512"><span class="lineNum">     512 </span>            : </a>
+<a name="513"><span class="lineNum">     513 </span>            :   ASMJIT_INST_3x(ldxp, Ldxp, Gp, Gp, Mem)</a>
+<a name="514"><span class="lineNum">     514 </span>            :   ASMJIT_INST_3x(ldaxp, Ldaxp, Gp, Gp, Mem)</a>
+<a name="515"><span class="lineNum">     515 </span>            : </a>
+<a name="516"><span class="lineNum">     516 </span>            :   ASMJIT_INST_2x(ldxr, Ldxr, Gp, Mem)</a>
+<a name="517"><span class="lineNum">     517 </span>            :   ASMJIT_INST_2x(ldxrb, Ldxrb, Gp, Mem)</a>
+<a name="518"><span class="lineNum">     518 </span>            :   ASMJIT_INST_2x(ldxrh, Ldxrh, Gp, Mem)</a>
+<a name="519"><span class="lineNum">     519 </span>            : </a>
+<a name="520"><span class="lineNum">     520 </span>            :   ASMJIT_INST_2x(stadd, Stadd, Gp, Mem)</a>
+<a name="521"><span class="lineNum">     521 </span>            :   ASMJIT_INST_2x(staddb, Staddb, Gp, Mem)</a>
+<a name="522"><span class="lineNum">     522 </span>            :   ASMJIT_INST_2x(staddh, Staddh, Gp, Mem)</a>
+<a name="523"><span class="lineNum">     523 </span>            :   ASMJIT_INST_2x(staddl, Staddl, Gp, Mem)</a>
+<a name="524"><span class="lineNum">     524 </span>            :   ASMJIT_INST_2x(staddlb, Staddlb, Gp, Mem)</a>
+<a name="525"><span class="lineNum">     525 </span>            :   ASMJIT_INST_2x(staddlh, Staddlh, Gp, Mem)</a>
+<a name="526"><span class="lineNum">     526 </span>            : </a>
+<a name="527"><span class="lineNum">     527 </span>            :   ASMJIT_INST_2x(stclr, Stclr, Gp, Mem)</a>
+<a name="528"><span class="lineNum">     528 </span>            :   ASMJIT_INST_2x(stclrb, Stclrb, Gp, Mem)</a>
+<a name="529"><span class="lineNum">     529 </span>            :   ASMJIT_INST_2x(stclrh, Stclrh, Gp, Mem)</a>
+<a name="530"><span class="lineNum">     530 </span>            :   ASMJIT_INST_2x(stclrl, Stclrl, Gp, Mem)</a>
+<a name="531"><span class="lineNum">     531 </span>            :   ASMJIT_INST_2x(stclrlb, Stclrlb, Gp, Mem)</a>
+<a name="532"><span class="lineNum">     532 </span>            :   ASMJIT_INST_2x(stclrlh, Stclrlh, Gp, Mem)</a>
+<a name="533"><span class="lineNum">     533 </span>            : </a>
+<a name="534"><span class="lineNum">     534 </span>            :   ASMJIT_INST_2x(steor, Steor, Gp, Mem)</a>
+<a name="535"><span class="lineNum">     535 </span>            :   ASMJIT_INST_2x(steorb, Steorb, Gp, Mem)</a>
+<a name="536"><span class="lineNum">     536 </span>            :   ASMJIT_INST_2x(steorh, Steorh, Gp, Mem)</a>
+<a name="537"><span class="lineNum">     537 </span>            :   ASMJIT_INST_2x(steorl, Steorl, Gp, Mem)</a>
+<a name="538"><span class="lineNum">     538 </span>            :   ASMJIT_INST_2x(steorlb, Steorlb, Gp, Mem)</a>
+<a name="539"><span class="lineNum">     539 </span>            :   ASMJIT_INST_2x(steorlh, Steorlh, Gp, Mem)</a>
+<a name="540"><span class="lineNum">     540 </span>            : </a>
+<a name="541"><span class="lineNum">     541 </span>            :   ASMJIT_INST_2x(stllr, Stllr, Gp, Mem)</a>
+<a name="542"><span class="lineNum">     542 </span>            :   ASMJIT_INST_2x(stllrb, Stllrb, Gp, Mem)</a>
+<a name="543"><span class="lineNum">     543 </span>            :   ASMJIT_INST_2x(stllrh, Stllrh, Gp, Mem)</a>
+<a name="544"><span class="lineNum">     544 </span>            : </a>
+<a name="545"><span class="lineNum">     545 </span>            :   ASMJIT_INST_2x(stlr, Stllr, Gp, Mem)</a>
+<a name="546"><span class="lineNum">     546 </span>            :   ASMJIT_INST_2x(stlrb, Stllrb, Gp, Mem)</a>
+<a name="547"><span class="lineNum">     547 </span>            :   ASMJIT_INST_2x(stlrh, Stllrh, Gp, Mem)</a>
+<a name="548"><span class="lineNum">     548 </span>            : </a>
+<a name="549"><span class="lineNum">     549 </span>            :   ASMJIT_INST_3x(stlxr, Stlxr, Gp, Gp, Mem)</a>
+<a name="550"><span class="lineNum">     550 </span>            :   ASMJIT_INST_3x(stlxrb, Stlxrb, Gp, Gp, Mem)</a>
+<a name="551"><span class="lineNum">     551 </span>            :   ASMJIT_INST_3x(stlxrh, Stlxrh, Gp, Gp, Mem)</a>
+<a name="552"><span class="lineNum">     552 </span>            : </a>
+<a name="553"><span class="lineNum">     553 </span>            :   ASMJIT_INST_3x(stnp, Stnp, Gp, Gp, Mem)</a>
+<a name="554"><span class="lineNum">     554 </span>            :   ASMJIT_INST_3x(stp, Stp, Gp, Gp, Mem)</a>
+<a name="555"><span class="lineNum">     555 </span>            : </a>
+<a name="556"><span class="lineNum">     556 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(str, Str, Gp, Mem)</span></a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(strb, Strb, Gp, Mem)</span></a>
+<a name="558"><span class="lineNum">     558 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(strh, Strh, Gp, Mem)</span></a>
+<a name="559"><span class="lineNum">     559 </span>            : </a>
+<a name="560"><span class="lineNum">     560 </span>            :   ASMJIT_INST_2x(stset, Stset, Gp, Mem)</a>
+<a name="561"><span class="lineNum">     561 </span>            :   ASMJIT_INST_2x(stsetb, Stsetb, Gp, Mem)</a>
+<a name="562"><span class="lineNum">     562 </span>            :   ASMJIT_INST_2x(stseth, Stseth, Gp, Mem)</a>
+<a name="563"><span class="lineNum">     563 </span>            :   ASMJIT_INST_2x(stsetl, Stsetl, Gp, Mem)</a>
+<a name="564"><span class="lineNum">     564 </span>            :   ASMJIT_INST_2x(stsetlb, Stsetlb, Gp, Mem)</a>
+<a name="565"><span class="lineNum">     565 </span>            :   ASMJIT_INST_2x(stsetlh, Stsetlh, Gp, Mem)</a>
+<a name="566"><span class="lineNum">     566 </span>            : </a>
+<a name="567"><span class="lineNum">     567 </span>            :   ASMJIT_INST_2x(stsmax, Stsmax, Gp, Mem)</a>
+<a name="568"><span class="lineNum">     568 </span>            :   ASMJIT_INST_2x(stsmaxb, Stsmaxb, Gp, Mem)</a>
+<a name="569"><span class="lineNum">     569 </span>            :   ASMJIT_INST_2x(stsmaxh, Stsmaxh, Gp, Mem)</a>
+<a name="570"><span class="lineNum">     570 </span>            :   ASMJIT_INST_2x(stsmaxl, Stsmaxl, Gp, Mem)</a>
+<a name="571"><span class="lineNum">     571 </span>            :   ASMJIT_INST_2x(stsmaxlb, Stsmaxlb, Gp, Mem)</a>
+<a name="572"><span class="lineNum">     572 </span>            :   ASMJIT_INST_2x(stsmaxlh, Stsmaxlh, Gp, Mem)</a>
+<a name="573"><span class="lineNum">     573 </span>            : </a>
+<a name="574"><span class="lineNum">     574 </span>            :   ASMJIT_INST_2x(stsmin, Stsmin, Gp, Mem)</a>
+<a name="575"><span class="lineNum">     575 </span>            :   ASMJIT_INST_2x(stsminb, Stsminb, Gp, Mem)</a>
+<a name="576"><span class="lineNum">     576 </span>            :   ASMJIT_INST_2x(stsminh, Stsminh, Gp, Mem)</a>
+<a name="577"><span class="lineNum">     577 </span>            :   ASMJIT_INST_2x(stsminl, Stsminl, Gp, Mem)</a>
+<a name="578"><span class="lineNum">     578 </span>            :   ASMJIT_INST_2x(stsminlb, Stsminlb, Gp, Mem)</a>
+<a name="579"><span class="lineNum">     579 </span>            :   ASMJIT_INST_2x(stsminlh, Stsminlh, Gp, Mem)</a>
+<a name="580"><span class="lineNum">     580 </span>            : </a>
+<a name="581"><span class="lineNum">     581 </span>            :   ASMJIT_INST_2x(sttr, Sttr, Gp, Mem)</a>
+<a name="582"><span class="lineNum">     582 </span>            :   ASMJIT_INST_2x(sttrb, Sttrb, Gp, Mem)</a>
+<a name="583"><span class="lineNum">     583 </span>            :   ASMJIT_INST_2x(sttrh, Sttrh, Gp, Mem)</a>
+<a name="584"><span class="lineNum">     584 </span>            : </a>
+<a name="585"><span class="lineNum">     585 </span>            :   ASMJIT_INST_2x(stumax, Stumax, Gp, Mem)</a>
+<a name="586"><span class="lineNum">     586 </span>            :   ASMJIT_INST_2x(stumaxb, Stumaxb, Gp, Mem)</a>
+<a name="587"><span class="lineNum">     587 </span>            :   ASMJIT_INST_2x(stumaxh, Stumaxh, Gp, Mem)</a>
+<a name="588"><span class="lineNum">     588 </span>            :   ASMJIT_INST_2x(stumaxl, Stumaxl, Gp, Mem)</a>
+<a name="589"><span class="lineNum">     589 </span>            :   ASMJIT_INST_2x(stumaxlb, Stumaxlb, Gp, Mem)</a>
+<a name="590"><span class="lineNum">     590 </span>            :   ASMJIT_INST_2x(stumaxlh, Stumaxlh, Gp, Mem)</a>
+<a name="591"><span class="lineNum">     591 </span>            : </a>
+<a name="592"><span class="lineNum">     592 </span>            :   ASMJIT_INST_2x(stumin, Stumin, Gp, Mem)</a>
+<a name="593"><span class="lineNum">     593 </span>            :   ASMJIT_INST_2x(stuminb, Stuminb, Gp, Mem)</a>
+<a name="594"><span class="lineNum">     594 </span>            :   ASMJIT_INST_2x(stuminh, Stuminh, Gp, Mem)</a>
+<a name="595"><span class="lineNum">     595 </span>            :   ASMJIT_INST_2x(stuminl, Stuminl, Gp, Mem)</a>
+<a name="596"><span class="lineNum">     596 </span>            :   ASMJIT_INST_2x(stuminlb, Stuminlb, Gp, Mem)</a>
+<a name="597"><span class="lineNum">     597 </span>            :   ASMJIT_INST_2x(stuminlh, Stuminlh, Gp, Mem)</a>
+<a name="598"><span class="lineNum">     598 </span>            : </a>
+<a name="599"><span class="lineNum">     599 </span>            :   ASMJIT_INST_2x(stur, Stur, Gp, Mem)</a>
+<a name="600"><span class="lineNum">     600 </span>            :   ASMJIT_INST_2x(sturb, Sturb, Gp, Mem)</a>
+<a name="601"><span class="lineNum">     601 </span>            :   ASMJIT_INST_2x(sturh, Sturh, Gp, Mem)</a>
+<a name="602"><span class="lineNum">     602 </span>            : </a>
+<a name="603"><span class="lineNum">     603 </span>            :   ASMJIT_INST_4x(stxp, Stxp, Gp, Gp, Gp, Mem)</a>
+<a name="604"><span class="lineNum">     604 </span>            :   ASMJIT_INST_4x(stlxp, Stlxp, Gp, Gp, Gp, Mem)</a>
+<a name="605"><span class="lineNum">     605 </span>            : </a>
+<a name="606"><span class="lineNum">     606 </span>            :   ASMJIT_INST_3x(stxr, Stxr, Gp, Gp, Mem)</a>
+<a name="607"><span class="lineNum">     607 </span>            :   ASMJIT_INST_3x(stxrb, Stxrb, Gp, Gp, Mem)</a>
+<a name="608"><span class="lineNum">     608 </span>            :   ASMJIT_INST_3x(stxrh, Stxrh, Gp, Gp, Mem)</a>
+<a name="609"><span class="lineNum">     609 </span>            : </a>
+<a name="610"><span class="lineNum">     610 </span>            :   ASMJIT_INST_3x(swp, Swp, Gp, Gp, Mem)</a>
+<a name="611"><span class="lineNum">     611 </span>            :   ASMJIT_INST_3x(swpa, Swpa, Gp, Gp, Mem)</a>
+<a name="612"><span class="lineNum">     612 </span>            :   ASMJIT_INST_3x(swpab, Swpab, Gp, Gp, Mem)</a>
+<a name="613"><span class="lineNum">     613 </span>            :   ASMJIT_INST_3x(swpah, Swpah, Gp, Gp, Mem)</a>
+<a name="614"><span class="lineNum">     614 </span>            :   ASMJIT_INST_3x(swpal, Swpal, Gp, Gp, Mem)</a>
+<a name="615"><span class="lineNum">     615 </span>            :   ASMJIT_INST_3x(swpalb, Swpalb, Gp, Gp, Mem)</a>
+<a name="616"><span class="lineNum">     616 </span>            :   ASMJIT_INST_3x(swpalh, Swpalh, Gp, Gp, Mem)</a>
+<a name="617"><span class="lineNum">     617 </span>            :   ASMJIT_INST_3x(swpb, Swpb, Gp, Gp, Mem)</a>
+<a name="618"><span class="lineNum">     618 </span>            :   ASMJIT_INST_3x(swph, Swph, Gp, Gp, Mem)</a>
+<a name="619"><span class="lineNum">     619 </span>            :   ASMJIT_INST_3x(swpl, Swpl, Gp, Gp, Mem)</a>
+<a name="620"><span class="lineNum">     620 </span>            :   ASMJIT_INST_3x(swplb, Swplb, Gp, Gp, Mem)</a>
+<a name="621"><span class="lineNum">     621 </span>            :   ASMJIT_INST_3x(swplh, Swplh, Gp, Gp, Mem)</a>
+<a name="622"><span class="lineNum">     622 </span>            :   //! \}</a>
+<a name="623"><span class="lineNum">     623 </span>            : </a>
+<a name="624"><span class="lineNum">     624 </span>            :   //! \name CRC Instructions (ARMv8.1-A, optional in ARMv8.0-A)</a>
+<a name="625"><span class="lineNum">     625 </span>            :   //! \{</a>
+<a name="626"><span class="lineNum">     626 </span>            : </a>
+<a name="627"><span class="lineNum">     627 </span>            :   ASMJIT_INST_3x(crc32b, Crc32b, Gp, Gp, Gp);</a>
+<a name="628"><span class="lineNum">     628 </span>            :   ASMJIT_INST_3x(crc32h, Crc32h, Gp, Gp, Gp);</a>
+<a name="629"><span class="lineNum">     629 </span>            :   ASMJIT_INST_3x(crc32w, Crc32w, Gp, Gp, Gp);</a>
+<a name="630"><span class="lineNum">     630 </span>            :   ASMJIT_INST_3x(crc32x, Crc32x, Gp, Gp, Gp);</a>
+<a name="631"><span class="lineNum">     631 </span>            : </a>
+<a name="632"><span class="lineNum">     632 </span>            :   ASMJIT_INST_3x(crc32cb, Crc32cb, Gp, Gp, Gp);</a>
+<a name="633"><span class="lineNum">     633 </span>            :   ASMJIT_INST_3x(crc32ch, Crc32ch, Gp, Gp, Gp);</a>
+<a name="634"><span class="lineNum">     634 </span>            :   ASMJIT_INST_3x(crc32cw, Crc32cw, Gp, Gp, Gp);</a>
+<a name="635"><span class="lineNum">     635 </span>            :   ASMJIT_INST_3x(crc32cx, Crc32cx, Gp, Gp, Gp);</a>
+<a name="636"><span class="lineNum">     636 </span>            : </a>
+<a name="637"><span class="lineNum">     637 </span>            :   //! \}</a>
+<a name="638"><span class="lineNum">     638 </span>            : </a>
+<a name="639"><span class="lineNum">     639 </span>            :   //! \name MTE Instructions</a>
+<a name="640"><span class="lineNum">     640 </span>            :   //! \{</a>
+<a name="641"><span class="lineNum">     641 </span>            : </a>
+<a name="642"><span class="lineNum">     642 </span>            :   ASMJIT_INST_2x(autda, Autda, Gp, Gp);</a>
+<a name="643"><span class="lineNum">     643 </span>            :   ASMJIT_INST_2x(autdb, Autdb, Gp, Gp);</a>
+<a name="644"><span class="lineNum">     644 </span>            :   ASMJIT_INST_1x(autdza, Autdza, Gp);</a>
+<a name="645"><span class="lineNum">     645 </span>            :   ASMJIT_INST_1x(autdzb, Autdzb, Gp);</a>
+<a name="646"><span class="lineNum">     646 </span>            :   ASMJIT_INST_2x(autia, Autia, Gp, Gp);</a>
+<a name="647"><span class="lineNum">     647 </span>            :   ASMJIT_INST_0x(autia1716, Autia1716);</a>
+<a name="648"><span class="lineNum">     648 </span>            :   ASMJIT_INST_0x(autiasp, Autiasp);</a>
+<a name="649"><span class="lineNum">     649 </span>            :   ASMJIT_INST_0x(autiaz, Autiaz);</a>
+<a name="650"><span class="lineNum">     650 </span>            :   ASMJIT_INST_2x(autib, Autib, Gp, Gp);</a>
+<a name="651"><span class="lineNum">     651 </span>            :   ASMJIT_INST_0x(autib1716, Autib1716);</a>
+<a name="652"><span class="lineNum">     652 </span>            :   ASMJIT_INST_0x(autibsp, Autibsp);</a>
+<a name="653"><span class="lineNum">     653 </span>            :   ASMJIT_INST_0x(autibz, Autibz);</a>
+<a name="654"><span class="lineNum">     654 </span>            :   ASMJIT_INST_1x(autiza, Autiza, Gp);</a>
+<a name="655"><span class="lineNum">     655 </span>            :   ASMJIT_INST_1x(autizb, Autizb, Gp);</a>
+<a name="656"><span class="lineNum">     656 </span>            : </a>
+<a name="657"><span class="lineNum">     657 </span>            :   ASMJIT_INST_3x(gmi, Gmi, Gp, Gp, Gp);</a>
+<a name="658"><span class="lineNum">     658 </span>            : </a>
+<a name="659"><span class="lineNum">     659 </span>            :   ASMJIT_INST_2x(cmpp, Cmpp, Gp, Gp);</a>
+<a name="660"><span class="lineNum">     660 </span>            :   ASMJIT_INST_4x(addg, Addg, Gp, Gp, Imm, Imm);</a>
+<a name="661"><span class="lineNum">     661 </span>            : </a>
+<a name="662"><span class="lineNum">     662 </span>            :   ASMJIT_INST_2x(ldg, Ldg, Gp, Mem)</a>
+<a name="663"><span class="lineNum">     663 </span>            :   ASMJIT_INST_2x(ldgm, Ldgm, Gp, Mem)</a>
+<a name="664"><span class="lineNum">     664 </span>            :   ASMJIT_INST_2x(ldraa, Ldraa, Gp, Mem)</a>
+<a name="665"><span class="lineNum">     665 </span>            :   ASMJIT_INST_2x(ldrab, Ldrab, Gp, Mem)</a>
+<a name="666"><span class="lineNum">     666 </span>            : </a>
+<a name="667"><span class="lineNum">     667 </span>            :   ASMJIT_INST_2x(pacda, Pacda, Gp, Gp);</a>
+<a name="668"><span class="lineNum">     668 </span>            :   ASMJIT_INST_2x(pacdb, Pacdb, Gp, Gp);</a>
+<a name="669"><span class="lineNum">     669 </span>            :   ASMJIT_INST_1x(pacdza, Pacdza, Gp);</a>
+<a name="670"><span class="lineNum">     670 </span>            :   ASMJIT_INST_1x(pacdzb, Pacdzb, Gp);</a>
+<a name="671"><span class="lineNum">     671 </span>            :   ASMJIT_INST_3x(pacga, Pacga, Gp, Gp, Gp);</a>
+<a name="672"><span class="lineNum">     672 </span>            : </a>
+<a name="673"><span class="lineNum">     673 </span>            :   ASMJIT_INST_3x(subp, Subp, Gp, Gp, Gp);</a>
+<a name="674"><span class="lineNum">     674 </span>            :   ASMJIT_INST_3x(subps, Subps, Gp, Gp, Gp);</a>
+<a name="675"><span class="lineNum">     675 </span>            :   ASMJIT_INST_4x(subg, Subg, Gp, Gp, Imm, Imm);</a>
+<a name="676"><span class="lineNum">     676 </span>            : </a>
+<a name="677"><span class="lineNum">     677 </span>            :   ASMJIT_INST_2x(st2g, St2g, Gp, Mem)</a>
+<a name="678"><span class="lineNum">     678 </span>            :   ASMJIT_INST_2x(stg, Stg, Gp, Mem)</a>
+<a name="679"><span class="lineNum">     679 </span>            :   ASMJIT_INST_3x(stgp, Stgp, Gp, Gp, Mem)</a>
+<a name="680"><span class="lineNum">     680 </span>            :   ASMJIT_INST_2x(stgm, Stgm, Gp, Mem)</a>
+<a name="681"><span class="lineNum">     681 </span>            :   ASMJIT_INST_2x(stzg, Stzg, Gp, Mem)</a>
+<a name="682"><span class="lineNum">     682 </span>            :   ASMJIT_INST_2x(stz2g, Stz2g, Gp, Mem)</a>
+<a name="683"><span class="lineNum">     683 </span>            :   ASMJIT_INST_2x(stzgm, Stzgm, Gp, Mem)</a>
+<a name="684"><span class="lineNum">     684 </span>            : </a>
+<a name="685"><span class="lineNum">     685 </span>            :   ASMJIT_INST_1x(xpacd, Xpacd, Gp);</a>
+<a name="686"><span class="lineNum">     686 </span>            :   ASMJIT_INST_1x(xpaci, Xpaci, Gp);</a>
+<a name="687"><span class="lineNum">     687 </span>            :   ASMJIT_INST_0x(xpaclri, Xpaclri);</a>
+<a name="688"><span class="lineNum">     688 </span>            : </a>
+<a name="689"><span class="lineNum">     689 </span>            :   //! \}</a>
+<a name="690"><span class="lineNum">     690 </span>            : </a>
+<a name="691"><span class="lineNum">     691 </span>            :   //! \name Hint Instructions</a>
+<a name="692"><span class="lineNum">     692 </span>            :   //! \{</a>
+<a name="693"><span class="lineNum">     693 </span>            : </a>
+<a name="694"><span class="lineNum">     694 </span>            :   ASMJIT_INST_1x(hint, Hint, Imm)</a>
+<a name="695"><span class="lineNum">     695 </span>            :   ASMJIT_INST_0x(nop, Nop)</a>
+<a name="696"><span class="lineNum">     696 </span>            :   ASMJIT_INST_0x(sev, Sev)</a>
+<a name="697"><span class="lineNum">     697 </span>            :   ASMJIT_INST_0x(sevl, Sevl)</a>
+<a name="698"><span class="lineNum">     698 </span>            :   ASMJIT_INST_0x(wfe, Wfe)</a>
+<a name="699"><span class="lineNum">     699 </span>            :   ASMJIT_INST_0x(wfi, Wfi)</a>
+<a name="700"><span class="lineNum">     700 </span>            :   ASMJIT_INST_0x(yield, Yield)</a>
+<a name="701"><span class="lineNum">     701 </span>            : </a>
+<a name="702"><span class="lineNum">     702 </span>            :   //! \}</a>
+<a name="703"><span class="lineNum">     703 </span>            : </a>
+<a name="704"><span class="lineNum">     704 </span>            :   //! \name SIMD &amp; FP Instructions</a>
+<a name="705"><span class="lineNum">     705 </span>            :   //! \{</a>
+<a name="706"><span class="lineNum">     706 </span>            : </a>
+<a name="707"><span class="lineNum">     707 </span>            :   ASMJIT_INST_2x(abs, Abs_v, Vec, Vec);</a>
+<a name="708"><span class="lineNum">     708 </span>            :   ASMJIT_INST_3x(add, Add_v, Vec, Vec, Vec);</a>
+<a name="709"><span class="lineNum">     709 </span>            :   ASMJIT_INST_3x(addhn, Addhn_v, Vec, Vec, Vec);</a>
+<a name="710"><span class="lineNum">     710 </span>            :   ASMJIT_INST_3x(addhn2, Addhn2_v, Vec, Vec, Vec);</a>
+<a name="711"><span class="lineNum">     711 </span>            :   ASMJIT_INST_2x(addp, Addp_v, Vec, Vec);</a>
+<a name="712"><span class="lineNum">     712 </span>            :   ASMJIT_INST_3x(addp, Addp_v, Vec, Vec, Vec);</a>
+<a name="713"><span class="lineNum">     713 </span>            :   ASMJIT_INST_2x(addv, Addv_v, Vec, Vec);</a>
+<a name="714"><span class="lineNum">     714 </span>            :   ASMJIT_INST_3x(and_, And_v, Vec, Vec, Vec);</a>
+<a name="715"><span class="lineNum">     715 </span>            :   ASMJIT_INST_2x(bic, Bic_v, Vec, Imm);</a>
+<a name="716"><span class="lineNum">     716 </span>            :   ASMJIT_INST_3x(bic, Bic_v, Vec, Vec, Vec);</a>
+<a name="717"><span class="lineNum">     717 </span>            :   ASMJIT_INST_3x(bic, Bic_v, Vec, Imm, Imm);</a>
+<a name="718"><span class="lineNum">     718 </span>            :   ASMJIT_INST_3x(bif, Bif_v, Vec, Vec, Vec);</a>
+<a name="719"><span class="lineNum">     719 </span>            :   ASMJIT_INST_3x(bit, Bit_v, Vec, Vec, Vec);</a>
+<a name="720"><span class="lineNum">     720 </span>            :   ASMJIT_INST_3x(bsl, Bsl_v, Vec, Vec, Vec);</a>
+<a name="721"><span class="lineNum">     721 </span>            :   ASMJIT_INST_2x(cls, Cls_v, Vec, Vec);</a>
+<a name="722"><span class="lineNum">     722 </span>            :   ASMJIT_INST_2x(clz, Clz_v, Vec, Vec);</a>
+<a name="723"><span class="lineNum">     723 </span>            :   ASMJIT_INST_3x(cmeq, Cmeq_v, Vec, Vec, Vec);</a>
+<a name="724"><span class="lineNum">     724 </span>            :   ASMJIT_INST_3x(cmeq, Cmeq_v, Vec, Vec, Imm);</a>
+<a name="725"><span class="lineNum">     725 </span>            :   ASMJIT_INST_3x(cmge, Cmge_v, Vec, Vec, Vec);</a>
+<a name="726"><span class="lineNum">     726 </span>            :   ASMJIT_INST_3x(cmge, Cmge_v, Vec, Vec, Imm);</a>
+<a name="727"><span class="lineNum">     727 </span>            :   ASMJIT_INST_3x(cmgt, Cmgt_v, Vec, Vec, Vec);</a>
+<a name="728"><span class="lineNum">     728 </span>            :   ASMJIT_INST_3x(cmgt, Cmgt_v, Vec, Vec, Imm);</a>
+<a name="729"><span class="lineNum">     729 </span>            :   ASMJIT_INST_3x(cmhi, Cmhi_v, Vec, Vec, Vec);</a>
+<a name="730"><span class="lineNum">     730 </span>            :   ASMJIT_INST_3x(cmhs, Cmhs_v, Vec, Vec, Vec);</a>
+<a name="731"><span class="lineNum">     731 </span>            :   ASMJIT_INST_3x(cmle, Cmle_v, Vec, Vec, Imm);</a>
+<a name="732"><span class="lineNum">     732 </span>            :   ASMJIT_INST_3x(cmlt, Cmlt_v, Vec, Vec, Imm);</a>
+<a name="733"><span class="lineNum">     733 </span>            :   ASMJIT_INST_3x(cmtst, Cmtst_v, Vec, Vec, Vec);</a>
+<a name="734"><span class="lineNum">     734 </span>            :   ASMJIT_INST_2x(cnt, Cnt_v, Vec, Vec);</a>
+<a name="735"><span class="lineNum">     735 </span>            :   ASMJIT_INST_2x(dup, Dup_v, Vec, Gp);</a>
+<a name="736"><span class="lineNum">     736 </span>            :   ASMJIT_INST_2x(dup, Dup_v, Vec, Vec);</a>
+<a name="737"><span class="lineNum">     737 </span>            :   ASMJIT_INST_3x(eor, Eor_v, Vec, Vec, Vec);</a>
+<a name="738"><span class="lineNum">     738 </span>            :   ASMJIT_INST_4x(ext, Ext_v, Vec, Vec, Vec, Imm);</a>
+<a name="739"><span class="lineNum">     739 </span>            :   ASMJIT_INST_3x(fabd, Fabd_v, Vec, Vec, Vec);</a>
+<a name="740"><span class="lineNum">     740 </span>            :   ASMJIT_INST_2x(fabs, Fabs_v, Vec, Vec);</a>
+<a name="741"><span class="lineNum">     741 </span>            :   ASMJIT_INST_3x(facge, Facge_v, Vec, Vec, Vec);</a>
+<a name="742"><span class="lineNum">     742 </span>            :   ASMJIT_INST_3x(facgt, Facgt_v, Vec, Vec, Vec);</a>
+<a name="743"><span class="lineNum">     743 </span>            :   ASMJIT_INST_3x(fadd, Fadd_v, Vec, Vec, Vec);</a>
+<a name="744"><span class="lineNum">     744 </span>            :   ASMJIT_INST_2x(faddp, Faddp_v, Vec, Vec);</a>
+<a name="745"><span class="lineNum">     745 </span>            :   ASMJIT_INST_3x(faddp, Faddp_v, Vec, Vec, Vec);</a>
+<a name="746"><span class="lineNum">     746 </span>            :   ASMJIT_INST_4x(fccmp, Fccmp_v, Vec, Vec, Imm, Imm);</a>
+<a name="747"><span class="lineNum">     747 </span>            :   ASMJIT_INST_4x(fccmpe, Fccmpe_v, Vec, Vec, Imm, Imm);</a>
+<a name="748"><span class="lineNum">     748 </span>            :   ASMJIT_INST_3x(fcmeq, Fcmeq_v, Vec, Vec, Vec);</a>
+<a name="749"><span class="lineNum">     749 </span>            :   ASMJIT_INST_3x(fcmeq, Fcmeq_v, Vec, Vec, Imm);</a>
+<a name="750"><span class="lineNum">     750 </span>            :   ASMJIT_INST_3x(fcmge, Fcmge_v, Vec, Vec, Vec);</a>
+<a name="751"><span class="lineNum">     751 </span>            :   ASMJIT_INST_3x(fcmge, Fcmge_v, Vec, Vec, Imm);</a>
+<a name="752"><span class="lineNum">     752 </span>            :   ASMJIT_INST_3x(fcmgt, Fcmgt_v, Vec, Vec, Vec);</a>
+<a name="753"><span class="lineNum">     753 </span>            :   ASMJIT_INST_3x(fcmgt, Fcmgt_v, Vec, Vec, Imm);</a>
+<a name="754"><span class="lineNum">     754 </span>            :   ASMJIT_INST_3x(fcmle, Fcmle_v, Vec, Vec, Imm);</a>
+<a name="755"><span class="lineNum">     755 </span>            :   ASMJIT_INST_3x(fcmlt, Fcmlt_v, Vec, Vec, Imm);</a>
+<a name="756"><span class="lineNum">     756 </span>            :   ASMJIT_INST_2x(fcmp, Fcmp_v, Vec, Vec);</a>
+<a name="757"><span class="lineNum">     757 </span>            :   ASMJIT_INST_2x(fcmp, Fcmp_v, Vec, Imm);</a>
+<a name="758"><span class="lineNum">     758 </span>            :   ASMJIT_INST_2x(fcmpe, Fcmpe_v, Vec, Vec);</a>
+<a name="759"><span class="lineNum">     759 </span>            :   ASMJIT_INST_2x(fcmpe, Fcmpe_v, Vec, Imm);</a>
+<a name="760"><span class="lineNum">     760 </span>            :   ASMJIT_INST_4x(fcsel, Fcsel_v, Vec, Vec, Vec, Imm);</a>
+<a name="761"><span class="lineNum">     761 </span>            :   ASMJIT_INST_2x(fcvt, Fcvt_v, Vec, Vec);</a>
+<a name="762"><span class="lineNum">     762 </span>            :   ASMJIT_INST_2x(fcvtas, Fcvtas_v, Gp, Vec);</a>
+<a name="763"><span class="lineNum">     763 </span>            :   ASMJIT_INST_2x(fcvtas, Fcvtas_v, Vec, Vec);</a>
+<a name="764"><span class="lineNum">     764 </span>            :   ASMJIT_INST_2x(fcvtau, Fcvtau_v, Gp, Vec);</a>
+<a name="765"><span class="lineNum">     765 </span>            :   ASMJIT_INST_2x(fcvtau, Fcvtau_v, Vec, Vec);</a>
+<a name="766"><span class="lineNum">     766 </span>            :   ASMJIT_INST_2x(fcvtl, Fcvtl_v, Vec, Vec);</a>
+<a name="767"><span class="lineNum">     767 </span>            :   ASMJIT_INST_2x(fcvtl2, Fcvtl2_v, Vec, Vec);</a>
+<a name="768"><span class="lineNum">     768 </span>            :   ASMJIT_INST_2x(fcvtms, Fcvtms_v, Gp, Vec);</a>
+<a name="769"><span class="lineNum">     769 </span>            :   ASMJIT_INST_2x(fcvtms, Fcvtms_v, Vec, Vec);</a>
+<a name="770"><span class="lineNum">     770 </span>            :   ASMJIT_INST_2x(fcvtmu, Fcvtmu_v, Gp, Vec);</a>
+<a name="771"><span class="lineNum">     771 </span>            :   ASMJIT_INST_2x(fcvtmu, Fcvtmu_v, Vec, Vec);</a>
+<a name="772"><span class="lineNum">     772 </span>            :   ASMJIT_INST_2x(fcvtn, Fcvtn_v, Vec, Vec);</a>
+<a name="773"><span class="lineNum">     773 </span>            :   ASMJIT_INST_2x(fcvtn2, Fcvtn2_v, Vec, Vec);</a>
+<a name="774"><span class="lineNum">     774 </span>            :   ASMJIT_INST_2x(fcvtns, Fcvtns_v, Gp, Vec);</a>
+<a name="775"><span class="lineNum">     775 </span>            :   ASMJIT_INST_2x(fcvtns, Fcvtns_v, Vec, Vec);</a>
+<a name="776"><span class="lineNum">     776 </span>            :   ASMJIT_INST_2x(fcvtnu, Fcvtnu_v, Gp, Vec);</a>
+<a name="777"><span class="lineNum">     777 </span>            :   ASMJIT_INST_2x(fcvtnu, Fcvtnu_v, Vec, Vec);</a>
+<a name="778"><span class="lineNum">     778 </span>            :   ASMJIT_INST_2x(fcvtps, Fcvtps_v, Gp, Vec);</a>
+<a name="779"><span class="lineNum">     779 </span>            :   ASMJIT_INST_2x(fcvtps, Fcvtps_v, Vec, Vec);</a>
+<a name="780"><span class="lineNum">     780 </span>            :   ASMJIT_INST_2x(fcvtpu, Fcvtpu_v, Gp, Vec);</a>
+<a name="781"><span class="lineNum">     781 </span>            :   ASMJIT_INST_2x(fcvtpu, Fcvtpu_v, Vec, Vec);</a>
+<a name="782"><span class="lineNum">     782 </span>            :   ASMJIT_INST_2x(fcvtxn, Fcvtxn_v, Vec, Vec);</a>
+<a name="783"><span class="lineNum">     783 </span>            :   ASMJIT_INST_2x(fcvtxn2, Fcvtxn2_v, Vec, Vec);</a>
+<a name="784"><span class="lineNum">     784 </span>            :   ASMJIT_INST_2x(fcvtzs, Fcvtzs_v, Gp, Vec);</a>
+<a name="785"><span class="lineNum">     785 </span>            :   ASMJIT_INST_3x(fcvtzs, Fcvtzs_v, Gp, Vec, Imm);</a>
+<a name="786"><span class="lineNum">     786 </span>            :   ASMJIT_INST_2x(fcvtzs, Fcvtzs_v, Vec, Vec);</a>
+<a name="787"><span class="lineNum">     787 </span>            :   ASMJIT_INST_3x(fcvtzs, Fcvtzs_v, Vec, Vec, Imm);</a>
+<a name="788"><span class="lineNum">     788 </span>            :   ASMJIT_INST_2x(fcvtzu, Fcvtzu_v, Gp, Vec);</a>
+<a name="789"><span class="lineNum">     789 </span>            :   ASMJIT_INST_3x(fcvtzu, Fcvtzu_v, Gp, Vec, Imm);</a>
+<a name="790"><span class="lineNum">     790 </span>            :   ASMJIT_INST_2x(fcvtzu, Fcvtzu_v, Vec, Vec);</a>
+<a name="791"><span class="lineNum">     791 </span>            :   ASMJIT_INST_3x(fcvtzu, Fcvtzu_v, Vec, Vec, Imm);</a>
+<a name="792"><span class="lineNum">     792 </span>            :   ASMJIT_INST_3x(fdiv, Fdiv_v, Vec, Vec, Vec);</a>
+<a name="793"><span class="lineNum">     793 </span>            :   ASMJIT_INST_4x(fmadd, Fmadd_v, Vec, Vec, Vec, Vec);</a>
+<a name="794"><span class="lineNum">     794 </span>            :   ASMJIT_INST_3x(fmax, Fmax_v, Vec, Vec, Vec);</a>
+<a name="795"><span class="lineNum">     795 </span>            :   ASMJIT_INST_3x(fmaxnm, Fmaxnm_v, Vec, Vec, Vec);</a>
+<a name="796"><span class="lineNum">     796 </span>            :   ASMJIT_INST_3x(fmaxnmp, Fmaxnmp_v, Vec, Vec, Vec);</a>
+<a name="797"><span class="lineNum">     797 </span>            :   ASMJIT_INST_2x(fmaxnmp, Fmaxnmp_v, Vec, Vec);</a>
+<a name="798"><span class="lineNum">     798 </span>            :   ASMJIT_INST_2x(fmaxnmv, Fmaxnmv_v, Vec, Vec);</a>
+<a name="799"><span class="lineNum">     799 </span>            :   ASMJIT_INST_3x(fmaxp, Fmaxp_v, Vec, Vec, Vec);</a>
+<a name="800"><span class="lineNum">     800 </span>            :   ASMJIT_INST_2x(fmaxp, Fmaxp_v, Vec, Vec);</a>
+<a name="801"><span class="lineNum">     801 </span>            :   ASMJIT_INST_2x(fmaxv, Fmaxv_v, Vec, Vec);</a>
+<a name="802"><span class="lineNum">     802 </span>            :   ASMJIT_INST_3x(fmin, Fmin_v, Vec, Vec, Vec);</a>
+<a name="803"><span class="lineNum">     803 </span>            :   ASMJIT_INST_3x(fminnm, Fminnm_v, Vec, Vec, Vec);</a>
+<a name="804"><span class="lineNum">     804 </span>            :   ASMJIT_INST_2x(fminnmv, Fminnmv_v, Vec, Vec);</a>
+<a name="805"><span class="lineNum">     805 </span>            :   ASMJIT_INST_3x(fminnmp, Fminnmp_v, Vec, Vec, Vec);</a>
+<a name="806"><span class="lineNum">     806 </span>            :   ASMJIT_INST_2x(fminnmp, Fminnmp_v, Vec, Vec);</a>
+<a name="807"><span class="lineNum">     807 </span>            :   ASMJIT_INST_2x(fminp, Fminp_v, Vec, Vec);</a>
+<a name="808"><span class="lineNum">     808 </span>            :   ASMJIT_INST_3x(fminp, Fminp_v, Vec, Vec, Vec);</a>
+<a name="809"><span class="lineNum">     809 </span>            :   ASMJIT_INST_2x(fminv, Fminv_v, Vec, Vec);</a>
+<a name="810"><span class="lineNum">     810 </span>            :   ASMJIT_INST_3x(fmla, Fmla_v, Vec, Vec, Vec);</a>
+<a name="811"><span class="lineNum">     811 </span>            :   ASMJIT_INST_3x(fmls, Fmls_v, Vec, Vec, Vec);</a>
+<a name="812"><span class="lineNum">     812 </span>            :   ASMJIT_INST_2x(fmov, Fmov_v, Gp, Vec);</a>
+<a name="813"><span class="lineNum">     813 </span>            :   ASMJIT_INST_2x(fmov, Fmov_v, Vec, Gp);</a>
+<a name="814"><span class="lineNum">     814 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(fmov, Fmov_v, Vec, Vec);</span></a>
+<a name="815"><span class="lineNum">     815 </span>            :   ASMJIT_INST_2x(fmov, Fmov_v, Vec, Imm);</a>
+<a name="816"><span class="lineNum">     816 </span>            :   ASMJIT_INST_4x(fmsub, Fmsub_v, Vec, Vec, Vec, Vec);</a>
+<a name="817"><span class="lineNum">     817 </span>            :   ASMJIT_INST_3x(fmul, Fmul_v, Vec, Vec, Vec);</a>
+<a name="818"><span class="lineNum">     818 </span>            :   ASMJIT_INST_3x(fmulx, Fmulx_v, Vec, Vec, Vec);</a>
+<a name="819"><span class="lineNum">     819 </span>            :   ASMJIT_INST_2x(fneg, Fneg_v, Vec, Vec);</a>
+<a name="820"><span class="lineNum">     820 </span>            :   ASMJIT_INST_4x(fnmadd, Fnmadd_v, Vec, Vec, Vec, Vec);</a>
+<a name="821"><span class="lineNum">     821 </span>            :   ASMJIT_INST_4x(fnmsub, Fnmsub_v, Vec, Vec, Vec, Vec);</a>
+<a name="822"><span class="lineNum">     822 </span>            :   ASMJIT_INST_3x(fnmul, Fnmul_v, Vec, Vec, Vec);</a>
+<a name="823"><span class="lineNum">     823 </span>            :   ASMJIT_INST_2x(frecpe, Frecpe_v, Vec, Vec);</a>
+<a name="824"><span class="lineNum">     824 </span>            :   ASMJIT_INST_3x(frecps, Frecps_v, Vec, Vec, Vec);</a>
+<a name="825"><span class="lineNum">     825 </span>            :   ASMJIT_INST_2x(frecpx, Frecpx_v, Vec, Vec);</a>
+<a name="826"><span class="lineNum">     826 </span>            :   ASMJIT_INST_2x(frint32x, Frint32x_v, Vec, Vec);</a>
+<a name="827"><span class="lineNum">     827 </span>            :   ASMJIT_INST_2x(frint32z, Frint32z_v, Vec, Vec);</a>
+<a name="828"><span class="lineNum">     828 </span>            :   ASMJIT_INST_2x(frint64x, Frint64x_v, Vec, Vec);</a>
+<a name="829"><span class="lineNum">     829 </span>            :   ASMJIT_INST_2x(frint64z, Frint64z_v, Vec, Vec);</a>
+<a name="830"><span class="lineNum">     830 </span>            :   ASMJIT_INST_2x(frinta, Frinta_v, Vec, Vec);</a>
+<a name="831"><span class="lineNum">     831 </span>            :   ASMJIT_INST_2x(frinti, Frinti_v, Vec, Vec);</a>
+<a name="832"><span class="lineNum">     832 </span>            :   ASMJIT_INST_2x(frintm, Frintm_v, Vec, Vec);</a>
+<a name="833"><span class="lineNum">     833 </span>            :   ASMJIT_INST_2x(frintn, Frintn_v, Vec, Vec);</a>
+<a name="834"><span class="lineNum">     834 </span>            :   ASMJIT_INST_2x(frintp, Frintp_v, Vec, Vec);</a>
+<a name="835"><span class="lineNum">     835 </span>            :   ASMJIT_INST_2x(frintx, Frintx_v, Vec, Vec);</a>
+<a name="836"><span class="lineNum">     836 </span>            :   ASMJIT_INST_2x(frintz, Frintz_v, Vec, Vec);</a>
+<a name="837"><span class="lineNum">     837 </span>            :   ASMJIT_INST_2x(frsqrte, Frsqrte_v, Vec, Vec);</a>
+<a name="838"><span class="lineNum">     838 </span>            :   ASMJIT_INST_3x(frsqrts, Frsqrts_v, Vec, Vec, Vec);</a>
+<a name="839"><span class="lineNum">     839 </span>            :   ASMJIT_INST_2x(fsqrt, Fsqrt_v, Vec, Vec);</a>
+<a name="840"><span class="lineNum">     840 </span>            :   ASMJIT_INST_3x(fsub, Fsub_v, Vec, Vec, Vec);</a>
+<a name="841"><span class="lineNum">     841 </span>            :   ASMJIT_INST_2x(ins, Ins_v, Vec, Gp);</a>
+<a name="842"><span class="lineNum">     842 </span>            :   ASMJIT_INST_2x(ins, Ins_v, Vec, Vec);</a>
+<a name="843"><span class="lineNum">     843 </span>            :   ASMJIT_INST_2x(ld1, Ld1_v, Vec, Mem);</a>
+<a name="844"><span class="lineNum">     844 </span>            :   ASMJIT_INST_3x(ld1, Ld1_v, Vec, Vec, Mem);</a>
+<a name="845"><span class="lineNum">     845 </span>            :   ASMJIT_INST_4x(ld1, Ld1_v, Vec, Vec, Vec, Mem);</a>
+<a name="846"><span class="lineNum">     846 </span>            :   ASMJIT_INST_5x(ld1, Ld1_v, Vec, Vec, Vec, Vec, Mem);</a>
+<a name="847"><span class="lineNum">     847 </span>            :   ASMJIT_INST_2x(ld1r, Ld1r_v, Vec, Mem);</a>
+<a name="848"><span class="lineNum">     848 </span>            :   ASMJIT_INST_3x(ld2, Ld2_v, Vec, Vec, Mem);</a>
+<a name="849"><span class="lineNum">     849 </span>            :   ASMJIT_INST_3x(ld2r, Ld2r_v, Vec, Vec, Mem);</a>
+<a name="850"><span class="lineNum">     850 </span>            :   ASMJIT_INST_4x(ld3, Ld3_v, Vec, Vec, Vec, Mem);</a>
+<a name="851"><span class="lineNum">     851 </span>            :   ASMJIT_INST_4x(ld3r, Ld3r_v, Vec, Vec, Vec, Mem);</a>
+<a name="852"><span class="lineNum">     852 </span>            :   ASMJIT_INST_5x(ld4, Ld4_v, Vec, Vec, Vec, Vec, Mem);</a>
+<a name="853"><span class="lineNum">     853 </span>            :   ASMJIT_INST_5x(ld4r, Ld4r_v, Vec, Vec, Vec, Vec, Mem);</a>
+<a name="854"><span class="lineNum">     854 </span>            :   ASMJIT_INST_3x(ldnp, Ldnp_v, Vec, Vec, Mem);</a>
+<a name="855"><span class="lineNum">     855 </span>            :   ASMJIT_INST_3x(ldp, Ldp_v, Vec, Vec, Mem);</a>
+<a name="856"><span class="lineNum">     856 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(ldr, Ldr_v, Vec, Mem);</span></a>
+<a name="857"><span class="lineNum">     857 </span>            :   ASMJIT_INST_2x(ldur, Ldur_v, Vec, Mem);</a>
+<a name="858"><span class="lineNum">     858 </span>            :   ASMJIT_INST_3x(mla, Mla_v, Vec, Vec, Vec);</a>
+<a name="859"><span class="lineNum">     859 </span>            :   ASMJIT_INST_3x(mls, Mls_v, Vec, Vec, Vec);</a>
+<a name="860"><span class="lineNum">     860 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(mov, Mov_v, Vec, Vec);</span></a>
+<a name="861"><span class="lineNum">     861 </span>            :   ASMJIT_INST_2x(mov, Mov_v, Gp, Vec);</a>
+<a name="862"><span class="lineNum">     862 </span>            :   ASMJIT_INST_2x(mov, Mov_v, Vec, Gp);</a>
+<a name="863"><span class="lineNum">     863 </span>            :   ASMJIT_INST_2x(movi, Movi_v, Vec, Imm);</a>
+<a name="864"><span class="lineNum">     864 </span>            :   ASMJIT_INST_3x(movi, Movi_v, Vec, Imm, Imm);</a>
+<a name="865"><span class="lineNum">     865 </span>            :   ASMJIT_INST_3x(mul, Mul_v, Vec, Vec, Vec);</a>
+<a name="866"><span class="lineNum">     866 </span>            :   ASMJIT_INST_2x(mvn, Mvn_v, Vec, Vec);</a>
+<a name="867"><span class="lineNum">     867 </span>            :   ASMJIT_INST_2x(mvni, Mvni_v, Vec, Imm);</a>
+<a name="868"><span class="lineNum">     868 </span>            :   ASMJIT_INST_3x(mvni, Mvni_v, Vec, Imm, Imm);</a>
+<a name="869"><span class="lineNum">     869 </span>            :   ASMJIT_INST_2x(neg, Neg_v, Vec, Vec);</a>
+<a name="870"><span class="lineNum">     870 </span>            :   ASMJIT_INST_2x(not_, Not_v, Vec, Vec);</a>
+<a name="871"><span class="lineNum">     871 </span>            :   ASMJIT_INST_3x(orn, Orn_v, Vec, Vec, Vec);</a>
+<a name="872"><span class="lineNum">     872 </span>            :   ASMJIT_INST_2x(orr, Orr_v, Vec, Imm);</a>
+<a name="873"><span class="lineNum">     873 </span>            :   ASMJIT_INST_3x(orr, Orr_v, Vec, Vec, Vec);</a>
+<a name="874"><span class="lineNum">     874 </span>            :   ASMJIT_INST_3x(orr, Orr_v, Vec, Imm, Imm);</a>
+<a name="875"><span class="lineNum">     875 </span>            :   ASMJIT_INST_3x(pmul, Pmul_v, Vec, Vec, Vec);</a>
+<a name="876"><span class="lineNum">     876 </span>            :   ASMJIT_INST_3x(pmull, Pmull_v, Vec, Vec, Vec);</a>
+<a name="877"><span class="lineNum">     877 </span>            :   ASMJIT_INST_3x(pmull2, Pmull2_v, Vec, Vec, Vec);</a>
+<a name="878"><span class="lineNum">     878 </span>            :   ASMJIT_INST_3x(raddhn, Raddhn_v, Vec, Vec, Vec);</a>
+<a name="879"><span class="lineNum">     879 </span>            :   ASMJIT_INST_3x(raddhn2, Raddhn2_v, Vec, Vec, Vec);</a>
+<a name="880"><span class="lineNum">     880 </span>            :   ASMJIT_INST_2x(rbit, Rbit_v, Vec, Vec);</a>
+<a name="881"><span class="lineNum">     881 </span>            :   ASMJIT_INST_2x(rev16, Rev16_v, Vec, Vec);</a>
+<a name="882"><span class="lineNum">     882 </span>            :   ASMJIT_INST_2x(rev32, Rev32_v, Vec, Vec);</a>
+<a name="883"><span class="lineNum">     883 </span>            :   ASMJIT_INST_2x(rev64, Rev64_v, Vec, Vec);</a>
+<a name="884"><span class="lineNum">     884 </span>            :   ASMJIT_INST_3x(rshrn, Rshrn_v, Vec, Vec, Imm);</a>
+<a name="885"><span class="lineNum">     885 </span>            :   ASMJIT_INST_3x(rshrn2, Rshrn2_v, Vec, Vec, Imm);</a>
+<a name="886"><span class="lineNum">     886 </span>            :   ASMJIT_INST_3x(rsubhn, Rsubhn_v, Vec, Vec, Vec);</a>
+<a name="887"><span class="lineNum">     887 </span>            :   ASMJIT_INST_3x(rsubhn2, Rsubhn2_v, Vec, Vec, Vec);</a>
+<a name="888"><span class="lineNum">     888 </span>            :   ASMJIT_INST_3x(saba, Saba_v, Vec, Vec, Vec);</a>
+<a name="889"><span class="lineNum">     889 </span>            :   ASMJIT_INST_3x(sabal, Sabal_v, Vec, Vec, Vec);</a>
+<a name="890"><span class="lineNum">     890 </span>            :   ASMJIT_INST_3x(sabal2, Sabal2_v, Vec, Vec, Vec);</a>
+<a name="891"><span class="lineNum">     891 </span>            :   ASMJIT_INST_3x(sabd, Sabd_v, Vec, Vec, Vec);</a>
+<a name="892"><span class="lineNum">     892 </span>            :   ASMJIT_INST_3x(sabdl, Sabdl_v, Vec, Vec, Vec);</a>
+<a name="893"><span class="lineNum">     893 </span>            :   ASMJIT_INST_3x(sabdl2, Sabdl2_v, Vec, Vec, Vec);</a>
+<a name="894"><span class="lineNum">     894 </span>            :   ASMJIT_INST_2x(sadalp, Sadalp_v, Vec, Vec);</a>
+<a name="895"><span class="lineNum">     895 </span>            :   ASMJIT_INST_3x(saddl, Saddl_v, Vec, Vec, Vec);</a>
+<a name="896"><span class="lineNum">     896 </span>            :   ASMJIT_INST_3x(saddl2, Saddl2_v, Vec, Vec, Vec);</a>
+<a name="897"><span class="lineNum">     897 </span>            :   ASMJIT_INST_2x(saddlp, Saddlp_v, Vec, Vec);</a>
+<a name="898"><span class="lineNum">     898 </span>            :   ASMJIT_INST_2x(saddlv, Saddlv_v, Vec, Vec);</a>
+<a name="899"><span class="lineNum">     899 </span>            :   ASMJIT_INST_3x(saddw, Saddw_v, Vec, Vec, Vec);</a>
+<a name="900"><span class="lineNum">     900 </span>            :   ASMJIT_INST_3x(saddw2, Saddw2_v, Vec, Vec, Vec);</a>
+<a name="901"><span class="lineNum">     901 </span>            :   ASMJIT_INST_2x(scvtf, Scvtf_v, Vec, Gp);</a>
+<a name="902"><span class="lineNum">     902 </span>            :   ASMJIT_INST_3x(scvtf, Scvtf_v, Vec, Gp, Imm);</a>
+<a name="903"><span class="lineNum">     903 </span>            :   ASMJIT_INST_2x(scvtf, Scvtf_v, Vec, Vec);</a>
+<a name="904"><span class="lineNum">     904 </span>            :   ASMJIT_INST_3x(scvtf, Scvtf_v, Vec, Vec, Imm);</a>
+<a name="905"><span class="lineNum">     905 </span>            :   ASMJIT_INST_3x(shadd, Shadd_v, Vec, Vec, Vec);</a>
+<a name="906"><span class="lineNum">     906 </span>            :   ASMJIT_INST_3x(shl, Shl_v, Vec, Vec, Imm);</a>
+<a name="907"><span class="lineNum">     907 </span>            :   ASMJIT_INST_3x(shll, Shll_v, Vec, Vec, Imm);</a>
+<a name="908"><span class="lineNum">     908 </span>            :   ASMJIT_INST_3x(shll2, Shll2_v, Vec, Vec, Imm);</a>
+<a name="909"><span class="lineNum">     909 </span>            :   ASMJIT_INST_3x(shrn, Shrn_v, Vec, Vec, Imm);</a>
+<a name="910"><span class="lineNum">     910 </span>            :   ASMJIT_INST_3x(shrn2, Shrn2_v, Vec, Vec, Imm);</a>
+<a name="911"><span class="lineNum">     911 </span>            :   ASMJIT_INST_3x(shsub, Shsub_v, Vec, Vec, Vec);</a>
+<a name="912"><span class="lineNum">     912 </span>            :   ASMJIT_INST_3x(sli, Sli_v, Vec, Vec, Imm);</a>
+<a name="913"><span class="lineNum">     913 </span>            :   ASMJIT_INST_3x(smax, Smax_v, Vec, Vec, Vec);</a>
+<a name="914"><span class="lineNum">     914 </span>            :   ASMJIT_INST_3x(smaxp, Smaxp_v, Vec, Vec, Vec);</a>
+<a name="915"><span class="lineNum">     915 </span>            :   ASMJIT_INST_2x(smaxv, Smaxv_v, Vec, Vec);</a>
+<a name="916"><span class="lineNum">     916 </span>            :   ASMJIT_INST_3x(smin, Smin_v, Vec, Vec, Vec);</a>
+<a name="917"><span class="lineNum">     917 </span>            :   ASMJIT_INST_3x(sminp, Sminp_v, Vec, Vec, Vec);</a>
+<a name="918"><span class="lineNum">     918 </span>            :   ASMJIT_INST_2x(sminv, Sminv_v, Vec, Vec);</a>
+<a name="919"><span class="lineNum">     919 </span>            :   ASMJIT_INST_3x(smlal, Smlal_v, Vec, Vec, Vec);</a>
+<a name="920"><span class="lineNum">     920 </span>            :   ASMJIT_INST_3x(smlal2, Smlal2_v, Vec, Vec, Vec);</a>
+<a name="921"><span class="lineNum">     921 </span>            :   ASMJIT_INST_3x(smlsl, Smlsl_v, Vec, Vec, Vec);</a>
+<a name="922"><span class="lineNum">     922 </span>            :   ASMJIT_INST_3x(smlsl2, Smlsl2_v, Vec, Vec, Vec);</a>
+<a name="923"><span class="lineNum">     923 </span>            :   ASMJIT_INST_2x(smov, Smov_v, Gp, Vec);</a>
+<a name="924"><span class="lineNum">     924 </span>            :   ASMJIT_INST_3x(smull, Smull_v, Vec, Vec, Vec);</a>
+<a name="925"><span class="lineNum">     925 </span>            :   ASMJIT_INST_3x(smull2, Smull2_v, Vec, Vec, Vec);</a>
+<a name="926"><span class="lineNum">     926 </span>            :   ASMJIT_INST_2x(sqabs, Sqabs_v, Vec, Vec);</a>
+<a name="927"><span class="lineNum">     927 </span>            :   ASMJIT_INST_3x(sqadd, Sqadd_v, Vec, Vec, Vec);</a>
+<a name="928"><span class="lineNum">     928 </span>            :   ASMJIT_INST_3x(sqdmlal, Sqdmlal_v, Vec, Vec, Vec);</a>
+<a name="929"><span class="lineNum">     929 </span>            :   ASMJIT_INST_3x(sqdmlal2, Sqdmlal2_v, Vec, Vec, Vec);</a>
+<a name="930"><span class="lineNum">     930 </span>            :   ASMJIT_INST_3x(sqdmlsl, Sqdmlsl_v, Vec, Vec, Vec);</a>
+<a name="931"><span class="lineNum">     931 </span>            :   ASMJIT_INST_3x(sqdmlsl2, Sqdmlsl2_v, Vec, Vec, Vec);</a>
+<a name="932"><span class="lineNum">     932 </span>            :   ASMJIT_INST_3x(sqdmulh, Sqdmulh_v, Vec, Vec, Vec);</a>
+<a name="933"><span class="lineNum">     933 </span>            :   ASMJIT_INST_3x(sqdmull, Sqdmull_v, Vec, Vec, Vec);</a>
+<a name="934"><span class="lineNum">     934 </span>            :   ASMJIT_INST_3x(sqdmull2, Sqdmull2_v, Vec, Vec, Vec);</a>
+<a name="935"><span class="lineNum">     935 </span>            :   ASMJIT_INST_2x(sqneg, Sqneg_v, Vec, Vec);</a>
+<a name="936"><span class="lineNum">     936 </span>            :   ASMJIT_INST_3x(sqrdmulh, Sqrdmulh_v, Vec, Vec, Vec);</a>
+<a name="937"><span class="lineNum">     937 </span>            :   ASMJIT_INST_3x(sqrshl, Sqrshl_v, Vec, Vec, Vec);</a>
+<a name="938"><span class="lineNum">     938 </span>            :   ASMJIT_INST_3x(sqrshrn, Sqrshrn_v, Vec, Vec, Imm);</a>
+<a name="939"><span class="lineNum">     939 </span>            :   ASMJIT_INST_3x(sqrshrn2, Sqrshrn2_v, Vec, Vec, Imm);</a>
+<a name="940"><span class="lineNum">     940 </span>            :   ASMJIT_INST_3x(sqrshrun, Sqrshrun_v, Vec, Vec, Imm);</a>
+<a name="941"><span class="lineNum">     941 </span>            :   ASMJIT_INST_3x(sqrshrun2, Sqrshrun2_v, Vec, Vec, Imm);</a>
+<a name="942"><span class="lineNum">     942 </span>            :   ASMJIT_INST_3x(sqshl, Sqshl_v, Vec, Vec, Vec);</a>
+<a name="943"><span class="lineNum">     943 </span>            :   ASMJIT_INST_3x(sqshl, Sqshl_v, Vec, Vec, Imm);</a>
+<a name="944"><span class="lineNum">     944 </span>            :   ASMJIT_INST_3x(sqshlu, Sqshlu_v, Vec, Vec, Imm);</a>
+<a name="945"><span class="lineNum">     945 </span>            :   ASMJIT_INST_3x(sqshrn, Sqshrn_v, Vec, Vec, Imm);</a>
+<a name="946"><span class="lineNum">     946 </span>            :   ASMJIT_INST_3x(sqshrn2, Sqshrn2_v, Vec, Vec, Imm);</a>
+<a name="947"><span class="lineNum">     947 </span>            :   ASMJIT_INST_3x(sqshrun, Sqshrun_v, Vec, Vec, Imm);</a>
+<a name="948"><span class="lineNum">     948 </span>            :   ASMJIT_INST_3x(sqshrun2, Sqshrun2_v, Vec, Vec, Imm);</a>
+<a name="949"><span class="lineNum">     949 </span>            :   ASMJIT_INST_3x(sqsub, Sqsub_v, Vec, Vec, Vec);</a>
+<a name="950"><span class="lineNum">     950 </span>            :   ASMJIT_INST_2x(sqxtn, Sqxtn_v, Vec, Vec);</a>
+<a name="951"><span class="lineNum">     951 </span>            :   ASMJIT_INST_2x(sqxtn2, Sqxtn2_v, Vec, Vec);</a>
+<a name="952"><span class="lineNum">     952 </span>            :   ASMJIT_INST_2x(sqxtun, Sqxtun_v, Vec, Vec);</a>
+<a name="953"><span class="lineNum">     953 </span>            :   ASMJIT_INST_2x(sqxtun2, Sqxtun2_v, Vec, Vec);</a>
+<a name="954"><span class="lineNum">     954 </span>            :   ASMJIT_INST_3x(srhadd, Srhadd_v, Vec, Vec, Vec);</a>
+<a name="955"><span class="lineNum">     955 </span>            :   ASMJIT_INST_3x(sri, Sri_v, Vec, Vec, Imm);</a>
+<a name="956"><span class="lineNum">     956 </span>            :   ASMJIT_INST_3x(srshl, Srshl_v, Vec, Vec, Vec);</a>
+<a name="957"><span class="lineNum">     957 </span>            :   ASMJIT_INST_3x(srshr, Srshr_v, Vec, Vec, Imm);</a>
+<a name="958"><span class="lineNum">     958 </span>            :   ASMJIT_INST_3x(srsra, Srsra_v, Vec, Vec, Imm);</a>
+<a name="959"><span class="lineNum">     959 </span>            :   ASMJIT_INST_3x(sshl, Sshl_v, Vec, Vec, Vec);</a>
+<a name="960"><span class="lineNum">     960 </span>            :   ASMJIT_INST_3x(sshll, Sshll_v, Vec, Vec, Imm);</a>
+<a name="961"><span class="lineNum">     961 </span>            :   ASMJIT_INST_3x(sshll2, Sshll2_v, Vec, Vec, Imm);</a>
+<a name="962"><span class="lineNum">     962 </span>            :   ASMJIT_INST_3x(sshr, Sshr_v, Vec, Vec, Imm);</a>
+<a name="963"><span class="lineNum">     963 </span>            :   ASMJIT_INST_3x(ssra, Ssra_v, Vec, Vec, Imm);</a>
+<a name="964"><span class="lineNum">     964 </span>            :   ASMJIT_INST_3x(ssubl, Ssubl_v, Vec, Vec, Vec);</a>
+<a name="965"><span class="lineNum">     965 </span>            :   ASMJIT_INST_3x(ssubl2, Ssubl2_v, Vec, Vec, Vec);</a>
+<a name="966"><span class="lineNum">     966 </span>            :   ASMJIT_INST_3x(ssubw, Ssubw_v, Vec, Vec, Vec);</a>
+<a name="967"><span class="lineNum">     967 </span>            :   ASMJIT_INST_3x(ssubw2, Ssubw2_v, Vec, Vec, Vec);</a>
+<a name="968"><span class="lineNum">     968 </span>            :   ASMJIT_INST_2x(st1, St1_v, Vec, Mem);</a>
+<a name="969"><span class="lineNum">     969 </span>            :   ASMJIT_INST_3x(st1, St1_v, Vec, Vec, Mem);</a>
+<a name="970"><span class="lineNum">     970 </span>            :   ASMJIT_INST_4x(st1, St1_v, Vec, Vec, Vec, Mem);</a>
+<a name="971"><span class="lineNum">     971 </span>            :   ASMJIT_INST_5x(st1, St1_v, Vec, Vec, Vec, Vec, Mem);</a>
+<a name="972"><span class="lineNum">     972 </span>            :   ASMJIT_INST_3x(st2, St2_v, Vec, Vec, Mem);</a>
+<a name="973"><span class="lineNum">     973 </span>            :   ASMJIT_INST_4x(st3, St3_v, Vec, Vec, Vec, Mem);</a>
+<a name="974"><span class="lineNum">     974 </span>            :   ASMJIT_INST_5x(st4, St4_v, Vec, Vec, Vec, Vec, Mem);</a>
+<a name="975"><span class="lineNum">     975 </span>            :   ASMJIT_INST_3x(stnp, Stnp_v, Vec, Vec, Mem);</a>
+<a name="976"><span class="lineNum">     976 </span>            :   ASMJIT_INST_3x(stp, Stp_v, Vec, Vec, Mem);</a>
+<a name="977"><span class="lineNum">     977 </span><span class="lineNoCov">          0 :   ASMJIT_INST_2x(str, Str_v, Vec, Mem);</span></a>
+<a name="978"><span class="lineNum">     978 </span>            :   ASMJIT_INST_2x(stur, Stur_v, Vec, Mem);</a>
+<a name="979"><span class="lineNum">     979 </span>            :   ASMJIT_INST_3x(sub, Sub_v, Vec, Vec, Vec);</a>
+<a name="980"><span class="lineNum">     980 </span>            :   ASMJIT_INST_3x(subhn, Subhn_v, Vec, Vec, Vec);</a>
+<a name="981"><span class="lineNum">     981 </span>            :   ASMJIT_INST_3x(subhn2, Subhn2_v, Vec, Vec, Vec);</a>
+<a name="982"><span class="lineNum">     982 </span>            :   ASMJIT_INST_2x(suqadd, Suqadd_v, Vec, Vec);</a>
+<a name="983"><span class="lineNum">     983 </span>            :   ASMJIT_INST_2x(sxtl, Sxtl_v, Vec, Vec);</a>
+<a name="984"><span class="lineNum">     984 </span>            :   ASMJIT_INST_2x(sxtl2, Sxtl2_v, Vec, Vec);</a>
+<a name="985"><span class="lineNum">     985 </span>            :   ASMJIT_INST_3x(tbl, Tbl_v, Vec, Vec, Vec);</a>
+<a name="986"><span class="lineNum">     986 </span>            :   ASMJIT_INST_4x(tbl, Tbl_v, Vec, Vec, Vec, Vec);</a>
+<a name="987"><span class="lineNum">     987 </span>            :   ASMJIT_INST_5x(tbl, Tbl_v, Vec, Vec, Vec, Vec, Vec);</a>
+<a name="988"><span class="lineNum">     988 </span>            :   ASMJIT_INST_6x(tbl, Tbl_v, Vec, Vec, Vec, Vec, Vec, Vec);</a>
+<a name="989"><span class="lineNum">     989 </span>            :   ASMJIT_INST_3x(tbx, Tbx_v, Vec, Vec, Vec);</a>
+<a name="990"><span class="lineNum">     990 </span>            :   ASMJIT_INST_4x(tbx, Tbx_v, Vec, Vec, Vec, Vec);</a>
+<a name="991"><span class="lineNum">     991 </span>            :   ASMJIT_INST_5x(tbx, Tbx_v, Vec, Vec, Vec, Vec, Vec);</a>
+<a name="992"><span class="lineNum">     992 </span>            :   ASMJIT_INST_6x(tbx, Tbx_v, Vec, Vec, Vec, Vec, Vec, Vec);</a>
+<a name="993"><span class="lineNum">     993 </span>            :   ASMJIT_INST_3x(trn1, Trn1_v, Vec, Vec, Vec);</a>
+<a name="994"><span class="lineNum">     994 </span>            :   ASMJIT_INST_3x(trn2, Trn2_v, Vec, Vec, Vec);</a>
+<a name="995"><span class="lineNum">     995 </span>            :   ASMJIT_INST_3x(uaba, Uaba_v, Vec, Vec, Vec);</a>
+<a name="996"><span class="lineNum">     996 </span>            :   ASMJIT_INST_3x(uabal, Uabal_v, Vec, Vec, Vec);</a>
+<a name="997"><span class="lineNum">     997 </span>            :   ASMJIT_INST_3x(uabal2, Uabal2_v, Vec, Vec, Vec);</a>
+<a name="998"><span class="lineNum">     998 </span>            :   ASMJIT_INST_3x(uabd, Uabd_v, Vec, Vec, Vec);</a>
+<a name="999"><span class="lineNum">     999 </span>            :   ASMJIT_INST_3x(uabdl, Uabdl_v, Vec, Vec, Vec);</a>
+<a name="1000"><span class="lineNum">    1000 </span>            :   ASMJIT_INST_3x(uabdl2, Uabdl2_v, Vec, Vec, Vec);</a>
+<a name="1001"><span class="lineNum">    1001 </span>            :   ASMJIT_INST_2x(uadalp, Uadalp_v, Vec, Vec);</a>
+<a name="1002"><span class="lineNum">    1002 </span>            :   ASMJIT_INST_3x(uaddl, Uaddl_v, Vec, Vec, Vec);</a>
+<a name="1003"><span class="lineNum">    1003 </span>            :   ASMJIT_INST_3x(uaddl2, Uaddl2_v, Vec, Vec, Vec);</a>
+<a name="1004"><span class="lineNum">    1004 </span>            :   ASMJIT_INST_2x(uaddlp, Uaddlp_v, Vec, Vec);</a>
+<a name="1005"><span class="lineNum">    1005 </span>            :   ASMJIT_INST_2x(uaddlv, Uaddlv_v, Vec, Vec);</a>
+<a name="1006"><span class="lineNum">    1006 </span>            :   ASMJIT_INST_3x(uaddw, Uaddw_v, Vec, Vec, Vec);</a>
+<a name="1007"><span class="lineNum">    1007 </span>            :   ASMJIT_INST_3x(uaddw2, Uaddw2_v, Vec, Vec, Vec);</a>
+<a name="1008"><span class="lineNum">    1008 </span>            :   ASMJIT_INST_2x(ucvtf, Ucvtf_v, Vec, Gp);</a>
+<a name="1009"><span class="lineNum">    1009 </span>            :   ASMJIT_INST_3x(ucvtf, Ucvtf_v, Vec, Gp, Imm);</a>
+<a name="1010"><span class="lineNum">    1010 </span>            :   ASMJIT_INST_2x(ucvtf, Ucvtf_v, Vec, Vec);</a>
+<a name="1011"><span class="lineNum">    1011 </span>            :   ASMJIT_INST_3x(ucvtf, Ucvtf_v, Vec, Vec, Imm);</a>
+<a name="1012"><span class="lineNum">    1012 </span>            :   ASMJIT_INST_3x(uhadd, Uhadd_v, Vec, Vec, Vec);</a>
+<a name="1013"><span class="lineNum">    1013 </span>            :   ASMJIT_INST_3x(uhsub, Uhsub_v, Vec, Vec, Vec);</a>
+<a name="1014"><span class="lineNum">    1014 </span>            :   ASMJIT_INST_3x(umax, Umax_v, Vec, Vec, Vec);</a>
+<a name="1015"><span class="lineNum">    1015 </span>            :   ASMJIT_INST_3x(umaxp, Umaxp_v, Vec, Vec, Vec);</a>
+<a name="1016"><span class="lineNum">    1016 </span>            :   ASMJIT_INST_2x(umaxv, Umaxv_v, Vec, Vec);</a>
+<a name="1017"><span class="lineNum">    1017 </span>            :   ASMJIT_INST_3x(umin, Umin_v, Vec, Vec, Vec);</a>
+<a name="1018"><span class="lineNum">    1018 </span>            :   ASMJIT_INST_3x(uminp, Uminp_v, Vec, Vec, Vec);</a>
+<a name="1019"><span class="lineNum">    1019 </span>            :   ASMJIT_INST_2x(uminv, Uminv_v, Vec, Vec);</a>
+<a name="1020"><span class="lineNum">    1020 </span>            :   ASMJIT_INST_3x(umlal, Umlal_v, Vec, Vec, Vec);</a>
+<a name="1021"><span class="lineNum">    1021 </span>            :   ASMJIT_INST_3x(umlal2, Umlal2_v, Vec, Vec, Vec);</a>
+<a name="1022"><span class="lineNum">    1022 </span>            :   ASMJIT_INST_3x(umlsl, Umlsl_v, Vec, Vec, Vec);</a>
+<a name="1023"><span class="lineNum">    1023 </span>            :   ASMJIT_INST_3x(umlsl2, Umlsl2_v, Vec, Vec, Vec);</a>
+<a name="1024"><span class="lineNum">    1024 </span>            :   ASMJIT_INST_2x(umov, Umov_v, Gp, Vec);</a>
+<a name="1025"><span class="lineNum">    1025 </span>            :   ASMJIT_INST_3x(umull, Umull_v, Vec, Vec, Vec);</a>
+<a name="1026"><span class="lineNum">    1026 </span>            :   ASMJIT_INST_3x(umull2, Umull2_v, Vec, Vec, Vec);</a>
+<a name="1027"><span class="lineNum">    1027 </span>            :   ASMJIT_INST_3x(uqadd, Uqadd_v, Vec, Vec, Vec);</a>
+<a name="1028"><span class="lineNum">    1028 </span>            :   ASMJIT_INST_3x(uqrshl, Uqrshl_v, Vec, Vec, Vec);</a>
+<a name="1029"><span class="lineNum">    1029 </span>            :   ASMJIT_INST_3x(uqrshl, Uqrshl_v, Vec, Vec, Imm);</a>
+<a name="1030"><span class="lineNum">    1030 </span>            :   ASMJIT_INST_3x(uqrshrn, Uqrshrn_v, Vec, Vec, Imm);</a>
+<a name="1031"><span class="lineNum">    1031 </span>            :   ASMJIT_INST_3x(uqrshrn2, Uqrshrn2_v, Vec, Vec, Imm);</a>
+<a name="1032"><span class="lineNum">    1032 </span>            :   ASMJIT_INST_3x(uqshl, Uqshl_v, Vec, Vec, Vec);</a>
+<a name="1033"><span class="lineNum">    1033 </span>            :   ASMJIT_INST_3x(uqshl, Uqshl_v, Vec, Vec, Imm);</a>
+<a name="1034"><span class="lineNum">    1034 </span>            :   ASMJIT_INST_3x(uqshrn, Uqshrn_v, Vec, Vec, Imm);</a>
+<a name="1035"><span class="lineNum">    1035 </span>            :   ASMJIT_INST_3x(uqshrn2, Uqshrn2_v, Vec, Vec, Imm);</a>
+<a name="1036"><span class="lineNum">    1036 </span>            :   ASMJIT_INST_3x(uqsub, Uqsub_v, Vec, Vec, Vec);</a>
+<a name="1037"><span class="lineNum">    1037 </span>            :   ASMJIT_INST_2x(uqxtn, Uqxtn_v, Vec, Vec);</a>
+<a name="1038"><span class="lineNum">    1038 </span>            :   ASMJIT_INST_2x(uqxtn2, Uqxtn2_v, Vec, Vec);</a>
+<a name="1039"><span class="lineNum">    1039 </span>            :   ASMJIT_INST_2x(urecpe, Urecpe_v, Vec, Vec);</a>
+<a name="1040"><span class="lineNum">    1040 </span>            :   ASMJIT_INST_3x(urhadd, Urhadd_v, Vec, Vec, Vec);</a>
+<a name="1041"><span class="lineNum">    1041 </span>            :   ASMJIT_INST_3x(urshl, Urshl_v, Vec, Vec, Vec);</a>
+<a name="1042"><span class="lineNum">    1042 </span>            :   ASMJIT_INST_3x(urshr, Urshr_v, Vec, Vec, Imm);</a>
+<a name="1043"><span class="lineNum">    1043 </span>            :   ASMJIT_INST_2x(ursqrte, Ursqrte_v, Vec, Vec);</a>
+<a name="1044"><span class="lineNum">    1044 </span>            :   ASMJIT_INST_3x(ursra, Ursra_v, Vec, Vec, Imm);</a>
+<a name="1045"><span class="lineNum">    1045 </span>            :   ASMJIT_INST_3x(ushl, Ushl_v, Vec, Vec, Vec);</a>
+<a name="1046"><span class="lineNum">    1046 </span>            :   ASMJIT_INST_3x(ushll, Ushll_v, Vec, Vec, Imm);</a>
+<a name="1047"><span class="lineNum">    1047 </span>            :   ASMJIT_INST_3x(ushll2, Ushll2_v, Vec, Vec, Imm);</a>
+<a name="1048"><span class="lineNum">    1048 </span>            :   ASMJIT_INST_3x(ushr, Ushr_v, Vec, Vec, Imm);</a>
+<a name="1049"><span class="lineNum">    1049 </span>            :   ASMJIT_INST_2x(usqadd, Usqadd_v, Vec, Vec);</a>
+<a name="1050"><span class="lineNum">    1050 </span>            :   ASMJIT_INST_3x(usra, Usra_v, Vec, Vec, Imm);</a>
+<a name="1051"><span class="lineNum">    1051 </span>            :   ASMJIT_INST_3x(usubl, Usubl_v, Vec, Vec, Vec);</a>
+<a name="1052"><span class="lineNum">    1052 </span>            :   ASMJIT_INST_3x(usubl2, Usubl2_v, Vec, Vec, Vec);</a>
+<a name="1053"><span class="lineNum">    1053 </span>            :   ASMJIT_INST_3x(usubw, Usubw_v, Vec, Vec, Vec);</a>
+<a name="1054"><span class="lineNum">    1054 </span>            :   ASMJIT_INST_3x(usubw2, Usubw2_v, Vec, Vec, Vec);</a>
+<a name="1055"><span class="lineNum">    1055 </span>            :   ASMJIT_INST_2x(uxtl, Uxtl_v, Vec, Vec);</a>
+<a name="1056"><span class="lineNum">    1056 </span>            :   ASMJIT_INST_2x(uxtl2, Uxtl2_v, Vec, Vec);</a>
+<a name="1057"><span class="lineNum">    1057 </span>            :   ASMJIT_INST_3x(uzp1, Uzp1_v, Vec, Vec, Vec);</a>
+<a name="1058"><span class="lineNum">    1058 </span>            :   ASMJIT_INST_3x(uzp2, Uzp2_v, Vec, Vec, Vec);</a>
+<a name="1059"><span class="lineNum">    1059 </span>            :   ASMJIT_INST_2x(xtn, Xtn_v, Vec, Vec);</a>
+<a name="1060"><span class="lineNum">    1060 </span>            :   ASMJIT_INST_2x(xtn2, Xtn2_v, Vec, Vec);</a>
+<a name="1061"><span class="lineNum">    1061 </span>            :   ASMJIT_INST_3x(zip1, Zip1_v, Vec, Vec, Vec);</a>
+<a name="1062"><span class="lineNum">    1062 </span>            :   ASMJIT_INST_3x(zip2, Zip2_v, Vec, Vec, Vec);</a>
+<a name="1063"><span class="lineNum">    1063 </span>            : </a>
+<a name="1064"><span class="lineNum">    1064 </span>            :   //! \}</a>
+<a name="1065"><span class="lineNum">    1065 </span>            : </a>
+<a name="1066"><span class="lineNum">    1066 </span>            :   //! \name AES Instructions</a>
+<a name="1067"><span class="lineNum">    1067 </span>            :   //! \{</a>
+<a name="1068"><span class="lineNum">    1068 </span>            : </a>
+<a name="1069"><span class="lineNum">    1069 </span>            :   ASMJIT_INST_2x(aesd, Aesd_v, Vec, Vec);</a>
+<a name="1070"><span class="lineNum">    1070 </span>            :   ASMJIT_INST_2x(aese, Aese_v, Vec, Vec);</a>
+<a name="1071"><span class="lineNum">    1071 </span>            :   ASMJIT_INST_2x(aesimc, Aesimc_v, Vec, Vec);</a>
+<a name="1072"><span class="lineNum">    1072 </span>            :   ASMJIT_INST_2x(aesmc, Aesmc_v, Vec, Vec);</a>
+<a name="1073"><span class="lineNum">    1073 </span>            : </a>
+<a name="1074"><span class="lineNum">    1074 </span>            :   //! \}</a>
+<a name="1075"><span class="lineNum">    1075 </span>            : </a>
+<a name="1076"><span class="lineNum">    1076 </span>            :   //! \name SHA1 Instructions</a>
+<a name="1077"><span class="lineNum">    1077 </span>            :   //! \{</a>
+<a name="1078"><span class="lineNum">    1078 </span>            : </a>
+<a name="1079"><span class="lineNum">    1079 </span>            :   ASMJIT_INST_3x(sha1c, Sha1c_v, Vec, Vec, Vec);</a>
+<a name="1080"><span class="lineNum">    1080 </span>            :   ASMJIT_INST_2x(sha1h, Sha1h_v, Vec, Vec);</a>
+<a name="1081"><span class="lineNum">    1081 </span>            :   ASMJIT_INST_3x(sha1m, Sha1m_v, Vec, Vec, Vec);</a>
+<a name="1082"><span class="lineNum">    1082 </span>            :   ASMJIT_INST_3x(sha1p, Sha1p_v, Vec, Vec, Vec);</a>
+<a name="1083"><span class="lineNum">    1083 </span>            :   ASMJIT_INST_3x(sha1su0, Sha1su0_v, Vec, Vec, Vec);</a>
+<a name="1084"><span class="lineNum">    1084 </span>            :   ASMJIT_INST_2x(sha1su1, Sha1su1_v, Vec, Vec);</a>
+<a name="1085"><span class="lineNum">    1085 </span>            : </a>
+<a name="1086"><span class="lineNum">    1086 </span>            :   //! \}</a>
+<a name="1087"><span class="lineNum">    1087 </span>            : </a>
+<a name="1088"><span class="lineNum">    1088 </span>            :   //! \name SHA2 Instructions</a>
+<a name="1089"><span class="lineNum">    1089 </span>            :   //! \{</a>
+<a name="1090"><span class="lineNum">    1090 </span>            : </a>
+<a name="1091"><span class="lineNum">    1091 </span>            :   ASMJIT_INST_3x(sha256h, Sha256h_v, Vec, Vec, Vec);</a>
+<a name="1092"><span class="lineNum">    1092 </span>            :   ASMJIT_INST_3x(sha256h2, Sha256h2_v, Vec, Vec, Vec);</a>
+<a name="1093"><span class="lineNum">    1093 </span>            :   ASMJIT_INST_2x(sha256su0, Sha256su0_v, Vec, Vec);</a>
+<a name="1094"><span class="lineNum">    1094 </span>            :   ASMJIT_INST_3x(sha256su1, Sha256su1_v, Vec, Vec, Vec);</a>
+<a name="1095"><span class="lineNum">    1095 </span>            : </a>
+<a name="1096"><span class="lineNum">    1096 </span>            :   //! \}</a>
+<a name="1097"><span class="lineNum">    1097 </span>            : </a>
+<a name="1098"><span class="lineNum">    1098 </span>            :   //! \name RDMA Instructions (ARMv8.1-A)</a>
+<a name="1099"><span class="lineNum">    1099 </span>            :   //! \{</a>
+<a name="1100"><span class="lineNum">    1100 </span>            : </a>
+<a name="1101"><span class="lineNum">    1101 </span>            :   ASMJIT_INST_3x(sqrdmlah, Sqrdmlah_v, Vec, Vec, Vec);</a>
+<a name="1102"><span class="lineNum">    1102 </span>            :   ASMJIT_INST_3x(sqrdmlsh, Sqrdmlsh_v, Vec, Vec, Vec);</a>
+<a name="1103"><span class="lineNum">    1103 </span>            : </a>
+<a name="1104"><span class="lineNum">    1104 </span>            :   //! \}</a>
+<a name="1105"><span class="lineNum">    1105 </span>            : </a>
+<a name="1106"><span class="lineNum">    1106 </span>            :   //! \name FCMA Instruction (ARMv8.3-A)</a>
+<a name="1107"><span class="lineNum">    1107 </span>            :   //! \{</a>
+<a name="1108"><span class="lineNum">    1108 </span>            : </a>
+<a name="1109"><span class="lineNum">    1109 </span>            :   ASMJIT_INST_4x(fcadd, Fcadd_v, Vec, Vec, Vec, Imm);</a>
+<a name="1110"><span class="lineNum">    1110 </span>            :   ASMJIT_INST_4x(fcmla, Fcmla_v, Vec, Vec, Vec, Imm);</a>
+<a name="1111"><span class="lineNum">    1111 </span>            : </a>
+<a name="1112"><span class="lineNum">    1112 </span>            :   //! \}</a>
+<a name="1113"><span class="lineNum">    1113 </span>            : </a>
+<a name="1114"><span class="lineNum">    1114 </span>            :   //! \name FJCVTZS Instruction (ARMv8.3-A)</a>
+<a name="1115"><span class="lineNum">    1115 </span>            :   //! \{</a>
+<a name="1116"><span class="lineNum">    1116 </span>            : </a>
+<a name="1117"><span class="lineNum">    1117 </span>            :   ASMJIT_INST_2x(fjcvtzs, Fjcvtzs_v, Gp, Vec);</a>
+<a name="1118"><span class="lineNum">    1118 </span>            : </a>
+<a name="1119"><span class="lineNum">    1119 </span>            :   //! \}</a>
+<a name="1120"><span class="lineNum">    1120 </span>            : </a>
+<a name="1121"><span class="lineNum">    1121 </span>            :   //! \name FP16FML Instructions (ARMv8.4-A, optional in ARMv8.2-A)</a>
+<a name="1122"><span class="lineNum">    1122 </span>            :   //! \{</a>
+<a name="1123"><span class="lineNum">    1123 </span>            : </a>
+<a name="1124"><span class="lineNum">    1124 </span>            :   ASMJIT_INST_3x(fmlal, Fmlal_v, Vec, Vec, Vec);</a>
+<a name="1125"><span class="lineNum">    1125 </span>            :   ASMJIT_INST_3x(fmlal2, Fmlal2_v, Vec, Vec, Vec);</a>
+<a name="1126"><span class="lineNum">    1126 </span>            :   ASMJIT_INST_3x(fmlsl, Fmlsl_v, Vec, Vec, Vec);</a>
+<a name="1127"><span class="lineNum">    1127 </span>            :   ASMJIT_INST_3x(fmlsl2, Fmlsl2_v, Vec, Vec, Vec);</a>
+<a name="1128"><span class="lineNum">    1128 </span>            : </a>
+<a name="1129"><span class="lineNum">    1129 </span>            : </a>
+<a name="1130"><span class="lineNum">    1130 </span>            :   //! \}</a>
+<a name="1131"><span class="lineNum">    1131 </span>            : </a>
+<a name="1132"><span class="lineNum">    1132 </span>            :   //! \name SHA3 Instructions (ARMv8.4-A, optional in ARMv8.2-A)</a>
+<a name="1133"><span class="lineNum">    1133 </span>            :   //! \{</a>
+<a name="1134"><span class="lineNum">    1134 </span>            : </a>
+<a name="1135"><span class="lineNum">    1135 </span>            :   ASMJIT_INST_4x(bcax, Bcax_v, Vec, Vec, Vec, Vec);</a>
+<a name="1136"><span class="lineNum">    1136 </span>            :   ASMJIT_INST_4x(eor3, Eor3_v, Vec, Vec, Vec, Vec);</a>
+<a name="1137"><span class="lineNum">    1137 </span>            :   ASMJIT_INST_3x(rax1, Rax1_v, Vec, Vec, Vec);</a>
+<a name="1138"><span class="lineNum">    1138 </span>            :   ASMJIT_INST_4x(xar, Xar_v, Vec, Vec, Vec, Imm);</a>
+<a name="1139"><span class="lineNum">    1139 </span>            : </a>
+<a name="1140"><span class="lineNum">    1140 </span>            :   //! \}</a>
+<a name="1141"><span class="lineNum">    1141 </span>            : </a>
+<a name="1142"><span class="lineNum">    1142 </span>            :   //! \name SHA512 Instructions (ARMv8.4-A)</a>
+<a name="1143"><span class="lineNum">    1143 </span>            :   //! \{</a>
+<a name="1144"><span class="lineNum">    1144 </span>            : </a>
+<a name="1145"><span class="lineNum">    1145 </span>            :   ASMJIT_INST_3x(sha512h, Sha512h_v, Vec, Vec, Vec);</a>
+<a name="1146"><span class="lineNum">    1146 </span>            :   ASMJIT_INST_3x(sha512h2, Sha512h2_v, Vec, Vec, Vec);</a>
+<a name="1147"><span class="lineNum">    1147 </span>            :   ASMJIT_INST_2x(sha512su0, Sha512su0_v, Vec, Vec);</a>
+<a name="1148"><span class="lineNum">    1148 </span>            :   ASMJIT_INST_3x(sha512su1, Sha512su1_v, Vec, Vec, Vec);</a>
+<a name="1149"><span class="lineNum">    1149 </span>            : </a>
+<a name="1150"><span class="lineNum">    1150 </span>            :   //! \}</a>
+<a name="1151"><span class="lineNum">    1151 </span>            : </a>
+<a name="1152"><span class="lineNum">    1152 </span>            :   //! \name SM3 Instructions (ARMv8.4-A)</a>
+<a name="1153"><span class="lineNum">    1153 </span>            :   //! \{</a>
+<a name="1154"><span class="lineNum">    1154 </span>            : </a>
+<a name="1155"><span class="lineNum">    1155 </span>            :   ASMJIT_INST_3x(sm3partw1, Sm3partw1_v, Vec, Vec, Vec);</a>
+<a name="1156"><span class="lineNum">    1156 </span>            :   ASMJIT_INST_3x(sm3partw2, Sm3partw2_v, Vec, Vec, Vec);</a>
+<a name="1157"><span class="lineNum">    1157 </span>            :   ASMJIT_INST_4x(sm3ss1, Sm3ss1_v, Vec, Vec, Vec, Vec);</a>
+<a name="1158"><span class="lineNum">    1158 </span>            :   ASMJIT_INST_3x(sm3tt1a, Sm3tt1a_v, Vec, Vec, Vec);</a>
+<a name="1159"><span class="lineNum">    1159 </span>            :   ASMJIT_INST_3x(sm3tt1b, Sm3tt1b_v, Vec, Vec, Vec);</a>
+<a name="1160"><span class="lineNum">    1160 </span>            :   ASMJIT_INST_3x(sm3tt2a, Sm3tt2a_v, Vec, Vec, Vec);</a>
+<a name="1161"><span class="lineNum">    1161 </span>            :   ASMJIT_INST_3x(sm3tt2b, Sm3tt2b_v, Vec, Vec, Vec);</a>
+<a name="1162"><span class="lineNum">    1162 </span>            : </a>
+<a name="1163"><span class="lineNum">    1163 </span>            :   //! \}</a>
+<a name="1164"><span class="lineNum">    1164 </span>            : </a>
+<a name="1165"><span class="lineNum">    1165 </span>            :   //! \name SM4 Instructions (ARMv8.4-A)</a>
+<a name="1166"><span class="lineNum">    1166 </span>            :   //! \{</a>
+<a name="1167"><span class="lineNum">    1167 </span>            : </a>
+<a name="1168"><span class="lineNum">    1168 </span>            :   ASMJIT_INST_2x(sm4e, Sm4e_v, Vec, Vec);</a>
+<a name="1169"><span class="lineNum">    1169 </span>            :   ASMJIT_INST_3x(sm4ekey, Sm4ekey_v, Vec, Vec, Vec);</a>
+<a name="1170"><span class="lineNum">    1170 </span>            : </a>
+<a name="1171"><span class="lineNum">    1171 </span>            :   //! \}</a>
+<a name="1172"><span class="lineNum">    1172 </span>            : </a>
+<a name="1173"><span class="lineNum">    1173 </span>            :   //! \name DOTPROD Instructions (ARMv8.4-A, optional in ARMv8.2-A)</a>
+<a name="1174"><span class="lineNum">    1174 </span>            :   //! \{</a>
+<a name="1175"><span class="lineNum">    1175 </span>            : </a>
+<a name="1176"><span class="lineNum">    1176 </span>            :   ASMJIT_INST_3x(sdot, Sdot_v, Vec, Vec, Vec);</a>
+<a name="1177"><span class="lineNum">    1177 </span>            :   ASMJIT_INST_3x(udot, Udot_v, Vec, Vec, Vec);</a>
+<a name="1178"><span class="lineNum">    1178 </span>            : </a>
+<a name="1179"><span class="lineNum">    1179 </span>            :   //! \}</a>
+<a name="1180"><span class="lineNum">    1180 </span>            : </a>
+<a name="1181"><span class="lineNum">    1181 </span>            :   //! \name BF16 Instructions (ARMv8.6-A)</a>
+<a name="1182"><span class="lineNum">    1182 </span>            :   //! \{</a>
+<a name="1183"><span class="lineNum">    1183 </span>            : </a>
+<a name="1184"><span class="lineNum">    1184 </span>            :   ASMJIT_INST_2x(bfcvt, Bfcvt_v, Vec, Vec);</a>
+<a name="1185"><span class="lineNum">    1185 </span>            :   ASMJIT_INST_2x(bfcvtn, Bfcvtn_v, Vec, Vec);</a>
+<a name="1186"><span class="lineNum">    1186 </span>            :   ASMJIT_INST_2x(bfcvtn2, Bfcvtn2_v, Vec, Vec);</a>
+<a name="1187"><span class="lineNum">    1187 </span>            :   ASMJIT_INST_3x(bfmlalb, Bfmlalb_v, Vec, Vec, Vec);</a>
+<a name="1188"><span class="lineNum">    1188 </span>            :   ASMJIT_INST_3x(bfmlalt, Bfmlalt_v, Vec, Vec, Vec);</a>
+<a name="1189"><span class="lineNum">    1189 </span>            :   ASMJIT_INST_3x(bfmmla, Bfmmla_v, Vec, Vec, Vec);</a>
+<a name="1190"><span class="lineNum">    1190 </span>            :   ASMJIT_INST_3x(bfdot, Bfdot_v, Vec, Vec, Vec);</a>
+<a name="1191"><span class="lineNum">    1191 </span>            : </a>
+<a name="1192"><span class="lineNum">    1192 </span>            :   //! \}</a>
+<a name="1193"><span class="lineNum">    1193 </span>            : </a>
+<a name="1194"><span class="lineNum">    1194 </span>            :   //! \name I8MM Instructions (ARMv8.6-A)</a>
+<a name="1195"><span class="lineNum">    1195 </span>            :   //! \{</a>
+<a name="1196"><span class="lineNum">    1196 </span>            : </a>
+<a name="1197"><span class="lineNum">    1197 </span>            :   ASMJIT_INST_3x(smmla, Smmla_v, Vec, Vec, Vec);</a>
+<a name="1198"><span class="lineNum">    1198 </span>            :   ASMJIT_INST_3x(sudot, Sudot_v, Vec, Vec, Vec);</a>
+<a name="1199"><span class="lineNum">    1199 </span>            :   ASMJIT_INST_3x(ummla, Ummla_v, Vec, Vec, Vec);</a>
+<a name="1200"><span class="lineNum">    1200 </span>            :   ASMJIT_INST_3x(usdot, Usdot_v, Vec, Vec, Vec);</a>
+<a name="1201"><span class="lineNum">    1201 </span>            :   ASMJIT_INST_3x(usmmla, Usmmla_v, Vec, Vec, Vec);</a>
+<a name="1202"><span class="lineNum">    1202 </span>            : </a>
+<a name="1203"><span class="lineNum">    1203 </span>            :   //! \}</a>
+<a name="1204"><span class="lineNum">    1204 </span>            : };</a>
+<a name="1205"><span class="lineNum">    1205 </span>            : </a>
+<a name="1206"><span class="lineNum">    1206 </span>            : //! Emitter (ARM).</a>
+<a name="1207"><span class="lineNum">    1207 </span>            : //!</a>
+<a name="1208"><span class="lineNum">    1208 </span>            : //! \note This class cannot be instantiated, you can only cast to it and use it as emitter that emits to either</a>
+<a name="1209"><span class="lineNum">    1209 </span>            : //! `a64::Assembler`, `a64::Builder`, or `a64::Compiler` (use with caution with `a64::Compiler` as it requires</a>
+<a name="1210"><span class="lineNum">    1210 </span>            : //! virtual registers).</a>
+<a name="1211"><span class="lineNum">    1211 </span>            : class Emitter : public BaseEmitter, public EmitterExplicitT&lt;Emitter&gt; {</a>
+<a name="1212"><span class="lineNum">    1212 </span>            :   ASMJIT_NONCONSTRUCTIBLE(Emitter)</a>
+<a name="1213"><span class="lineNum">    1213 </span>            : };</a>
+<a name="1214"><span class="lineNum">    1214 </span>            : </a>
+<a name="1215"><span class="lineNum">    1215 </span>            : //! \}</a>
+<a name="1216"><span class="lineNum">    1216 </span>            : </a>
+<a name="1217"><span class="lineNum">    1217 </span>            : #undef ASMJIT_INST_0x</a>
+<a name="1218"><span class="lineNum">    1218 </span>            : #undef ASMJIT_INST_1x</a>
+<a name="1219"><span class="lineNum">    1219 </span>            : #undef ASMJIT_INST_2x</a>
+<a name="1220"><span class="lineNum">    1220 </span>            : #undef ASMJIT_INST_3x</a>
+<a name="1221"><span class="lineNum">    1221 </span>            : #undef ASMJIT_INST_4x</a>
+<a name="1222"><span class="lineNum">    1222 </span>            : #undef ASMJIT_INST_5x</a>
+<a name="1223"><span class="lineNum">    1223 </span>            : #undef ASMJIT_INST_6x</a>
+<a name="1224"><span class="lineNum">    1224 </span>            : #undef ASMJIT_INST_1cc</a>
+<a name="1225"><span class="lineNum">    1225 </span>            : </a>
+<a name="1226"><span class="lineNum">    1226 </span>            : ASMJIT_END_SUB_NAMESPACE</a>
+<a name="1227"><span class="lineNum">    1227 </span>            : </a>
+<a name="1228"><span class="lineNum">    1228 </span>            : #endif // ASMJIT_ARM_A64EMITTER_H_INCLUDED</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
