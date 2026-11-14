@@ -1,0 +1,609 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - isdb/SAXSMartini.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">isdb</a> - SAXSMartini.cpp<span style="font-size: 80%;"> (source / <a href="SAXSMartini.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">327</td>
+            <td class="headerCovTableEntry">352</td>
+            <td class="headerCovTableEntryHi">92.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-11-14 09:57:48</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2017-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : </a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;SAXS.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;core/ActionSet.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;core/GenericMolInfo.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : </a>
+<a name="27"><span class="lineNum">      27 </span>            : namespace PLMD {</a>
+<a name="28"><span class="lineNum">      28 </span>            : namespace isdb {</a>
+<a name="29"><span class="lineNum">      29 </span>            : </a>
+<a name="30"><span class="lineNum">      30 </span>            : // Martini 2.2 form factors: coefficients of the polynomial in q of each bead type,</a>
+<a name="31"><span class="lineNum">      31 </span>            : // and bead type of each atom (from the residue and atom names in MOLINFO).</a>
+<a name="32"><span class="lineNum">      32 </span><span class="lineCov">         12 : void SAXS::getMartiniFFparam(const std::vector&lt;AtomNumber&gt; &amp;atoms, std::vector&lt;std::vector&lt;long double&gt; &gt; &amp;parameter) {</span></a>
+<a name="33"><span class="lineNum">      33 </span>            :   // parameter[bead] holds the seven coefficients c_j of F(q) = sum_j c_j q^j,</a>
+<a name="34"><span class="lineNum">      34 </span>            :   // indexed by the bead enum (ALA_BB, ARG_SC1, ...). The values are the reference</a>
+<a name="35"><span class="lineNum">      35 </span>            :   // Martini 2.2 parameters: do not reorder or modify them unless updating them from a</a>
+<a name="36"><span class="lineNum">      36 </span>            :   // validated source.</a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineCov">         12 :   parameter[ALA_BB] = {9.045, -0.098114, 7.54281, -1.97438, -8.32689, 6.09318, -1.18913};</span></a>
+<a name="38"><span class="lineNum">      38 </span>            : </a>
+<a name="39"><span class="lineNum">      39 </span><span class="lineCov">         12 :   parameter[ARG_BB] = {10.729, -0.0392574, 1.15382, -0.155999, -2.43619, 1.72922, -0.33799};</span></a>
+<a name="40"><span class="lineNum">      40 </span><span class="lineCov">         12 :   parameter[ARG_SC1] = {-2.796, 0.472403, 8.07424, 4.37299, -10.7398, 4.95677, -0.725797};</span></a>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">         12 :   parameter[ARG_SC2] = {15.396, 0.0636736, -1.258, 1.93135, -4.45031, 2.49356, -0.410721};</span></a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span><span class="lineCov">         12 :   parameter[ASN_BB] = {10.738, -0.0402162, 1.03007, -0.254174, -2.12015, 1.55535, -0.30963};</span></a>
+<a name="44"><span class="lineNum">      44 </span><span class="lineCov">         12 :   parameter[ASN_SC1] = {9.249, -0.0148678, 5.52169, 0.00853212, -6.71992, 3.93622, -0.64973};</span></a>
+<a name="45"><span class="lineNum">      45 </span>            : </a>
+<a name="46"><span class="lineNum">      46 </span><span class="lineCov">         12 :   parameter[ASP_BB] = {10.695, -0.0410247, 1.03656, -0.298558, -2.06064, 1.53495, -0.308365};</span></a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">         12 :   parameter[ASP_SC1] = {9.476, -0.0254664, 5.57899, -0.395027, -5.9407, 3.48836, -0.569402};</span></a>
+<a name="48"><span class="lineNum">      48 </span>            : </a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">         12 :   parameter[CYS_BB] = {10.698, -0.0233493, 1.18257, 0.0684464, -2.792, 1.88995, -0.360229};</span></a>
+<a name="50"><span class="lineNum">      50 </span><span class="lineCov">         12 :   parameter[CYS_SC1] = {8.199, -0.0261569, 6.79677, -0.343845, -5.03578, 2.7076, -0.420714};</span></a>
+<a name="51"><span class="lineNum">      51 </span>            : </a>
+<a name="52"><span class="lineNum">      52 </span><span class="lineCov">         12 :   parameter[GLN_BB] = {10.728, -0.0391984, 1.09264, -0.261555, -2.21245, 1.62071, -0.322325};</span></a>
+<a name="53"><span class="lineNum">      53 </span><span class="lineCov">         12 :   parameter[GLN_SC1] = {8.317, -0.229045, 12.6338, -7.6719, -5.8376, 5.53784, -1.12604};</span></a>
+<a name="54"><span class="lineNum">      54 </span>            : </a>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">         12 :   parameter[GLU_BB] = {10.694, -0.0521961, 1.11153, -0.491995, -1.86236, 1.45332, -0.29708};</span></a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">         12 :   parameter[GLU_SC1] = {8.544, -0.249555, 12.8031, -8.42696, -4.66486, 4.90004, -1.01204};</span></a>
+<a name="57"><span class="lineNum">      57 </span>            : </a>
+<a name="58"><span class="lineNum">      58 </span><span class="lineCov">         12 :   parameter[GLY_BB] = {9.977, -0.0285799, 1.84236, -0.0315192, -2.88326, 1.87323, -0.345773};</span></a>
+<a name="59"><span class="lineNum">      59 </span>            : </a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">         12 :   parameter[HIS_BB] = {10.721, -0.0379337, 1.06028, -0.236143, -2.17819, 1.58357, -0.31345};</span></a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">         12 :   parameter[HIS_SC1] = {-0.424, 0.665176, 3.4369, 2.93795, -5.18288, 2.12381, -0.284224};</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">         12 :   parameter[HIS_SC2] = {5.363, -0.0176945, 2.9506, -0.387018, -1.83951, 0.9703, -0.1458};</span></a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineCov">         12 :   parameter[HIS_SC3] = {5.784, -0.0293129, 2.74167, -0.520875, -1.62949, 0.902379, -0.139957};</span></a>
+<a name="64"><span class="lineNum">      64 </span>            : </a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">         12 :   parameter[ILE_BB] = {10.699, -0.0188962, 1.217, 0.242481, -3.13898, 2.07916, -0.392574};</span></a>
+<a name="66"><span class="lineNum">      66 </span><span class="lineCov">         12 :   parameter[ILE_SC1] = {-4.448, 1.20996, 11.5141, 6.98895, -19.1948, 9.89207, -1.60877};</span></a>
+<a name="67"><span class="lineNum">      67 </span>            : </a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">         12 :   parameter[LEU_BB] = {10.692, -0.0414917, 1.1077, -0.288062, -2.17187, 1.59879, -0.318545};</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">         12 :   parameter[LEU_SC1] = {-4.448, 2.1063, 6.72381, 14.6954, -23.7197, 10.7247, -1.59146};</span></a>
+<a name="70"><span class="lineNum">      70 </span>            : </a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineCov">         12 :   parameter[LYS_BB] = {10.706, -0.0468629, 1.09477, -0.432751, -1.94335, 1.49109, -0.302589};</span></a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">         12 :   parameter[LYS_SC1] = {-2.796, 0.508044, 7.91436, 4.54097, -10.8051, 4.96204, -0.724414};</span></a>
+<a name="73"><span class="lineNum">      73 </span><span class="lineCov">         12 :   parameter[LYS_SC2] = {3.070, -0.0101448, 4.67994, -0.792529, -2.09142, 1.02933, -0.137787};</span></a>
+<a name="74"><span class="lineNum">      74 </span>            : </a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">         12 :   parameter[MET_BB] = {10.671, -0.0433724, 1.13784, -0.40768, -2.00555, 1.51673, -0.305547};</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         12 :   parameter[MET_SC1] = {5.85, -0.0485798, 17.0391, -3.65327, -13.174, 8.68286, -1.56095};</span></a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">         12 :   parameter[PHE_BB] = {10.741, -0.0317275, 1.15599, 0.0276187, -2.74757, 1.88783, -0.363525};</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineCov">         12 :   parameter[PHE_SC1] = {-0.636, 0.527882, 6.77612, 3.18508, -8.92826, 4.29752, -0.65187};</span></a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineCov">         12 :   parameter[PHE_SC2] = {-0.424, 0.389174, 4.11761, 2.29527, -4.7652, 1.97023, -0.262318};</span></a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineCov">         12 :   parameter[PHE_SC3] = {-0.424, 0.38927, 4.11708, 2.29623, -4.76592, 1.97055, -0.262381};</span></a>
+<a name="82"><span class="lineNum">      82 </span>            : </a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineCov">         12 :   parameter[PRO_BB] = {11.434, -0.033323, 0.472014, -0.290854, -1.81409, 1.39751, -0.280407};</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">         12 :   parameter[PRO_SC1] = {-2.796, 0.95668, 6.84197, 6.43774, -12.5068, 5.64597, -0.825206};</span></a>
+<a name="85"><span class="lineNum">      85 </span>            : </a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">         12 :   parameter[SER_BB] = {10.699, -0.0325828, 1.20329, -0.0674351, -2.60749, 1.80318, -0.346803};</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">         12 :   parameter[SER_SC1] = {3.298, -0.0366801, 5.11077, -1.46774, -1.48421, 0.800326, -0.108314};</span></a>
+<a name="88"><span class="lineNum">      88 </span>            : </a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">         12 :   parameter[THR_BB] = {10.697, -0.0242955, 1.24671, 0.146423, -2.97429, 1.97513, -0.371479};</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">         12 :   parameter[THR_SC1] = {2.366, 0.0297604, 11.9216, -9.32503, 1.9396, 0.0804861, -0.0302721};</span></a>
+<a name="91"><span class="lineNum">      91 </span>            : </a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">         12 :   parameter[TRP_BB] = {10.689, -0.0265879, 1.17819, 0.0386457, -2.75634, 1.88065, -0.360217};</span></a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">         12 :   parameter[TRP_SC1] = {0.084, 0.752407, 5.3802, 4.09281, -9.28029, 4.45923, -0.689008};</span></a>
+<a name="94"><span class="lineNum">      94 </span><span class="lineCov">         12 :   parameter[TRP_SC2] = {5.739, 0.0298492, 4.60446, 1.34463, -5.69968, 2.84924, -0.433781};</span></a>
+<a name="95"><span class="lineNum">      95 </span><span class="lineCov">         12 :   parameter[TRP_SC3] = {-0.424, 0.388576, 4.11859, 2.29485, -4.76255, 1.96849, -0.262015};</span></a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">         12 :   parameter[TRP_SC4] = {-0.424, 0.387685, 4.12153, 2.29144, -4.7589, 1.96686, -0.261786};</span></a>
+<a name="97"><span class="lineNum">      97 </span>            : </a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineCov">         12 :   parameter[TYR_BB] = {10.689, -0.0193526, 1.18241, 0.207318, -3.0041, 1.99335, -0.376482};</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">         12 :   parameter[TYR_SC1] = {-0.636, 0.528902, 6.78168, 3.17769, -8.93667, 4.30692, -0.653993};</span></a>
+<a name="100"><span class="lineNum">     100 </span><span class="lineCov">         12 :   parameter[TYR_SC2] = {-0.424, 0.388811, 4.11851, 2.29545, -4.7668, 1.97131, -0.262534};</span></a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">         12 :   parameter[TYR_SC3] = {4.526, -0.00381305, 5.8567, -0.214086, -4.63649, 2.52869, -0.39894};</span></a>
+<a name="102"><span class="lineNum">     102 </span>            : </a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineCov">         12 :   parameter[VAL_BB] = {10.691, -0.0162929, 1.24446, 0.307914, -3.27446, 2.14788, -0.403259};</span></a>
+<a name="104"><span class="lineNum">     104 </span><span class="lineCov">         12 :   parameter[VAL_SC1] = {-3.516, 1.62307, 5.43064, 9.28809, -14.9927, 6.6133, -0.964977};</span></a>
+<a name="105"><span class="lineNum">     105 </span>            : </a>
+<a name="106"><span class="lineNum">     106 </span><span class="lineCov">         12 :   parameter[A_BB1] = {32.88500000, 0.08339900, -7.36054400, 2.19220300, -3.56523400, 2.33326900, -0.39785500};</span></a>
+<a name="107"><span class="lineNum">     107 </span><span class="lineCov">         12 :   parameter[A_BB2] = {3.80600000, -0.10727600, 9.58854100, -6.23740500, -0.48267300, 1.14119500, -0.21385600};</span></a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">         12 :   parameter[A_BB3] = {3.59400000, 0.04537300, 9.59178900, -1.29202200, -7.10851000, 4.05571200, -0.63372500};</span></a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineCov">         12 :   parameter[A_SC1] = {6.67100000, -0.00855300, 1.63222400, -0.06466200, -1.48694200, 0.78544600, -0.12083500};</span></a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">         12 :   parameter[A_SC2] = {5.95100000, -0.02606600, 2.54399900, -0.48436900, -1.55357400, 0.86466900, -0.13509000};</span></a>
+<a name="111"><span class="lineNum">     111 </span><span class="lineCov">         12 :   parameter[A_SC3] = {11.39400000, 0.00871300, -0.23891300, 0.48919400, -1.75289400, 0.99267500, -0.16291300};</span></a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">         12 :   parameter[A_SC4] = {6.45900000, 0.01990600, 4.17970400, 0.97629900, -5.03297800, 2.55576700, -0.39150500};</span></a>
+<a name="113"><span class="lineNum">     113 </span><span class="lineCov">         12 :   parameter[A_3TE] = {4.23000000, 0.00064800, 0.92124600, 0.08064300, -0.39054400, 0.12429100, -0.01122700};</span></a>
+<a name="114"><span class="lineNum">     114 </span><span class="lineCov">         12 :   parameter[A_5TE] = {4.23000000, 0.00039300, 0.92305100, 0.07747500, -0.38792100, 0.12323800, -0.01106600};</span></a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">         12 :   parameter[A_TE3] = {7.82400000, -0.04881000, 8.21557900, -0.89491400, -9.54293700, 6.33122200, -1.16672900};</span></a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">         12 :   parameter[A_TE5] = {8.03600000, 0.01641200, 5.14902200, 0.83419700, -7.59068300, 4.52063200, -0.78260800};</span></a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span><span class="lineCov">         12 :   parameter[C_BB1] = {32.88500000, 0.08311100, -7.35432100, 2.18610000, -3.55788300, 2.32918700, -0.39720000};</span></a>
+<a name="119"><span class="lineNum">     119 </span><span class="lineCov">         12 :   parameter[C_BB2] = {3.80600000, -0.10808100, 9.61612600, -6.28595400, -0.45187000, 1.13326000, -0.21320300};</span></a>
+<a name="120"><span class="lineNum">     120 </span><span class="lineCov">         12 :   parameter[C_BB3] = {3.59400000, 0.04484200, 9.61919800, -1.33582800, -7.07200400, 4.03952900, -0.63098200};</span></a>
+<a name="121"><span class="lineNum">     121 </span><span class="lineCov">         12 :   parameter[C_SC1] = {5.95100000, -0.02911300, 2.59700400, -0.55507700, -1.56344600, 0.88956200, -0.14061300};</span></a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">         12 :   parameter[C_SC2] = {11.62100000, 0.01366100, -0.25959200, 0.48918300, -1.52550500, 0.83644100, -0.13407300};</span></a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">         12 :   parameter[C_SC3] = {5.01900000, -0.03276100, 5.53776900, -0.95105000, -3.71130800, 2.16146000, -0.34918600};</span></a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">         12 :   parameter[C_3TE] = {4.23000000, 0.00057300, 0.92174800, 0.07964500, -0.38965700, 0.12392500, -0.01117000};</span></a>
+<a name="125"><span class="lineNum">     125 </span><span class="lineCov">         12 :   parameter[C_5TE] = {4.23000000, 0.00071000, 0.92082800, 0.08150600, -0.39127000, 0.12455900, -0.01126300};</span></a>
+<a name="126"><span class="lineNum">     126 </span><span class="lineCov">         12 :   parameter[C_TE3] = {7.82400000, -0.05848300, 8.29319900, -1.12563800, -9.42197600, 6.35441700, -1.18356900};</span></a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">         12 :   parameter[C_TE5] = {8.03600000, 0.00493500, 4.92622000, 0.64810700, -7.05100000, 4.26064400, -0.74819100};</span></a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span><span class="lineCov">         12 :   parameter[G_BB1] = {32.88500000, 0.08325400, -7.35736000, 2.18914800, -3.56154800, 2.33120600, -0.39752300};</span></a>
+<a name="130"><span class="lineNum">     130 </span><span class="lineCov">         12 :   parameter[G_BB2] = {3.80600000, -0.10788300, 9.60930800, -6.27402500, -0.46192700, 1.13737000, -0.21383100};</span></a>
+<a name="131"><span class="lineNum">     131 </span><span class="lineCov">         12 :   parameter[G_BB3] = {3.59400000, 0.04514500, 9.61234700, -1.31542100, -7.09150500, 4.04706200, -0.63201000};</span></a>
+<a name="132"><span class="lineNum">     132 </span><span class="lineCov">         12 :   parameter[G_SC1] = {6.67100000, -0.00863200, 1.63252300, -0.06567200, -1.48680500, 0.78565600, -0.12088900};</span></a>
+<a name="133"><span class="lineNum">     133 </span><span class="lineCov">         12 :   parameter[G_SC2] = {11.39400000, 0.00912200, -0.22869000, 0.49616400, -1.75039000, 0.98649200, -0.16141600};</span></a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">         12 :   parameter[G_SC3] = {10.90100000, 0.02208700, 0.17032800, 0.73280800, -1.95292000, 0.98357600, -0.14790900};</span></a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">         12 :   parameter[G_SC4] = {6.45900000, 0.02023700, 4.17655400, 0.98731800, -5.04352800, 2.56059400, -0.39234300};</span></a>
+<a name="136"><span class="lineNum">     136 </span><span class="lineCov">         12 :   parameter[G_3TE] = {4.23000000, 0.00066300, 0.92118800, 0.08062700, -0.39041600, 0.12419400, -0.01120500};</span></a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">         12 :   parameter[G_5TE] = {4.23000000, 0.00062800, 0.92133500, 0.08029900, -0.39015300, 0.12411600, -0.01119900};</span></a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">         12 :   parameter[G_TE3] = {7.82400000, -0.05177400, 8.34606700, -1.02936300, -9.55211900, 6.37776600, -1.17898000};</span></a>
+<a name="139"><span class="lineNum">     139 </span><span class="lineCov">         12 :   parameter[G_TE5] = {8.03600000, 0.00525100, 4.71070600, 0.66746900, -6.72538700, 4.03644100, -0.70605700};</span></a>
+<a name="140"><span class="lineNum">     140 </span>            : </a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">         12 :   parameter[U_BB1] = {32.88500000, 0.08321400, -7.35634900, 2.18826800, -3.56047400, 2.33064700, -0.39744000};</span></a>
+<a name="142"><span class="lineNum">     142 </span><span class="lineCov">         12 :   parameter[U_BB2] = {3.80600000, -0.10773100, 9.60099900, -6.26131900, -0.46668300, 1.13698100, -0.21351600};</span></a>
+<a name="143"><span class="lineNum">     143 </span><span class="lineCov">         12 :   parameter[U_BB3] = {3.59400000, 0.04544300, 9.59625900, -1.29222200, -7.11143200, 4.05687700, -0.63382800};</span></a>
+<a name="144"><span class="lineNum">     144 </span><span class="lineCov">         12 :   parameter[U_SC1] = {5.95100000, -0.02924500, 2.59668700, -0.56118700, -1.56477100, 0.89265100, -0.14130800};</span></a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">         12 :   parameter[U_SC2] = {10.90100000, 0.02178900, 0.18839000, 0.72223100, -1.92581600, 0.96654300, -0.14501300};</span></a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">         12 :   parameter[U_SC3] = {5.24600000, -0.04586500, 5.89978100, -1.50664700, -3.17054400, 1.93717100, -0.31701000};</span></a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">         12 :   parameter[U_3TE] = {4.23000000, 0.00067500, 0.92102300, 0.08100800, -0.39084300, 0.12441900, -0.01124900};</span></a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineCov">         12 :   parameter[U_5TE] = {4.23000000, 0.00059000, 0.92154600, 0.07968200, -0.38950100, 0.12382500, -0.01115100};</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">         12 :   parameter[U_TE3] = {7.82400000, -0.02968100, 7.93783200, -0.33078100, -10.14120200, 6.63334700, -1.22111200};</span></a>
+<a name="150"><span class="lineNum">     150 </span><span class="lineCov">         12 :   parameter[U_TE5] = {8.03600000, -0.00909700, 4.33193500, 0.43416500, -5.80831400, 3.52438800, -0.62382400};</span></a>
+<a name="151"><span class="lineNum">     151 </span>            : </a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">         12 :   parameter[DA_BB1] = {32.88500000, 0.08179900, -7.31735900, 2.15614500, -3.52263200, 2.30604700, -0.39270100};</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineCov">         12 :   parameter[DA_BB2] = {3.80600000, -0.10597700, 9.52537500, -6.12991000, -0.54092600, 1.15429100, -0.21503500};</span></a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">         12 :   parameter[DA_BB3] = {-1.35600000, 0.58928300, 6.71894100, 4.14050900, -9.65859900, 4.43185000, -0.64657300};</span></a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">         12 :   parameter[DA_SC1] = {6.67100000, -0.00871400, 1.63289100, -0.06637700, -1.48632900, 0.78551800, -0.12087300};</span></a>
+<a name="156"><span class="lineNum">     156 </span><span class="lineCov">         12 :   parameter[DA_SC2] = {5.95100000, -0.02634300, 2.54864300, -0.49015800, -1.55386900, 0.86630200, -0.13546200};</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">         12 :   parameter[DA_SC3] = {11.39400000, 0.00859500, -0.25471400, 0.48718800, -1.74520000, 0.99246200, -0.16351900};</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">         12 :   parameter[DA_SC4] = {6.45900000, 0.01991800, 4.17962300, 0.97469100, -5.02950400, 2.55371800, -0.39113400};</span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">         12 :   parameter[DA_3TE] = {4.23000000, 0.00062600, 0.92142000, 0.08016400, -0.39000300, 0.12402500, -0.01117900};</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">         12 :   parameter[DA_5TE] = {4.23000000, 0.00055500, 0.92183900, 0.07907600, -0.38895100, 0.12359600, -0.01111600};</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">         12 :   parameter[DA_TE3] = {2.87400000, 0.00112900, 12.51167200, -7.67548000, -2.02234000, 2.50837100, -0.49458500};</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">         12 :   parameter[DA_TE5] = {8.03600000, 0.00473100, 4.65554400, 0.66424100, -6.62131300, 3.96107400, -0.69075800};</span></a>
+<a name="163"><span class="lineNum">     163 </span>            : </a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">         12 :   parameter[DC_BB1] = {32.88500000, 0.08189900, -7.32493500, 2.15976900, -3.52612100, 2.31058600, -0.39402700};</span></a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">         12 :   parameter[DC_BB2] = {3.80600000, -0.10559800, 9.52527700, -6.12131700, -0.54899400, 1.15592900, -0.21494500};</span></a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">         12 :   parameter[DC_BB3] = {-1.35600000, 0.55525700, 6.80305500, 4.05924700, -9.61034700, 4.41253800, -0.64315100};</span></a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">         12 :   parameter[DC_SC1] = {5.95100000, -0.02899900, 2.59587800, -0.55388300, -1.56395100, 0.88967400, -0.14062500};</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">         12 :   parameter[DC_SC2] = {11.62100000, 0.01358100, -0.24913000, 0.48787200, -1.52867300, 0.83694900, -0.13395300};</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">         12 :   parameter[DC_SC3] = {5.01900000, -0.03298400, 5.54242800, -0.96081500, -3.71051600, 2.16500200, -0.35023400};</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">         12 :   parameter[DC_3TE] = {4.23000000, 0.00055700, 0.92181400, 0.07924000, -0.38916400, 0.12369900, -0.01113300};</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">         12 :   parameter[DC_5TE] = {4.23000000, 0.00066500, 0.92103900, 0.08064600, -0.39034900, 0.12417600, -0.01120600};</span></a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">         12 :   parameter[DC_TE3] = {2.87400000, -0.05235500, 13.09201200, -9.48128200, -0.14958600, 1.75537200, -0.39347500};</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">         12 :   parameter[DC_TE5] = {8.03600000, -0.00513600, 4.67705700, 0.48333300, -6.34511000, 3.83388500, -0.67367800};</span></a>
+<a name="174"><span class="lineNum">     174 </span>            : </a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">         12 :   parameter[DG_BB1] = {32.88500000, 0.08182900, -7.32133900, 2.15767900, -3.52369700, 2.30839600, -0.39348300};</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">         12 :   parameter[DG_BB2] = {3.80600000, -0.10618100, 9.54169000, -6.15177600, -0.53462400, 1.15581300, -0.21567000};</span></a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         12 :   parameter[DG_BB3] = {-1.35600000, 0.57489100, 6.75164700, 4.11300900, -9.63394600, 4.41675400, -0.64339900};</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">         12 :   parameter[DG_SC1] = {6.67100000, -0.00886600, 1.63333000, -0.06892100, -1.48683500, 0.78670800, -0.12113900};</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">         12 :   parameter[DG_SC2] = {11.39400000, 0.00907900, -0.22475500, 0.49535100, -1.75324900, 0.98767400, -0.16150800};</span></a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">         12 :   parameter[DG_SC3] = {10.90100000, 0.02207600, 0.17932200, 0.73253200, -1.95554900, 0.98339900, -0.14763600};</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">         12 :   parameter[DG_SC4] = {6.45900000, 0.02018400, 4.17705400, 0.98531700, -5.04354900, 2.56123700, -0.39249300};</span></a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineCov">         12 :   parameter[DG_3TE] = {4.23000000, 0.00061700, 0.92140100, 0.08016400, -0.39003500, 0.12406900, -0.01119200};</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">         12 :   parameter[DG_5TE] = {4.23000000, 0.00064900, 0.92110500, 0.08031500, -0.38997000, 0.12401200, -0.01118100};</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">         12 :   parameter[DG_TE3] = {2.87400000, 0.00182000, 12.41507000, -7.47384800, -2.11864700, 2.50112600, -0.48652200};</span></a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineCov">         12 :   parameter[DG_TE5] = {8.03600000, 0.00676400, 4.65989200, 0.78482500, -6.86460600, 4.11675400, -0.72249100};</span></a>
+<a name="186"><span class="lineNum">     186 </span>            : </a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">         12 :   parameter[DT_BB1] = {32.88500000, 0.08220100, -7.33006800, 2.16636500, -3.53465700, 2.31447600, -0.39445400};</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">         12 :   parameter[DT_BB2] = {3.80600000, -0.10723000, 9.56675000, -6.20236100, -0.49550400, 1.14300600, -0.21420000};</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">         12 :   parameter[DT_BB3] = {-1.35600000, 0.56737900, 6.76595400, 4.08976100, -9.61512500, 4.40975100, -0.64239800};</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">         12 :   parameter[DT_SC1] = {5.95100000, -0.02926500, 2.59630300, -0.56152200, -1.56532600, 0.89322800, -0.14142900};</span></a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">         12 :   parameter[DT_SC2] = {10.90100000, 0.02183400, 0.19463000, 0.72393000, -1.93199500, 0.96856300, -0.14512600};</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">         12 :   parameter[DT_SC3] = {4.31400000, -0.07745600, 12.49820300, -7.64994200, -3.00359600, 3.26263300, -0.64498600};</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">         12 :   parameter[DT_3TE] = {4.23000000, 0.00062000, 0.92141100, 0.08030900, -0.39021500, 0.12414000, -0.01120100};</span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineCov">         12 :   parameter[DT_5TE] = {4.23000000, 0.00063700, 0.92130800, 0.08026900, -0.39007500, 0.12406600, -0.01118800};</span></a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">         12 :   parameter[DT_TE3] = {2.87400000, -0.00251200, 12.43576400, -7.55343800, -2.07363500, 2.51279300, -0.49437100};</span></a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">         12 :   parameter[DT_TE5] = {8.03600000, 0.00119900, 4.91762300, 0.65637000, -7.23392500, 4.44636600, -0.79467800};</span></a>
+<a name="197"><span class="lineNum">     197 </span>            : </a>
+<a name="198"><span class="lineNum">     198 </span>            :   // Bead type of each residue name and atom (bead) name. Nucleic acid residue names are</a>
+<a name="199"><span class="lineNum">     199 </span>            :   // right-aligned to three characters as in the PDB file (&quot;  A&quot;, &quot; DA&quot;); a residue or</a>
+<a name="200"><span class="lineNum">     200 </span>            :   // atom name that is not in the table is an error.</a>
+<a name="201"><span class="lineNum">     201 </span>            :   static const std::map&lt;std::string,std::map&lt;std::string,unsigned&gt;&gt; beads = {</a>
+<a name="202"><span class="lineNum">     202 </span>            :     {&quot;ALA&quot;, {{&quot;BB&quot;,ALA_BB}}},</a>
+<a name="203"><span class="lineNum">     203 </span>            :     {&quot;ARG&quot;, {{&quot;BB&quot;,ARG_BB}, {&quot;SC1&quot;,ARG_SC1}, {&quot;SC2&quot;,ARG_SC2}}},</a>
+<a name="204"><span class="lineNum">     204 </span>            :     {&quot;ASN&quot;, {{&quot;BB&quot;,ASN_BB}, {&quot;SC1&quot;,ASN_SC1}}},</a>
+<a name="205"><span class="lineNum">     205 </span>            :     {&quot;ASP&quot;, {{&quot;BB&quot;,ASP_BB}, {&quot;SC1&quot;,ASP_SC1}}},</a>
+<a name="206"><span class="lineNum">     206 </span>            :     {&quot;CYS&quot;, {{&quot;BB&quot;,CYS_BB}, {&quot;SC1&quot;,CYS_SC1}}},</a>
+<a name="207"><span class="lineNum">     207 </span>            :     {&quot;GLN&quot;, {{&quot;BB&quot;,GLN_BB}, {&quot;SC1&quot;,GLN_SC1}}},</a>
+<a name="208"><span class="lineNum">     208 </span>            :     {&quot;GLU&quot;, {{&quot;BB&quot;,GLU_BB}, {&quot;SC1&quot;,GLU_SC1}}},</a>
+<a name="209"><span class="lineNum">     209 </span>            :     {&quot;GLY&quot;, {{&quot;BB&quot;,GLY_BB}}},</a>
+<a name="210"><span class="lineNum">     210 </span>            :     {&quot;HIS&quot;, {{&quot;BB&quot;,HIS_BB}, {&quot;SC1&quot;,HIS_SC1}, {&quot;SC2&quot;,HIS_SC2}, {&quot;SC3&quot;,HIS_SC3}}},</a>
+<a name="211"><span class="lineNum">     211 </span>            :     {&quot;ILE&quot;, {{&quot;BB&quot;,ILE_BB}, {&quot;SC1&quot;,ILE_SC1}}},</a>
+<a name="212"><span class="lineNum">     212 </span>            :     {&quot;LEU&quot;, {{&quot;BB&quot;,LEU_BB}, {&quot;SC1&quot;,LEU_SC1}}},</a>
+<a name="213"><span class="lineNum">     213 </span>            :     {&quot;LYS&quot;, {{&quot;BB&quot;,LYS_BB}, {&quot;SC1&quot;,LYS_SC1}, {&quot;SC2&quot;,LYS_SC2}}},</a>
+<a name="214"><span class="lineNum">     214 </span>            :     {&quot;MET&quot;, {{&quot;BB&quot;,MET_BB}, {&quot;SC1&quot;,MET_SC1}}},</a>
+<a name="215"><span class="lineNum">     215 </span>            :     {&quot;PHE&quot;, {{&quot;BB&quot;,PHE_BB}, {&quot;SC1&quot;,PHE_SC1}, {&quot;SC2&quot;,PHE_SC2}, {&quot;SC3&quot;,PHE_SC3}}},</a>
+<a name="216"><span class="lineNum">     216 </span>            :     {&quot;PRO&quot;, {{&quot;BB&quot;,PRO_BB}, {&quot;SC1&quot;,PRO_SC1}}},</a>
+<a name="217"><span class="lineNum">     217 </span>            :     {&quot;SER&quot;, {{&quot;BB&quot;,SER_BB}, {&quot;SC1&quot;,SER_SC1}}},</a>
+<a name="218"><span class="lineNum">     218 </span>            :     {&quot;THR&quot;, {{&quot;BB&quot;,THR_BB}, {&quot;SC1&quot;,THR_SC1}}},</a>
+<a name="219"><span class="lineNum">     219 </span>            :     {&quot;TRP&quot;, {{&quot;BB&quot;,TRP_BB}, {&quot;SC1&quot;,TRP_SC1}, {&quot;SC2&quot;,TRP_SC2}, {&quot;SC3&quot;,TRP_SC3}, {&quot;SC4&quot;,TRP_SC4}}},</a>
+<a name="220"><span class="lineNum">     220 </span>            :     {&quot;TYR&quot;, {{&quot;BB&quot;,TYR_BB}, {&quot;SC1&quot;,TYR_SC1}, {&quot;SC2&quot;,TYR_SC2}, {&quot;SC3&quot;,TYR_SC3}}},</a>
+<a name="221"><span class="lineNum">     221 </span>            :     {&quot;VAL&quot;, {{&quot;BB&quot;,VAL_BB}, {&quot;SC1&quot;,VAL_SC1}}},</a>
+<a name="222"><span class="lineNum">     222 </span>            :     {&quot;  A&quot;, {{&quot;BB1&quot;,A_BB1}, {&quot;BB2&quot;,A_BB2}, {&quot;BB3&quot;,A_BB3}, {&quot;SC1&quot;,A_SC1}, {&quot;SC2&quot;,A_SC2}, {&quot;SC3&quot;,A_SC3}, {&quot;SC4&quot;,A_SC4}, {&quot;3TE&quot;,A_3TE}, {&quot;5TE&quot;,A_5TE}, {&quot;TE3&quot;,A_TE3}, {&quot;TE5&quot;,A_TE5}}},</a>
+<a name="223"><span class="lineNum">     223 </span>            :     {&quot;  C&quot;, {{&quot;BB1&quot;,C_BB1}, {&quot;BB2&quot;,C_BB2}, {&quot;BB3&quot;,C_BB3}, {&quot;SC1&quot;,C_SC1}, {&quot;SC2&quot;,C_SC2}, {&quot;SC3&quot;,C_SC3}, {&quot;3TE&quot;,C_3TE}, {&quot;5TE&quot;,C_5TE}, {&quot;TE3&quot;,C_TE3}, {&quot;TE5&quot;,C_TE5}}},</a>
+<a name="224"><span class="lineNum">     224 </span>            :     {&quot;  G&quot;, {{&quot;BB1&quot;,G_BB1}, {&quot;BB2&quot;,G_BB2}, {&quot;BB3&quot;,G_BB3}, {&quot;SC1&quot;,G_SC1}, {&quot;SC2&quot;,G_SC2}, {&quot;SC3&quot;,G_SC3}, {&quot;SC4&quot;,G_SC4}, {&quot;3TE&quot;,G_3TE}, {&quot;5TE&quot;,G_5TE}, {&quot;TE3&quot;,G_TE3}, {&quot;TE5&quot;,G_TE5}}},</a>
+<a name="225"><span class="lineNum">     225 </span>            :     {&quot;  U&quot;, {{&quot;BB1&quot;,U_BB1}, {&quot;BB2&quot;,U_BB2}, {&quot;BB3&quot;,U_BB3}, {&quot;SC1&quot;,U_SC1}, {&quot;SC2&quot;,U_SC2}, {&quot;SC3&quot;,U_SC3}, {&quot;3TE&quot;,U_3TE}, {&quot;5TE&quot;,U_5TE}, {&quot;TE3&quot;,U_TE3}, {&quot;TE5&quot;,U_TE5}}},</a>
+<a name="226"><span class="lineNum">     226 </span>            :     {&quot; DA&quot;, {{&quot;BB1&quot;,DA_BB1}, {&quot;BB2&quot;,DA_BB2}, {&quot;BB3&quot;,DA_BB3}, {&quot;SC1&quot;,DA_SC1}, {&quot;SC2&quot;,DA_SC2}, {&quot;SC3&quot;,DA_SC3}, {&quot;SC4&quot;,DA_SC4}, {&quot;3TE&quot;,DA_3TE}, {&quot;5TE&quot;,DA_5TE}, {&quot;TE3&quot;,DA_TE3}, {&quot;TE5&quot;,DA_TE5}}},</a>
+<a name="227"><span class="lineNum">     227 </span>            :     {&quot; DC&quot;, {{&quot;BB1&quot;,DC_BB1}, {&quot;BB2&quot;,DC_BB2}, {&quot;BB3&quot;,DC_BB3}, {&quot;SC1&quot;,DC_SC1}, {&quot;SC2&quot;,DC_SC2}, {&quot;SC3&quot;,DC_SC3}, {&quot;3TE&quot;,DC_3TE}, {&quot;5TE&quot;,DC_5TE}, {&quot;TE3&quot;,DC_TE3}, {&quot;TE5&quot;,DC_TE5}}},</a>
+<a name="228"><span class="lineNum">     228 </span>            :     {&quot; DG&quot;, {{&quot;BB1&quot;,DG_BB1}, {&quot;BB2&quot;,DG_BB2}, {&quot;BB3&quot;,DG_BB3}, {&quot;SC1&quot;,DG_SC1}, {&quot;SC2&quot;,DG_SC2}, {&quot;SC3&quot;,DG_SC3}, {&quot;SC4&quot;,DG_SC4}, {&quot;3TE&quot;,DG_3TE}, {&quot;5TE&quot;,DG_5TE}, {&quot;TE3&quot;,DG_TE3}, {&quot;TE5&quot;,DG_TE5}}},</a>
+<a name="229"><span class="lineNum">     229 </span>            :     {&quot; DT&quot;, {{&quot;BB1&quot;,DT_BB1}, {&quot;BB2&quot;,DT_BB2}, {&quot;BB3&quot;,DT_BB3}, {&quot;SC1&quot;,DT_SC1}, {&quot;SC2&quot;,DT_SC2}, {&quot;SC3&quot;,DT_SC3}, {&quot;3TE&quot;,DT_3TE}, {&quot;5TE&quot;,DT_5TE}, {&quot;TE3&quot;,DT_TE3}, {&quot;TE5&quot;,DT_TE5}}},</a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">       1902 :   };</span></a>
+<a name="231"><span class="lineNum">     231 </span>            : </a>
+<a name="232"><span class="lineNum">     232 </span><span class="lineCov">         12 :   auto* moldat=plumed.getActionSet().selectLatest&lt;GenericMolInfo*&gt;(this);</span></a>
+<a name="233"><span class="lineNum">     233 </span><span class="lineCov">         12 :   if( !moldat ) {</span></a>
+<a name="234"><span class="lineNum">     234 </span><span class="lineNoCov">          0 :     error(&quot;MOLINFO DATA not found\n&quot;);</span></a>
+<a name="235"><span class="lineNum">     235 </span>            :   }</a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">       9824 :   for(unsigned i=0; i&lt;atoms.size(); ++i) {</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">       9812 :     const std::string Rname = moldat-&gt;getResidueName(atoms[i]);</span></a>
+<a name="238"><span class="lineNum">     238 </span>            :     const auto residue=beads.find(Rname);</a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">       9812 :     if(residue==beads.end()) {</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineNoCov">          0 :       error(&quot;Residue not known: &quot;+Rname);</span></a>
+<a name="241"><span class="lineNum">     241 </span>            :     }</a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">       9812 :     const std::string Aname = moldat-&gt;getAtomName(atoms[i]);</span></a>
+<a name="243"><span class="lineNum">     243 </span>            :     const auto bead=residue-&gt;second.find(Aname);</a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineCov">       9812 :     if(bead==residue-&gt;second.end()) {</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineNoCov">          0 :       error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="246"><span class="lineNum">     246 </span>            :     }</a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">       9812 :     atoi[i]=bead-&gt;second;</span></a>
+<a name="248"><span class="lineNum">     248 </span>            :   }</a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">       1632 : }</span></a>
+<a name="250"><span class="lineNum">     250 </span>            : </a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">          4 : void SAXS::getMartiniFFparam_v3(const std::vector&lt;AtomNumber&gt; &amp;atoms, std::vector&lt;std::vector&lt;long double&gt; &gt; &amp;parameter) {</span></a>
+<a name="252"><span class="lineNum">     252 </span>            :   // Kept separate from the Martini 2.2 table in getMartiniFFparam because the coefficients</a>
+<a name="253"><span class="lineNum">     253 </span>            :   // differ and the Martini 3 protein topology adds beads absent in 2.2 (ALA_SC1, TRP_SC5,</a>
+<a name="254"><span class="lineNum">     254 </span>            :   // TYR_SC4). The 7-coefficient / degree-6-in-q form is deliberately unchanged so the same</a>
+<a name="255"><span class="lineNum">     255 </span>            :   // downstream polynomial evaluator serves both MARTINI_FF versions. See the Martini 3</a>
+<a name="256"><span class="lineNum">     256 </span>            :   // form-factor paper in the bibliography for how the coefficients were derived.</a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">          4 :   parameter[ALA_BB] = {10.643806846255465, 0.0, 2.0616371683115733, 0.7872168906775016, -5.080460379455372, 3.222662883174488, -0.5960016057238122};</span></a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineCov">          4 :   parameter[ALA_SC1] = {-1.7010874177132265, 0.0, 7.118764019567526, 1.1145464157804394, -5.950013175357564, 2.8714126567294755, -0.42838104934301313};</span></a>
+<a name="259"><span class="lineNum">     259 </span>            : </a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">          4 :   parameter[ARG_BB] = {10.64380122599819, 0.0, 2.061637183212542, 0.7872187072333622, -5.080459366793695, 3.2226607845095225, -0.5960010250566496};</span></a>
+<a name="261"><span class="lineNum">     261 </span><span class="lineCov">          4 :   parameter[ARG_SC1] = {-2.582459965203611, 0.0, 16.093491676712716, 1.1997535742302685, -15.212231100907612, 8.324901545777502, -1.3612064124992838};</span></a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">          4 :   parameter[ARG_SC2] = {14.428248841779087, 0.0, -0.5306373105617507, 1.6708928597353037, -4.220821223435202, 2.340601736383018, -0.3836111601465304};</span></a>
+<a name="263"><span class="lineNum">     263 </span>            : </a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">          4 :   parameter[ASN_BB] = {10.64380637290148, 0.0, 2.0616383733664607, 0.7872206653851905, -5.080466495994918, 3.2226654178553917, -0.5960019074982035};</span></a>
+<a name="265"><span class="lineNum">     265 </span><span class="lineCov">          4 :   parameter[ASN_SC1] = {9.305752980758708, 0.0, 8.028095134281596, -2.3099183822637563, -6.632212819638959, 4.4228155805014255, -0.7764062905424147};</span></a>
+<a name="266"><span class="lineNum">     266 </span>            : </a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">          4 :   parameter[ASP_BB] = {10.643806310047486, 0.0, 2.06163743145317, 0.787217929242442, -5.080461918557475, 3.222663478750303, -0.5960016686083391};</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">          4 :   parameter[ASP_SC1] = {10.498866776432472, 0.0, 7.536374464512118, -2.8556236565791147, -5.4787540182953105, 3.815664106474512, -0.67328443867979};</span></a>
+<a name="269"><span class="lineNum">     269 </span>            : </a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">          4 :   parameter[CYS_BB] = {10.643806815155962, 0.0, 2.0616371622877585, 0.7872168883774691, -5.080460364611164, 3.222662873758418, -0.5960016039823965};</span></a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineCov">          4 :   parameter[CYS_SC1] = {7.84213323319376, 0.0, 9.953170739451108, -1.2903802262350998, -7.207970655489376, 4.191794051784442, -0.688509627116269};</span></a>
+<a name="272"><span class="lineNum">     272 </span>            : </a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">          4 :   parameter[GLN_BB] = {10.643801955137343, 0.0, 2.061635484428877, 0.7872153749124453, -5.080458169900939, 3.2226625571952128, -0.5960016907141563};</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineCov">          4 :   parameter[GLN_SC1] = {8.444221071382211, 0.0, 17.678600522511136, -15.30698404588629, -1.7525725905064409, 4.726896859211768, -1.1004371797545023};</span></a>
+<a name="275"><span class="lineNum">     275 </span>            : </a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">          4 :   parameter[GLU_BB] = {10.643804801462782, 0.0, 2.0616367722480975, 0.7872167394450527, -5.080459403443487, 3.2226622640656624, -0.5960014912253735};</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">          4 :   parameter[GLU_SC1] = {9.637509830770533, 0.0, 16.9079134467359, -14.850360181614349, -1.4743561994477412, 4.367483853252233, -1.011774253849401};</span></a>
+<a name="278"><span class="lineNum">     278 </span>            : </a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">          4 :   parameter[GLY_BB] = {10.030507380458893, 0.0, 3.8641270986545533, 0.5938012695810033, -6.486785053096451, 4.045479409708778, -0.7318132454163564};</span></a>
+<a name="280"><span class="lineNum">     280 </span>            : </a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">          4 :   parameter[HIS_BB] = {10.643806239423265, 0.0, 2.061636403138179, 0.7872153348214171, -5.080458934227526, 3.222662755527101, -0.5960016737782905};</span></a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">          4 :   parameter[HIS_SC1] = {-0.3510341202994483, 0.0, 7.193968257062204, 1.0071445792130653, -5.966246573308775, 2.857512357903082, -0.4182231235167757};</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineCov">          4 :   parameter[HIS_SC2] = {5.208533893792252, 0.0, 3.8539382664534454, -0.7578802642311985, -2.104343630945438, 1.154962103610813, -0.17552755823901833};</span></a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineCov">          4 :   parameter[HIS_SC3] = {5.917304757860416, 0.0, 3.4514167501354183, -0.7996735949256304, -1.9263229210885686, 1.0965585639684268, -0.17072583342582792};</span></a>
+<a name="285"><span class="lineNum">     285 </span>            : </a>
+<a name="286"><span class="lineNum">     286 </span><span class="lineCov">          4 :   parameter[ILE_BB] = {10.64380615454994, 0.0, 2.0616374013343046, 0.7872179177418046, -5.080461844335988, 3.2226634316697726, -0.5960016599012332};</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">          4 :   parameter[ILE_SC1] = {-2.8097860782245627, 0.0, 17.343971902022577, -0.23891906441869626, -15.000405961544278, 8.58845914300296, -1.441332654688594};</span></a>
+<a name="288"><span class="lineNum">     288 </span>            : </a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">          4 :   parameter[LEU_BB] = {10.643806213809782, 0.0, 2.061633435208698, 0.7872076376318345, -5.080448157052189, 3.222659304574193, -0.5960014675554544};</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">          4 :   parameter[LEU_SC1] = {-4.5114171929323135, 0.0, 25.86498421391297, -0.3593827525321407, -25.217858321420422, 15.064085710903564, -2.607530763046867};</span></a>
+<a name="291"><span class="lineNum">     291 </span>            : </a>
+<a name="292"><span class="lineNum">     292 </span><span class="lineCov">          4 :   parameter[LYS_BB] = {10.64380376754201, 0.0, 2.0616367677184795, 0.7872172380281511, -5.080459867292311, 3.222662355248592, -0.5960014828825799};</span></a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">          4 :   parameter[LYS_SC1] = {-2.5824810746850932, 0.0, 16.13252189664475, 1.128748246295519, -15.254770450814124, 8.38659674454396, -1.375867210865735};</span></a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">          4 :   parameter[LYS_SC2] = {2.1875912973408798, 0.0, 7.73920607666854, -0.27554644744459345, -5.278638129524195, 2.7078403428197415, -0.40648308930112886};</span></a>
+<a name="295"><span class="lineNum">     295 </span>            : </a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">          4 :   parameter[MET_BB] = {10.643805945882942, 0.0, 2.061638855896697, 0.7872212846351714, -5.080465329413779, 3.2226637799383036, -0.5960014813592833};</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">          4 :   parameter[MET_SC1] = {5.941578575762451, 0.0, 27.196511296595972, -14.885385896082838, -11.454742034363008, 10.47605161022688, -2.1101041439081705};</span></a>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">          4 :   parameter[PHE_BB] = {10.643806006706622, 0.0, 2.0616372014304547, 0.7872174036368966, -5.080460936081678, 3.2226630332083683, -0.596001608264948};</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">          4 :   parameter[PHE_SC1] = {-0.8462636496033878, 0.0, 14.839441617245123, 2.2004608533314522, -16.95606436299522, 9.510075608290261, -1.5946587656311024};</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">          4 :   parameter[PHE_SC2] = {-0.742231268614823, 0.0, 10.63643103868057, 1.7786090791808593, -10.450445500864703, 5.373874846922616, -0.8428947987047763};</span></a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">          4 :   parameter[PHE_SC3] = {-0.7422313155110873, 0.0, 10.636434560542588, 1.7789447792708137, -10.451993220972495, 5.374862813071748, -0.8430703179386754};</span></a>
+<a name="303"><span class="lineNum">     303 </span>            : </a>
+<a name="304"><span class="lineNum">     304 </span><span class="lineCov">          4 :   parameter[PRO_BB] = {10.643806843833374, 0.0, 2.0616339242389112, 0.7872087624627253, -5.080450252830959, 3.2226602532621835, -0.5960015957447156};</span></a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">          4 :   parameter[PRO_SC1] = {-2.5823799290163008, 0.0, 15.935745257970094, 1.5755615408846868, -15.321956596666128, 8.243503230527706, -1.3306121395565977};</span></a>
+<a name="306"><span class="lineNum">     306 </span>            : </a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">          4 :   parameter[SER_BB] = {10.643806777864874, 0.0, 2.0616387389176625, 0.7872199109819031, -5.080462650852676, 3.222662175078477, -0.5960011782019041};</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">          4 :   parameter[SER_SC1] = {3.4162901978899263, 0.0, 7.046526576582673, -0.7405001447742399, -4.171626396336101, 2.17896359910637, -0.3261396940578125};</span></a>
+<a name="309"><span class="lineNum">     309 </span>            : </a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">          4 :   parameter[THR_BB] = {10.643806692667567, 0.0, 2.0616395632827773, 0.7872229931327475, -5.080468438252067, 3.2226651681904412, -0.596001665635775};</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineCov">          4 :   parameter[THR_SC1] = {2.3286130028844063, 0.0, 15.22075528248213, -7.075948421013035, -4.803271805624368, 3.801442540603149, -0.6738285661353789};</span></a>
+<a name="312"><span class="lineNum">     312 </span>            : </a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">          4 :   parameter[TRP_BB] = {10.6438056642156, 0.0, 2.0616365723567625, 0.7872157250296694, -5.080458020204383, 3.222661767357874, -0.5960014466255745};</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">          4 :   parameter[TRP_SC1] = {-0.351034177345441, 0.0, 7.194381667728987, 1.0062737316596095, -5.967563386286029, 2.8587212292759863, -0.41846073110281257};</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">          4 :   parameter[TRP_SC2] = {5.2085335935035015, 0.0, 3.846414533476574, -0.7548987022087086, -2.1045634954549053, 1.1551370044816633, -0.17558936197499975};</span></a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">          4 :   parameter[TRP_SC3] = {1.0191615583089166, 0.0, 4.052957128215075, 0.9232332263552776, -3.327471251075115, 1.4497288158043133, -0.19659298783187706};</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">          4 :   parameter[TRP_SC4] = {-0.4946782468748683, 0.0, 6.9061019054469925, 1.4448598321835506, -6.077337073118115, 2.8277650354743824, -0.40813950611040006};</span></a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineCov">          4 :   parameter[TRP_SC5] = {-0.49467887303237984, 0.0, 6.906755828716037, 1.4448532336312239, -6.084567814617669, 2.83287175092946, -0.4090847242312874};</span></a>
+<a name="319"><span class="lineNum">     319 </span>            : </a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">          4 :   parameter[TYR_BB] = {10.643806827500029, 0.0, 2.061632625815723, 0.7872057392672824, -5.080447933834761, 3.2226603604678723, -0.5960017988956865};</span></a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">          4 :   parameter[TYR_SC1] = {-0.3510348934006665, 0.0, 7.198047296937748, 0.9985596099204095, -5.979206265377417, 2.869439868998658, -0.4205709369357118};</span></a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">          4 :   parameter[TYR_SC2] = {-0.49467730589685305, 0.0, 6.905064702126387, 1.4448572769420103, -6.0657993256015255, 2.8196314526492494, -0.4066356099898165};</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineCov">          4 :   parameter[TYR_SC3] = {-0.49467728298728963, 0.0, 6.905040827851511, 1.444857019166638, -6.065533022896432, 2.8194439448562316, -0.4066009631311269};</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">          4 :   parameter[TYR_SC4] = {4.7864749265977435, 0.0, 3.379084515901221, 0.457435669705735, -2.6386732256533407, 1.184403517784809, -0.16175671046904316};</span></a>
+<a name="325"><span class="lineNum">     325 </span>            : </a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineCov">          4 :   parameter[VAL_BB] = {10.643806849587198, 0.0, 2.061631159601996, 0.7872024303709435, -5.080444479262741, 3.2226600061868638, -0.5960019731764394};</span></a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">          4 :   parameter[VAL_SC1] = {-3.650489697568667, 0.0, 20.152880104569256, -1.3077717593059774, -16.48666338249699, 9.710777748612122, -1.654724631578258};</span></a>
+<a name="328"><span class="lineNum">     328 </span>            : </a>
+<a name="329"><span class="lineNum">     329 </span>            :   // Resolve beads by (residue, bead) name rather than by input order so the coefficients</a>
+<a name="330"><span class="lineNum">     330 </span>            :   // stay correct regardless of how the user ordered ATOMS. An unrecognised name means the</a>
+<a name="331"><span class="lineNum">     331 </span>            :   // topology is not Martini 3, so we error out early instead of silently applying the wrong</a>
+<a name="332"><span class="lineNum">     332 </span>            :   // form factor and producing a plausible-looking but incorrect intensity.</a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">          4 :   auto* moldat=plumed.getActionSet().selectLatest&lt;GenericMolInfo*&gt;(this);</span></a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineCov">          4 :   if( moldat ) {</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">       1220 :     for(unsigned i=0; i&lt;atoms.size(); ++i) {</span></a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">       1216 :       std::string Aname = moldat-&gt;getAtomName(atoms[i]);</span></a>
+<a name="337"><span class="lineNum">     337 </span><span class="lineCov">       1216 :       std::string Rname = moldat-&gt;getResidueName(atoms[i]);</span></a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineCov">       1216 :       if(Rname==&quot;ALA&quot;) {</span></a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineCov">         96 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">         48 :           atoi[i]=ALA_BB;</span></a>
+<a name="341"><span class="lineNum">     341 </span><span class="lineCov">         48 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">         48 :           atoi[i]=ALA_SC1;</span></a>
+<a name="343"><span class="lineNum">     343 </span>            :         } else {</a>
+<a name="344"><span class="lineNum">     344 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="345"><span class="lineNum">     345 </span>            :         }</a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">       1120 :       } else if(Rname==&quot;ARG&quot;) {</span></a>
+<a name="347"><span class="lineNum">     347 </span><span class="lineCov">        132 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="348"><span class="lineNum">     348 </span><span class="lineCov">         44 :           atoi[i]=ARG_BB;</span></a>
+<a name="349"><span class="lineNum">     349 </span><span class="lineCov">         88 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineCov">         44 :           atoi[i]=ARG_SC1;</span></a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineCov">         44 :         } else if(Aname==&quot;SC2&quot;) {</span></a>
+<a name="352"><span class="lineNum">     352 </span><span class="lineCov">         44 :           atoi[i]=ARG_SC2;</span></a>
+<a name="353"><span class="lineNum">     353 </span>            :         } else {</a>
+<a name="354"><span class="lineNum">     354 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="355"><span class="lineNum">     355 </span>            :         }</a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineCov">        988 :       } else if(Rname==&quot;ASN&quot;) {</span></a>
+<a name="357"><span class="lineNum">     357 </span><span class="lineCov">        112 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="358"><span class="lineNum">     358 </span><span class="lineCov">         56 :           atoi[i]=ASN_BB;</span></a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineCov">         56 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="360"><span class="lineNum">     360 </span><span class="lineCov">         56 :           atoi[i]=ASN_SC1;</span></a>
+<a name="361"><span class="lineNum">     361 </span>            :         } else {</a>
+<a name="362"><span class="lineNum">     362 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="363"><span class="lineNum">     363 </span>            :         }</a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineCov">        876 :       } else if(Rname==&quot;ASP&quot;) {</span></a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineCov">         56 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="366"><span class="lineNum">     366 </span><span class="lineCov">         28 :           atoi[i]=ASP_BB;</span></a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineCov">         28 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="368"><span class="lineNum">     368 </span><span class="lineCov">         28 :           atoi[i]=ASP_SC1;</span></a>
+<a name="369"><span class="lineNum">     369 </span>            :         } else {</a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="371"><span class="lineNum">     371 </span>            :         }</a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">        820 :       } else if(Rname==&quot;CYS&quot;) {</span></a>
+<a name="373"><span class="lineNum">     373 </span><span class="lineCov">         64 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="374"><span class="lineNum">     374 </span><span class="lineCov">         32 :           atoi[i]=CYS_BB;</span></a>
+<a name="375"><span class="lineNum">     375 </span><span class="lineCov">         32 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="376"><span class="lineNum">     376 </span><span class="lineCov">         32 :           atoi[i]=CYS_SC1;</span></a>
+<a name="377"><span class="lineNum">     377 </span>            :         } else {</a>
+<a name="378"><span class="lineNum">     378 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="379"><span class="lineNum">     379 </span>            :         }</a>
+<a name="380"><span class="lineNum">     380 </span><span class="lineCov">        756 :       } else if(Rname==&quot;GLN&quot;) {</span></a>
+<a name="381"><span class="lineNum">     381 </span><span class="lineCov">         24 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineCov">         12 :           atoi[i]=GLN_BB;</span></a>
+<a name="383"><span class="lineNum">     383 </span><span class="lineCov">         12 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineCov">         12 :           atoi[i]=GLN_SC1;</span></a>
+<a name="385"><span class="lineNum">     385 </span>            :         } else {</a>
+<a name="386"><span class="lineNum">     386 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="387"><span class="lineNum">     387 </span>            :         }</a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineCov">        732 :       } else if(Rname==&quot;GLU&quot;) {</span></a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineCov">         16 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">          8 :           atoi[i]=GLU_BB;</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineCov">          8 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineCov">          8 :           atoi[i]=GLU_SC1;</span></a>
+<a name="393"><span class="lineNum">     393 </span>            :         } else {</a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="395"><span class="lineNum">     395 </span>            :         }</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">        716 :       } else if(Rname==&quot;GLY&quot;) {</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">         48 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineCov">         48 :           atoi[i]=GLY_BB;</span></a>
+<a name="399"><span class="lineNum">     399 </span>            :         } else {</a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="401"><span class="lineNum">     401 </span>            :         }</a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineCov">        668 :       } else if(Rname==&quot;HIS&quot;) {</span></a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineCov">         16 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineCov">          4 :           atoi[i]=HIS_BB;</span></a>
+<a name="405"><span class="lineNum">     405 </span><span class="lineCov">         12 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="406"><span class="lineNum">     406 </span><span class="lineCov">          4 :           atoi[i]=HIS_SC1;</span></a>
+<a name="407"><span class="lineNum">     407 </span><span class="lineCov">          8 :         } else if(Aname==&quot;SC2&quot;) {</span></a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">          4 :           atoi[i]=HIS_SC2;</span></a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">          4 :         } else if(Aname==&quot;SC3&quot;) {</span></a>
+<a name="410"><span class="lineNum">     410 </span><span class="lineCov">          4 :           atoi[i]=HIS_SC3;</span></a>
+<a name="411"><span class="lineNum">     411 </span>            :         } else {</a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="413"><span class="lineNum">     413 </span>            :         }</a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">        652 :       } else if(Rname==&quot;ILE&quot;) {</span></a>
+<a name="415"><span class="lineNum">     415 </span><span class="lineCov">         48 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineCov">         24 :           atoi[i]=ILE_BB;</span></a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">         24 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">         24 :           atoi[i]=ILE_SC1;</span></a>
+<a name="419"><span class="lineNum">     419 </span>            :         } else {</a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="421"><span class="lineNum">     421 </span>            :         }</a>
+<a name="422"><span class="lineNum">     422 </span><span class="lineCov">        604 :       } else if(Rname==&quot;LEU&quot;) {</span></a>
+<a name="423"><span class="lineNum">     423 </span><span class="lineCov">         64 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="424"><span class="lineNum">     424 </span><span class="lineCov">         32 :           atoi[i]=LEU_BB;</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">         32 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">         32 :           atoi[i]=LEU_SC1;</span></a>
+<a name="427"><span class="lineNum">     427 </span>            :         } else {</a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="429"><span class="lineNum">     429 </span>            :         }</a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineCov">        540 :       } else if(Rname==&quot;LYS&quot;) {</span></a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">         72 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineCov">         24 :           atoi[i]=LYS_BB;</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">         48 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="434"><span class="lineNum">     434 </span><span class="lineCov">         24 :           atoi[i]=LYS_SC1;</span></a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">         24 :         } else if(Aname==&quot;SC2&quot;) {</span></a>
+<a name="436"><span class="lineNum">     436 </span><span class="lineCov">         24 :           atoi[i]=LYS_SC2;</span></a>
+<a name="437"><span class="lineNum">     437 </span>            :         } else {</a>
+<a name="438"><span class="lineNum">     438 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="439"><span class="lineNum">     439 </span>            :         }</a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">        468 :       } else if(Rname==&quot;MET&quot;) {</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">         16 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="442"><span class="lineNum">     442 </span><span class="lineCov">          8 :           atoi[i]=MET_BB;</span></a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">          8 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineCov">          8 :           atoi[i]=MET_SC1;</span></a>
+<a name="445"><span class="lineNum">     445 </span>            :         } else {</a>
+<a name="446"><span class="lineNum">     446 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="447"><span class="lineNum">     447 </span>            :         }</a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">        452 :       } else if(Rname==&quot;PHE&quot;) {</span></a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineCov">         48 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="450"><span class="lineNum">     450 </span><span class="lineCov">         12 :           atoi[i]=PHE_BB;</span></a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineCov">         36 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">         12 :           atoi[i]=PHE_SC1;</span></a>
+<a name="453"><span class="lineNum">     453 </span><span class="lineCov">         24 :         } else if(Aname==&quot;SC2&quot;) {</span></a>
+<a name="454"><span class="lineNum">     454 </span><span class="lineCov">         12 :           atoi[i]=PHE_SC2;</span></a>
+<a name="455"><span class="lineNum">     455 </span><span class="lineCov">         12 :         } else if(Aname==&quot;SC3&quot;) {</span></a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineCov">         12 :           atoi[i]=PHE_SC3;</span></a>
+<a name="457"><span class="lineNum">     457 </span>            :         } else {</a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="459"><span class="lineNum">     459 </span>            :         }</a>
+<a name="460"><span class="lineNum">     460 </span><span class="lineCov">        404 :       } else if(Rname==&quot;PRO&quot;) {</span></a>
+<a name="461"><span class="lineNum">     461 </span><span class="lineCov">         16 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="462"><span class="lineNum">     462 </span><span class="lineCov">          8 :           atoi[i]=PRO_BB;</span></a>
+<a name="463"><span class="lineNum">     463 </span><span class="lineCov">          8 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineCov">          8 :           atoi[i]=PRO_SC1;</span></a>
+<a name="465"><span class="lineNum">     465 </span>            :         } else {</a>
+<a name="466"><span class="lineNum">     466 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="467"><span class="lineNum">     467 </span>            :         }</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineCov">        388 :       } else if(Rname==&quot;SER&quot;) {</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineCov">         80 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="470"><span class="lineNum">     470 </span><span class="lineCov">         40 :           atoi[i]=SER_BB;</span></a>
+<a name="471"><span class="lineNum">     471 </span><span class="lineCov">         40 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="472"><span class="lineNum">     472 </span><span class="lineCov">         40 :           atoi[i]=SER_SC1;</span></a>
+<a name="473"><span class="lineNum">     473 </span>            :         } else {</a>
+<a name="474"><span class="lineNum">     474 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="475"><span class="lineNum">     475 </span>            :         }</a>
+<a name="476"><span class="lineNum">     476 </span><span class="lineCov">        308 :       } else if(Rname==&quot;THR&quot;) {</span></a>
+<a name="477"><span class="lineNum">     477 </span><span class="lineCov">         56 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="478"><span class="lineNum">     478 </span><span class="lineCov">         28 :           atoi[i]=THR_BB;</span></a>
+<a name="479"><span class="lineNum">     479 </span><span class="lineCov">         28 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="480"><span class="lineNum">     480 </span><span class="lineCov">         28 :           atoi[i]=THR_SC1;</span></a>
+<a name="481"><span class="lineNum">     481 </span>            :         } else {</a>
+<a name="482"><span class="lineNum">     482 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="483"><span class="lineNum">     483 </span>            :         }</a>
+<a name="484"><span class="lineNum">     484 </span><span class="lineCov">        252 :       } else if(Rname==&quot;TRP&quot;) {</span></a>
+<a name="485"><span class="lineNum">     485 </span><span class="lineCov">        144 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="486"><span class="lineNum">     486 </span><span class="lineCov">         24 :           atoi[i]=TRP_BB;</span></a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">        120 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineCov">         24 :           atoi[i]=TRP_SC1;</span></a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">         96 :         } else if(Aname==&quot;SC2&quot;) {</span></a>
+<a name="490"><span class="lineNum">     490 </span><span class="lineCov">         24 :           atoi[i]=TRP_SC2;</span></a>
+<a name="491"><span class="lineNum">     491 </span><span class="lineCov">         72 :         } else if(Aname==&quot;SC3&quot;) {</span></a>
+<a name="492"><span class="lineNum">     492 </span><span class="lineCov">         24 :           atoi[i]=TRP_SC3;</span></a>
+<a name="493"><span class="lineNum">     493 </span><span class="lineCov">         48 :         } else if(Aname==&quot;SC4&quot;) {</span></a>
+<a name="494"><span class="lineNum">     494 </span><span class="lineCov">         24 :           atoi[i]=TRP_SC4;</span></a>
+<a name="495"><span class="lineNum">     495 </span><span class="lineCov">         24 :         } else if(Aname==&quot;SC5&quot;) {</span></a>
+<a name="496"><span class="lineNum">     496 </span><span class="lineCov">         24 :           atoi[i]=TRP_SC5;</span></a>
+<a name="497"><span class="lineNum">     497 </span>            :         } else {</a>
+<a name="498"><span class="lineNum">     498 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="499"><span class="lineNum">     499 </span>            :         }</a>
+<a name="500"><span class="lineNum">     500 </span><span class="lineCov">        108 :       } else if(Rname==&quot;TYR&quot;) {</span></a>
+<a name="501"><span class="lineNum">     501 </span><span class="lineCov">         60 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="502"><span class="lineNum">     502 </span><span class="lineCov">         12 :           atoi[i]=TYR_BB;</span></a>
+<a name="503"><span class="lineNum">     503 </span><span class="lineCov">         48 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="504"><span class="lineNum">     504 </span><span class="lineCov">         12 :           atoi[i]=TYR_SC1;</span></a>
+<a name="505"><span class="lineNum">     505 </span><span class="lineCov">         36 :         } else if(Aname==&quot;SC2&quot;) {</span></a>
+<a name="506"><span class="lineNum">     506 </span><span class="lineCov">         12 :           atoi[i]=TYR_SC2;</span></a>
+<a name="507"><span class="lineNum">     507 </span><span class="lineCov">         24 :         } else if(Aname==&quot;SC3&quot;) {</span></a>
+<a name="508"><span class="lineNum">     508 </span><span class="lineCov">         12 :           atoi[i]=TYR_SC3;</span></a>
+<a name="509"><span class="lineNum">     509 </span><span class="lineCov">         12 :         } else if(Aname==&quot;SC4&quot;) {</span></a>
+<a name="510"><span class="lineNum">     510 </span><span class="lineCov">         12 :           atoi[i]=TYR_SC4;</span></a>
+<a name="511"><span class="lineNum">     511 </span>            :         } else {</a>
+<a name="512"><span class="lineNum">     512 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="513"><span class="lineNum">     513 </span>            :         }</a>
+<a name="514"><span class="lineNum">     514 </span><span class="lineCov">         48 :       } else if(Rname==&quot;VAL&quot;) {</span></a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineCov">         48 :         if(Aname==&quot;BB&quot;) {</span></a>
+<a name="516"><span class="lineNum">     516 </span><span class="lineCov">         24 :           atoi[i]=VAL_BB;</span></a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineCov">         24 :         } else if(Aname==&quot;SC1&quot;) {</span></a>
+<a name="518"><span class="lineNum">     518 </span><span class="lineCov">         24 :           atoi[i]=VAL_SC1;</span></a>
+<a name="519"><span class="lineNum">     519 </span>            :         } else {</a>
+<a name="520"><span class="lineNum">     520 </span><span class="lineNoCov">          0 :           error(&quot;Atom name not known: &quot;+Aname);</span></a>
+<a name="521"><span class="lineNum">     521 </span>            :         }</a>
+<a name="522"><span class="lineNum">     522 </span>            :       } else {</a>
+<a name="523"><span class="lineNum">     523 </span><span class="lineNoCov">          0 :         error(&quot;Residue not known: &quot;+Rname);</span></a>
+<a name="524"><span class="lineNum">     524 </span>            :       }</a>
+<a name="525"><span class="lineNum">     525 </span>            :     }</a>
+<a name="526"><span class="lineNum">     526 </span>            :   } else {</a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineNoCov">          0 :     error(&quot;MOLINFO DATA not found&quot;);</span></a>
+<a name="528"><span class="lineNum">     528 </span>            :   }</a>
+<a name="529"><span class="lineNum">     529 </span><span class="lineCov">          4 : }</span></a>
+<a name="530"><span class="lineNum">     530 </span>            : </a>
+<a name="531"><span class="lineNum">     531 </span>            : }//namespace isdb</a>
+<a name="532"><span class="lineNum">     532 </span>            : }//namespace PLMD</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

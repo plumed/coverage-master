@@ -1,0 +1,656 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - adjmat/TorsionsMatrix.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">adjmat</a> - TorsionsMatrix.cpp<span style="font-size: 80%;"> (source / <a href="TorsionsMatrix.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">236</td>
+            <td class="headerCovTableEntry">273</td>
+            <td class="headerCovTableEntryMed">86.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-11-14 09:57:48</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntryMed">78.6 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2011-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;core/ActionWithMatrix.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;core/ParallelTaskManager.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;tools/Torsion.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : </a>
+<a name="27"><span class="lineNum">      27 </span>            : //+PLUMEDOC MCOLVAR TORSIONS_MATRIX</a>
+<a name="28"><span class="lineNum">      28 </span>            : /*</a>
+<a name="29"><span class="lineNum">      29 </span>            : Calculate the matrix of torsions between two vectors of molecules</a>
+<a name="30"><span class="lineNum">      30 </span>            : </a>
+<a name="31"><span class="lineNum">      31 </span>            : This action was implemented to ensure that we can calculate the [SMAC](SMAC.md) collective variable that is discussed in</a>
+<a name="32"><span class="lineNum">      32 </span>            : [this paper](https://www.sciencedirect.com/science/article/abs/pii/S0009250914004503?via%3Dihub). This particular action</a>
+<a name="33"><span class="lineNum">      33 </span>            : tracks the relative orientations for all the pairs of molecules in a set much like the variables described in the crystdistrib module.</a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span>            : The orientations of molecules can be specified using either [PLANE](PLANE.md) or [DISTANCE](DISTANCE.md).  The example below shows how you can use</a>
+<a name="36"><span class="lineNum">      36 </span>            : internal vectors connecting two atoms in the molecules to define the orientation of that molecule.  Three of these internal</a>
+<a name="37"><span class="lineNum">      37 </span>            : vectors are calculated using a DISTANCE command in the input below.  The matrix of torsional angles between these various</a>
+<a name="38"><span class="lineNum">      38 </span>            : vectors is then computed:</a>
+<a name="39"><span class="lineNum">      39 </span>            : </a>
+<a name="40"><span class="lineNum">      40 </span>            : ```plumed</a>
+<a name="41"><span class="lineNum">      41 </span>            : d1: DISTANCE ATOMS1=1,5 ATOMS2=11,15 ATOMS3=21,25 COMPONENTS</a>
+<a name="42"><span class="lineNum">      42 </span>            : s: VSTACK ARG=d1.x,d1.y,d1.z</a>
+<a name="43"><span class="lineNum">      43 </span>            : sT: TRANSPOSE ARG=s</a>
+<a name="44"><span class="lineNum">      44 </span>            : m: TORSIONS_MATRIX ARG=s,sT POSITIONS1=1,11,21 POSITIONS2=1,11,21</a>
+<a name="45"><span class="lineNum">      45 </span>            : PRINT ARG=m FILE=matrix</a>
+<a name="46"><span class="lineNum">      46 </span>            : ```</a>
+<a name="47"><span class="lineNum">      47 </span>            : </a>
+<a name="48"><span class="lineNum">      48 </span>            : In this example, the torsional angle in element $(1,2)$ of the matrix with label `m` is the angle between the plane containing atoms 1,5 and 10 and the plane</a>
+<a name="49"><span class="lineNum">      49 </span>            : connecting atoms 1,10 and 15.  In other words, the elements in this matrix are the torsional angles between the vectors in the input matrices</a>
+<a name="50"><span class="lineNum">      50 </span>            : around the vector connecting the corresponding atomic positions that are specified using the `POSTIONS` keyword.</a>
+<a name="51"><span class="lineNum">      51 </span>            : </a>
+<a name="52"><span class="lineNum">      52 </span>            : You can also calculate a matrix of torsional angles between two different groups of molecules by using an input like the one below:</a>
+<a name="53"><span class="lineNum">      53 </span>            : </a>
+<a name="54"><span class="lineNum">      54 </span>            : ```plumed</a>
+<a name="55"><span class="lineNum">      55 </span>            : pA: PLANE ATOMS1=1,2,3 ATOMS2=11,12,13</a>
+<a name="56"><span class="lineNum">      56 </span>            : sA: VSTACK ARG=pA.x,pA.y,pA.z</a>
+<a name="57"><span class="lineNum">      57 </span>            : pB: PLANE ATOMS1=21,22,23 ATOMS2=31,32,33 ATOMS3=41,42,43</a>
+<a name="58"><span class="lineNum">      58 </span>            : sB: VSTACK ARG=pB.x,pB.y,pB.z</a>
+<a name="59"><span class="lineNum">      59 </span>            : sBT: TRANSPOSE ARG=sB</a>
+<a name="60"><span class="lineNum">      60 </span>            : m: TORSIONS_MATRIX ARG=sA,sBT POSITIONS1=1,11 POSITIONS2=21,31,41</a>
+<a name="61"><span class="lineNum">      61 </span>            : PRINT ARG=m FILE=matrix</a>
+<a name="62"><span class="lineNum">      62 </span>            : ```</a>
+<a name="63"><span class="lineNum">      63 </span>            : </a>
+<a name="64"><span class="lineNum">      64 </span>            : In this example, the orientations of the molecules are specified using the [PLANE](PLANE.md) action and is given by a normal to the plane containing the three atoms from the molecule</a>
+<a name="65"><span class="lineNum">      65 </span>            : that was specified.  The final output is $2 \times 3$ matrix that contains all the torsional angles between the molecules defined by the two PLANE actions.</a>
+<a name="66"><span class="lineNum">      66 </span>            : </a>
+<a name="67"><span class="lineNum">      67 </span>            : ## Performance considerations</a>
+<a name="68"><span class="lineNum">      68 </span>            : </a>
+<a name="69"><span class="lineNum">      69 </span>            : Suppose that you are using an input like the one shown below to calculate the average torsion angle between neighboring molecules:</a>
+<a name="70"><span class="lineNum">      70 </span>            : </a>
+<a name="71"><span class="lineNum">      71 </span>            : ```plumed</a>
+<a name="72"><span class="lineNum">      72 </span>            : # Notice that in a realistic version of this calculation you would likely</a>
+<a name="73"><span class="lineNum">      73 </span>            : # by calculating the orientations of many more molecules using this command</a>
+<a name="74"><span class="lineNum">      74 </span>            : d: DISTANCE COMPONENTS ATOMS1=1,5 ATOMS2=11,15 ATOMS3=21,25 ATOMS4=31,35</a>
+<a name="75"><span class="lineNum">      75 </span>            : s: VSTACK ARG=d.x,d.y,d.z</a>
+<a name="76"><span class="lineNum">      76 </span>            : sT: TRANSPOSE ARG=s</a>
+<a name="77"><span class="lineNum">      77 </span>            : #  Calculate a contact matrix in which element i,j is 1 if molecules</a>
+<a name="78"><span class="lineNum">      78 </span>            : # i and j are neighbors.</a>
+<a name="79"><span class="lineNum">      79 </span>            : c: CONTACT_MATRIX GROUP=1,11,21,35 SWITCH={RATIONAL R_0=0.1 D_MAX=0.3}</a>
+<a name="80"><span class="lineNum">      80 </span>            : # Now calculate all the torsions</a>
+<a name="81"><span class="lineNum">      81 </span>            : t: TORSIONS_MATRIX ARG=s,sT POSITIONS1=1,11,21,31 POSITIONS2=1,11,21,31</a>
+<a name="82"><span class="lineNum">      82 </span>            : # And the product between the contact matrix and the torsions</a>
+<a name="83"><span class="lineNum">      83 </span>            : tc: CUSTOM ARG=c,t FUNC=x*y PERIODIC=NO</a>
+<a name="84"><span class="lineNum">      84 </span>            : # Total of all the torsional angles in the first coordination sphere</a>
+<a name="85"><span class="lineNum">      85 </span>            : tsum: SUM ARG=tc PERIODIC=NO</a>
+<a name="86"><span class="lineNum">      86 </span>            : # Total number of neighbouring atoms</a>
+<a name="87"><span class="lineNum">      87 </span>            : bsum: SUM ARG=c PERIODIC=NO</a>
+<a name="88"><span class="lineNum">      88 </span>            : # And finally the average torsion angle</a>
+<a name="89"><span class="lineNum">      89 </span>            : avt: CUSTOM ARG=tc,c FUNC=x/y PERIODIC=NO</a>
+<a name="90"><span class="lineNum">      90 </span>            : ```</a>
+<a name="91"><span class="lineNum">      91 </span>            : </a>
+<a name="92"><span class="lineNum">      92 </span>            : If you have a large number of molecules the most expensive part of this calculation will be the evalulation of the TORSIONS_MATRIX as you need to evaluate one torsion anlge for every pair of molecules.</a>
+<a name="93"><span class="lineNum">      93 </span>            : Furthermore, this computation is unnecessary as most pairs of molecules will __not__ be neighbors.  In other words, for the majority of the molecular pairs element the corresponding element of the</a>
+<a name="94"><span class="lineNum">      94 </span>            : [CONTACT_MATRIX](CONTACT_MATRIX.md) will be zero.  Consequently, when you compute the corresponding element `tc` by multiplying the torsion $i,j$ by the crresponding $i,j$ element of the</a>
+<a name="95"><span class="lineNum">      95 </span>            : [CONTACT_MATRIX](CONTACT_MATRIX.md) you will get zero.</a>
+<a name="96"><span class="lineNum">      96 </span>            : </a>
+<a name="97"><span class="lineNum">      97 </span>            : Thankfully PLUMED allows you to exploit this fact through the MASK keyword as illustrated below:</a>
+<a name="98"><span class="lineNum">      98 </span>            : </a>
+<a name="99"><span class="lineNum">      99 </span>            : ```plumed</a>
+<a name="100"><span class="lineNum">     100 </span>            : # Notice that in a realistic version of this calculation you would likely</a>
+<a name="101"><span class="lineNum">     101 </span>            : # by calculating the orientations of many more molecules using this command</a>
+<a name="102"><span class="lineNum">     102 </span>            : d: DISTANCE COMPONENTS ATOMS1=1,5 ATOMS2=11,15 ATOMS3=21,25 ATOMS4=31,35</a>
+<a name="103"><span class="lineNum">     103 </span>            : s: VSTACK ARG=d.x,d.y,d.z</a>
+<a name="104"><span class="lineNum">     104 </span>            : sT: TRANSPOSE ARG=s</a>
+<a name="105"><span class="lineNum">     105 </span>            : #  Calculate a contact matrix in which element i,j is 1 if molecules</a>
+<a name="106"><span class="lineNum">     106 </span>            : # i and j are neighbors.</a>
+<a name="107"><span class="lineNum">     107 </span>            : c: CONTACT_MATRIX GROUP=1,11,21,35 SWITCH={RATIONAL R_0=0.1 D_MAX=0.3}</a>
+<a name="108"><span class="lineNum">     108 </span>            : # Now calculate all the torsions</a>
+<a name="109"><span class="lineNum">     109 </span>            : t: TORSIONS_MATRIX ...</a>
+<a name="110"><span class="lineNum">     110 </span>            :    MASK=c ARG=s,sT</a>
+<a name="111"><span class="lineNum">     111 </span>            :    POSITIONS1=1,11,21,31 POSITIONS2=1,11,21,31</a>
+<a name="112"><span class="lineNum">     112 </span>            : ...</a>
+<a name="113"><span class="lineNum">     113 </span>            : # And the product between the contact matrix and the torsions</a>
+<a name="114"><span class="lineNum">     114 </span>            : tc: CUSTOM ARG=c,t FUNC=x*y PERIODIC=NO</a>
+<a name="115"><span class="lineNum">     115 </span>            : # Total of all the torsional angles in the first coordination sphere</a>
+<a name="116"><span class="lineNum">     116 </span>            : tsum: SUM ARG=tc PERIODIC=NO</a>
+<a name="117"><span class="lineNum">     117 </span>            : # Total number of neighbouring atoms</a>
+<a name="118"><span class="lineNum">     118 </span>            : bsum: SUM ARG=c PERIODIC=NO</a>
+<a name="119"><span class="lineNum">     119 </span>            : # And finally the average torsion angle</a>
+<a name="120"><span class="lineNum">     120 </span>            : avt: CUSTOM ARG=tc,c FUNC=x/y PERIODIC=NO</a>
+<a name="121"><span class="lineNum">     121 </span>            : ```</a>
+<a name="122"><span class="lineNum">     122 </span>            : </a>
+<a name="123"><span class="lineNum">     123 </span>            : Adding the instruction `MASK=c` to the TORSIONS_MATRIX command here ensures that element $i,j$ of the matrix `t` is only computed if the corresponding element of `c` is non-zero.  By using this command</a>
+<a name="124"><span class="lineNum">     124 </span>            : you thus avoid the computational expense associated with evaluating the full set of pairwise torsions.</a>
+<a name="125"><span class="lineNum">     125 </span>            : </a>
+<a name="126"><span class="lineNum">     126 </span>            : */</a>
+<a name="127"><span class="lineNum">     127 </span>            : //+ENDPLUMEDOC</a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span>            : namespace PLMD {</a>
+<a name="130"><span class="lineNum">     130 </span>            : namespace adjmat {</a>
+<a name="131"><span class="lineNum">     131 </span>            : </a>
+<a name="132"><span class="lineNum">     132 </span><span class="lineNoCov">          0 : class TorsionsMatrixInput {</span></a>
+<a name="133"><span class="lineNum">     133 </span>            : public:</a>
+<a name="134"><span class="lineNum">     134 </span>            :   bool no_thread_gather;</a>
+<a name="135"><span class="lineNum">     135 </span>            :   bool gatherForceOnColumns;</a>
+<a name="136"><span class="lineNum">     136 </span>            :   RequiredMatrixElements outmat;</a>
+<a name="137"><span class="lineNum">     137 </span>            : };</a>
+<a name="138"><span class="lineNum">     138 </span>            : </a>
+<a name="139"><span class="lineNum">     139 </span>            : class TorsionsMatrix : public ActionWithMatrix {</a>
+<a name="140"><span class="lineNum">     140 </span>            : public:</a>
+<a name="141"><span class="lineNum">     141 </span>            :   using input_type = TorsionsMatrixInput;</a>
+<a name="142"><span class="lineNum">     142 </span>            :   using PTM = ParallelTaskManager&lt;TorsionsMatrix&gt;;</a>
+<a name="143"><span class="lineNum">     143 </span>            :   typedef typename PTM::ParallelActionsInput ParallelActionsInput;</a>
+<a name="144"><span class="lineNum">     144 </span>            :   typedef typename PTM::ParallelActionsOutput ParallelActionsOutput;</a>
+<a name="145"><span class="lineNum">     145 </span>            : private:</a>
+<a name="146"><span class="lineNum">     146 </span>            :   PTM taskmanager;</a>
+<a name="147"><span class="lineNum">     147 </span>            : public:</a>
+<a name="148"><span class="lineNum">     148 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="149"><span class="lineNum">     149 </span>            :   explicit TorsionsMatrix(const ActionOptions&amp;);</a>
+<a name="150"><span class="lineNum">     150 </span>            :   unsigned getNumberOfDerivatives() override ;</a>
+<a name="151"><span class="lineNum">     151 </span>            :   void prepare() override ;</a>
+<a name="152"><span class="lineNum">     152 </span>            :   void calculate() override ;</a>
+<a name="153"><span class="lineNum">     153 </span>            :   void applyNonZeroRankForces( std::vector&lt;double&gt;&amp; outforces ) override ;</a>
+<a name="154"><span class="lineNum">     154 </span>            :   void getAtomicInputData( std::vector&lt;double&gt;&amp; inputdata ) const override ;</a>
+<a name="155"><span class="lineNum">     155 </span>            :   void getAtomicInputData( std::vector&lt;float&gt;&amp; inputdata ) const override ;</a>
+<a name="156"><span class="lineNum">     156 </span>            :   void getArgumentInputData( std::vector&lt;double&gt;&amp; inputdata ) const override ;</a>
+<a name="157"><span class="lineNum">     157 </span>            :   void getArgumentInputData( std::vector&lt;float&gt;&amp; inputdata ) const override ;</a>
+<a name="158"><span class="lineNum">     158 </span>            :   static void performTask( std::size_t task_index,</a>
+<a name="159"><span class="lineNum">     159 </span>            :                            const TorsionsMatrixInput&amp; actiondata,</a>
+<a name="160"><span class="lineNum">     160 </span>            :                            ParallelActionsInput&amp; input,</a>
+<a name="161"><span class="lineNum">     161 </span>            :                            ParallelActionsOutput&amp; output );</a>
+<a name="162"><span class="lineNum">     162 </span>            :   static int getNumberOfValuesPerTask( std::size_t task_index,</a>
+<a name="163"><span class="lineNum">     163 </span>            :                                        const TorsionsMatrixInput&amp; actiondata );</a>
+<a name="164"><span class="lineNum">     164 </span>            :   static void getForceIndices( std::size_t task_index,</a>
+<a name="165"><span class="lineNum">     165 </span>            :                                std::size_t colno, std::size_t ntotal_force,</a>
+<a name="166"><span class="lineNum">     166 </span>            :                                const TorsionsMatrixInput&amp; actiondata,</a>
+<a name="167"><span class="lineNum">     167 </span>            :                                const ParallelActionsInput&amp; input,</a>
+<a name="168"><span class="lineNum">     168 </span>            :                                ForceIndexHolder force_indices );</a>
+<a name="169"><span class="lineNum">     169 </span>            : };</a>
+<a name="170"><span class="lineNum">     170 </span>            : </a>
+<a name="171"><span class="lineNum">     171 </span>            : PLUMED_REGISTER_ACTION(TorsionsMatrix,&quot;TORSIONS_MATRIX&quot;)</a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">         38 : void TorsionsMatrix::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">         38 :   ActionWithMatrix::registerKeywords(keys);</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">         76 :   keys.addInputKeyword(&quot;optional&quot;,&quot;MASK&quot;,&quot;matrix&quot;,&quot;a matrix that is used to used to determine which elements of this matrix to compute&quot;);</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">         76 :   keys.addInputKeyword(&quot;compulsory&quot;,&quot;ARG&quot;,&quot;matrix&quot;,&quot;an Nx3 and a 3xN matrix that contain the bond vectors that you would like to determine the torsion angles between&quot;);</span></a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         38 :   keys.add(&quot;atoms&quot;,&quot;POSITIONS1&quot;,&quot;the positions to use for the molecules specified using the first argument&quot;);</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">         38 :   keys.add(&quot;atoms&quot;,&quot;POSITIONS2&quot;,&quot;the positions to use for the molecules specified using the second argument&quot;);</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">         38 :   PTM::registerKeywords( keys );</span></a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">         76 :   keys.setValueDescription(&quot;matrix&quot;,&quot;the matrix of torsions between the two vectors of input directors&quot;);</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">         38 : }</span></a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">         12 : TorsionsMatrix::TorsionsMatrix(const ActionOptions&amp;ao):</span></a>
+<a name="184"><span class="lineNum">     184 </span>            :   Action(ao),</a>
+<a name="185"><span class="lineNum">     185 </span>            :   ActionWithMatrix(ao),</a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">         12 :   taskmanager(this) {</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">         12 :   checkThreadGatherWithMPI( taskmanager.runInSerial() );</span></a>
+<a name="188"><span class="lineNum">     188 </span>            :   int nm=getNumberOfMasks();</a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">         12 :   if( nm&lt;0 ) {</span></a>
+<a name="190"><span class="lineNum">     190 </span>            :     nm = 0;</a>
+<a name="191"><span class="lineNum">     191 </span>            :   }</a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">         12 :   if( getNumberOfArguments()-nm!=2 ) {</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineNoCov">          0 :     error(&quot;should be two arguments to this action, a matrix and a vector&quot;);</span></a>
+<a name="194"><span class="lineNum">     194 </span>            :   }</a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">         12 :   if( getPntrToArgument(0)-&gt;getRank()!=2 || getPntrToArgument(0)-&gt;hasDerivatives() ) {</span></a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineNoCov">          0 :     error(&quot;first argument to this action should be a matrix&quot;);</span></a>
+<a name="197"><span class="lineNum">     197 </span>            :   }</a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">         12 :   if( getPntrToArgument(1)-&gt;getRank()!=2 || getPntrToArgument(1)-&gt;hasDerivatives() ) {</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineNoCov">          0 :     error(&quot;second argument to this action should be a matrix&quot;);</span></a>
+<a name="200"><span class="lineNum">     200 </span>            :   }</a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">         12 :   if( getPntrToArgument(0)-&gt;getShape()[1]!=3 || getPntrToArgument(1)-&gt;getShape()[0]!=3 ) {</span></a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineNoCov">          0 :     error(&quot;number of columns in first matrix and number of rows in second matrix should equal 3&quot;);</span></a>
+<a name="203"><span class="lineNum">     203 </span>            :   }</a>
+<a name="204"><span class="lineNum">     204 </span>            : </a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineCov">         12 :   std::vector&lt;AtomNumber&gt; atoms_a;</span></a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">         24 :   parseAtomList(&quot;POSITIONS1&quot;, atoms_a );</span></a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">         12 :   if( atoms_a.size()!=getPntrToArgument(0)-&gt;getShape()[0] ) {</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineNoCov">          0 :     error(&quot;mismatch between number of atoms specified using POSITIONS1 and number of arguments in vector input&quot;);</span></a>
+<a name="209"><span class="lineNum">     209 </span>            :   }</a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">         12 :   log.printf(&quot;  using positions of these atoms for vectors in first matrix \n&quot;);</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">        957 :   for(unsigned int i=0; i&lt;atoms_a.size(); ++i) {</span></a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineCov">        945 :     if ( (i+1) % 25 == 0 ) {</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">         36 :       log.printf(&quot;  \n&quot;);</span></a>
+<a name="214"><span class="lineNum">     214 </span>            :     }</a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">        945 :     log.printf(&quot;  %d&quot;, atoms_a[i].serial());</span></a>
+<a name="216"><span class="lineNum">     216 </span>            :   }</a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">         12 :   log.printf(&quot;\n&quot;);</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">         12 :   std::vector&lt;AtomNumber&gt; atoms_b;</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">         24 :   parseAtomList(&quot;POSITIONS2&quot;, atoms_b );</span></a>
+<a name="220"><span class="lineNum">     220 </span><span class="lineCov">         12 :   if( atoms_b.size()!=getPntrToArgument(1)-&gt;getShape()[1] ) {</span></a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineNoCov">          0 :     error(&quot;mismatch between number of atoms specified using POSITIONS2 and number of arguments in vector input&quot;);</span></a>
+<a name="222"><span class="lineNum">     222 </span>            :   }</a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">         12 :   log.printf(&quot;  using positions of these atoms for vectors in second matrix \n&quot;);</span></a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineCov">       1250 :   for(unsigned i=0; i&lt;atoms_b.size(); ++i) {</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">       1238 :     if ( (i+1) % 25 == 0 ) {</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">         48 :       log.printf(&quot;  \n&quot;);</span></a>
+<a name="227"><span class="lineNum">     227 </span>            :     }</a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineCov">       1238 :     log.printf(&quot;  %d&quot;, atoms_b[i].serial());</span></a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineCov">       1238 :     atoms_a.push_back( atoms_b[i] );</span></a>
+<a name="230"><span class="lineNum">     230 </span>            :   }</a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">         12 :   log.printf(&quot;\n&quot;);</span></a>
+<a name="232"><span class="lineNum">     232 </span><span class="lineCov">         12 :   requestAtoms( atoms_a, false );</span></a>
+<a name="233"><span class="lineNum">     233 </span>            : </a>
+<a name="234"><span class="lineNum">     234 </span><span class="lineCov">         12 :   std::vector&lt;std::size_t&gt; shape(2);</span></a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">         12 :   shape[0]=getPntrToArgument(0)-&gt;getShape()[0];</span></a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">         12 :   shape[1]=getPntrToArgument(1)-&gt;getShape()[1];</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">         12 :   addValue( shape );</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">         24 :   setPeriodic(&quot;-pi&quot;,&quot;pi&quot;);</span></a>
+<a name="239"><span class="lineNum">     239 </span>            : </a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">         12 :   if( nm&gt;0 ) {</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">          7 :     unsigned iarg = getNumberOfArguments()-1;</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">          7 :     if( getPntrToArgument(iarg)-&gt;getRank()!=2</span></a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">          7 :         || getPntrToArgument(0)-&gt;hasDerivatives() ) {</span></a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineNoCov">          0 :       error(&quot;argument passed to MASK keyword should be a matrix&quot;);</span></a>
+<a name="245"><span class="lineNum">     245 </span>            :     }</a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">          7 :     if( getPntrToArgument(iarg)-&gt;getShape()[0]!=shape[0]</span></a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">          7 :         || getPntrToArgument(iarg)-&gt;getShape()[1]!=shape[1] ) {</span></a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineNoCov">          0 :       error(&quot;argument passed to MASK keyword has the wrong shape&quot;);</span></a>
+<a name="249"><span class="lineNum">     249 </span>            :     }</a>
+<a name="250"><span class="lineNum">     250 </span>            :   }</a>
+<a name="251"><span class="lineNum">     251 </span>            :   TorsionsMatrixInput torinput;</a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">         12 :   torinput.gatherForceOnColumns = false;</span></a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">         12 :   torinput.no_thread_gather = no_thread_gather;</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineCov">         12 :   taskmanager.setActionInput( torinput );</span></a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">         12 : }</span></a>
+<a name="256"><span class="lineNum">     256 </span>            : </a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">         74 : unsigned TorsionsMatrix::getNumberOfDerivatives() {</span></a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineCov">         74 :   return 3*getNumberOfAtoms()</span></a>
+<a name="259"><span class="lineNum">     259 </span>            :          + 9</a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">         74 :          + getPntrToArgument(0)-&gt;getNumberOfStoredValues()</span></a>
+<a name="261"><span class="lineNum">     261 </span><span class="lineCov">         74 :          + getPntrToArgument(1)-&gt;getNumberOfStoredValues();</span></a>
+<a name="262"><span class="lineNum">     262 </span>            : }</a>
+<a name="263"><span class="lineNum">     263 </span>            : </a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">         64 : void TorsionsMatrix::prepare() {</span></a>
+<a name="265"><span class="lineNum">     265 </span><span class="lineCov">         64 :   ActionWithVector::prepare();</span></a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">         64 :   Value* myval = getPntrToComponent(0);</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">         64 :   if( myval-&gt;getShape()[0]==getPntrToArgument(0)-&gt;getShape()[0]</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">         64 :       &amp;&amp; myval-&gt;getShape()[1]==getPntrToArgument(1)-&gt;getShape()[1] ) {</span></a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineCov">         64 :     return;</span></a>
+<a name="270"><span class="lineNum">     270 </span>            :   }</a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineNoCov">          0 :   std::vector&lt;std::size_t&gt; shape(2);</span></a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineNoCov">          0 :   shape[0]=getPntrToArgument(0)-&gt;getShape()[0];</span></a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineNoCov">          0 :   shape[1]=getPntrToArgument(1)-&gt;getShape()[1];</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineNoCov">          0 :   myval-&gt;setShape(shape);</span></a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineNoCov">          0 :   myval-&gt;reshapeMatrixStore( shape[1] );</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="277"><span class="lineNum">     277 </span>            : </a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineCov">         64 : void TorsionsMatrix::calculate() {</span></a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">         64 :   updateBookeepingArrays( taskmanager.getActionInput().outmat );</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">         64 :   if( no_thread_gather ) {</span></a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">         10 :     taskmanager.setupParallelTaskManager( 15, 9 );</span></a>
+<a name="282"><span class="lineNum">     282 </span>            :   } else {</a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineCov">         54 :     taskmanager.setupParallelTaskManager( 21,</span></a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineCov">         54 :                                           getNumberOfDerivatives()</span></a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">         54 :                                           - getPntrToArgument(0)-&gt;getNumberOfStoredValues() );</span></a>
+<a name="286"><span class="lineNum">     286 </span>            :   }</a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">         64 :   taskmanager.runAllTasks();</span></a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineCov">         64 : }</span></a>
+<a name="289"><span class="lineNum">     289 </span>            : </a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">         64 : void TorsionsMatrix::getAtomicInputData( std::vector&lt;double&gt;&amp; inputdata ) const {</span></a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">         64 :   std::size_t total_data = getPntrToArgument(0)-&gt;getNumberOfStoredValues()</span></a>
+<a name="292"><span class="lineNum">     292 </span><span class="lineCov">         64 :                            + getPntrToArgument(1)-&gt;getNumberOfStoredValues()</span></a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">         64 :                            + 3*getNumberOfAtoms();</span></a>
+<a name="294"><span class="lineNum">     294 </span>            : </a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">         64 :   if( inputdata.size()!=total_data ) {</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">         12 :     inputdata.resize( total_data );</span></a>
+<a name="297"><span class="lineNum">     297 </span>            :   }</a>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">         64 :   total_data = total_data - 3*getNumberOfAtoms();</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">      14117 :   for(unsigned j=0; j&lt;getNumberOfAtoms(); ++j) {</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">      14053 :     Vector pos( getPosition(j) );</span></a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">      14053 :     inputdata[total_data+0] = pos[0];</span></a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineCov">      14053 :     inputdata[total_data+1] = pos[1];</span></a>
+<a name="304"><span class="lineNum">     304 </span><span class="lineCov">      14053 :     inputdata[total_data+2] = pos[2];</span></a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">      14053 :     total_data += 3;</span></a>
+<a name="306"><span class="lineNum">     306 </span>            :   }</a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">         64 : }</span></a>
+<a name="308"><span class="lineNum">     308 </span>            : </a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineNoCov">          0 : void TorsionsMatrix::getAtomicInputData( std::vector&lt;float&gt;&amp; inputdata ) const {</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineNoCov">          0 :   std::size_t total_data = getPntrToArgument(0)-&gt;getNumberOfStoredValues()</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineNoCov">          0 :                            + getPntrToArgument(1)-&gt;getNumberOfStoredValues()</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineNoCov">          0 :                            + 3*getNumberOfAtoms();</span></a>
+<a name="313"><span class="lineNum">     313 </span>            : </a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineNoCov">          0 :   if( inputdata.size()!=total_data ) {</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineNoCov">          0 :     inputdata.resize( total_data );</span></a>
+<a name="316"><span class="lineNum">     316 </span>            :   }</a>
+<a name="317"><span class="lineNum">     317 </span>            : </a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineNoCov">          0 :   total_data = total_data - 3*getNumberOfAtoms();</span></a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineNoCov">          0 :   for(unsigned j=0; j&lt;getNumberOfAtoms(); ++j) {</span></a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineNoCov">          0 :     Vector pos( getPosition(j) );</span></a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineNoCov">          0 :     inputdata[total_data+0] = pos[0];</span></a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineNoCov">          0 :     inputdata[total_data+1] = pos[1];</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineNoCov">          0 :     inputdata[total_data+2] = pos[2];</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineNoCov">          0 :     total_data += 3;</span></a>
+<a name="325"><span class="lineNum">     325 </span>            :   }</a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="327"><span class="lineNum">     327 </span>            : </a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">         64 : void TorsionsMatrix::getArgumentInputData( std::vector&lt;double&gt;&amp; inputdata ) const {</span></a>
+<a name="329"><span class="lineNum">     329 </span>            :   unsigned total_data = 0;</a>
+<a name="330"><span class="lineNum">     330 </span>            :   Value* myarg = getPntrToArgument(0);</a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">      16321 :   for(unsigned j=0; j&lt;myarg-&gt;getNumberOfStoredValues(); ++j) {</span></a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">      16257 :     inputdata[total_data] = myarg-&gt;get(j,false);</span></a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">      16257 :     total_data++;</span></a>
+<a name="334"><span class="lineNum">     334 </span>            :   }</a>
+<a name="335"><span class="lineNum">     335 </span>            :   myarg = getPntrToArgument(1);</a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">      25966 :   for(unsigned j=0; j&lt;myarg-&gt;getNumberOfStoredValues(); ++j) {</span></a>
+<a name="337"><span class="lineNum">     337 </span><span class="lineCov">      25902 :     inputdata[total_data] = myarg-&gt;get(j,false);</span></a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineCov">      25902 :     total_data++;</span></a>
+<a name="339"><span class="lineNum">     339 </span>            :   }</a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">         64 : }</span></a>
+<a name="341"><span class="lineNum">     341 </span>            : </a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineNoCov">          0 : void TorsionsMatrix::getArgumentInputData( std::vector&lt;float&gt;&amp; inputdata ) const {</span></a>
+<a name="343"><span class="lineNum">     343 </span>            :   unsigned total_data = 0;</a>
+<a name="344"><span class="lineNum">     344 </span>            :   Value* myarg = getPntrToArgument(0);</a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineNoCov">          0 :   for(unsigned j=0; j&lt;myarg-&gt;getNumberOfStoredValues(); ++j) {</span></a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineNoCov">          0 :     inputdata[total_data] = myarg-&gt;get(j,false);</span></a>
+<a name="347"><span class="lineNum">     347 </span><span class="lineNoCov">          0 :     total_data++;</span></a>
+<a name="348"><span class="lineNum">     348 </span>            :   }</a>
+<a name="349"><span class="lineNum">     349 </span>            :   myarg = getPntrToArgument(1);</a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineNoCov">          0 :   for(unsigned j=0; j&lt;myarg-&gt;getNumberOfStoredValues(); ++j) {</span></a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineNoCov">          0 :     inputdata[total_data] = myarg-&gt;get(j,false);</span></a>
+<a name="352"><span class="lineNum">     352 </span><span class="lineNoCov">          0 :     total_data++;</span></a>
+<a name="353"><span class="lineNum">     353 </span>            :   }</a>
+<a name="354"><span class="lineNum">     354 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="355"><span class="lineNum">     355 </span>            : </a>
+<a name="356"><span class="lineNum">     356 </span>            : // Perform one parallel task for TORSIONS_MATRIX.</a>
+<a name="357"><span class="lineNum">     357 </span>            : // The task index identifies a compact row in `outmat` that stores:</a>
+<a name="358"><span class="lineNum">     358 </span>            : // - the number of active matrix elements for this task (at offset fstart)</a>
+<a name="359"><span class="lineNum">     359 </span>            : // - then the column indices of those elements.</a>
+<a name="360"><span class="lineNum">     360 </span>            : // For each active element, this routine reads orientation vectors from ARG0/ARG1,</a>
+<a name="361"><span class="lineNum">     361 </span>            : // reads the corresponding atomic positions, computes the torsion, and writes</a>
+<a name="362"><span class="lineNum">     362 </span>            : // values/forces into the task-local output buffers.</a>
+<a name="363"><span class="lineNum">     363 </span>            : //</a>
+<a name="364"><span class="lineNum">     364 </span>            : // Data layout notes:</a>
+<a name="365"><span class="lineNum">     365 </span>            : // - `arg0` and `arg1` describe where the two argument matrices are stored in `input`.</a>
+<a name="366"><span class="lineNum">     366 </span>            : // - `nargdata` marks the end of argument data and the start of packed atomic coordinates.</a>
+<a name="367"><span class="lineNum">     367 </span>            : // - `gatherForceOnColumns` controls whether force contributions are accumulated by</a>
+<a name="368"><span class="lineNum">     368 </span>            : //   iterating primarily over columns (true) or rows (false).</a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineCov">       5685 : void TorsionsMatrix::performTask( std::size_t task_index,</span></a>
+<a name="370"><span class="lineNum">     370 </span>            :                                   const TorsionsMatrixInput&amp; actiondata,</a>
+<a name="371"><span class="lineNum">     371 </span>            :                                   ParallelActionsInput&amp; input,</a>
+<a name="372"><span class="lineNum">     372 </span>            :                                   ParallelActionsOutput&amp; output ) {</a>
+<a name="373"><span class="lineNum">     373 </span>            :   // Locate the list of matrix elements assigned to this task.</a>
+<a name="374"><span class="lineNum">     374 </span><span class="lineCov">       5685 :   std::size_t fstart = task_index*(1+actiondata.outmat.ncols);</span></a>
+<a name="375"><span class="lineNum">     375 </span>            :   std::size_t nelements = actiondata.outmat[fstart];</a>
+<a name="376"><span class="lineNum">     376 </span>            : </a>
+<a name="377"><span class="lineNum">     377 </span>            :   // Build bookkeeping descriptors for the two input argument matrices.</a>
+<a name="378"><span class="lineNum">     378 </span><span class="lineCov">       5685 :   auto arg0=ArgumentBookeepingHolder::create( 0, input );</span></a>
+<a name="379"><span class="lineNum">     379 </span><span class="lineCov">       5685 :   auto arg1=ArgumentBookeepingHolder::create( 1, input );</span></a>
+<a name="380"><span class="lineNum">     380 </span>            : </a>
+<a name="381"><span class="lineNum">     381 </span>            :   // Offset of packed atomic position data in the task input buffer.</a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineCov">       5685 :   std::size_t nargdata = arg1.start + arg1.shape[0]*arg1.ncols;</span></a>
+<a name="383"><span class="lineNum">     383 </span>            : </a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineCov">       5685 :   Vector v1, v2;</span></a>
+<a name="385"><span class="lineNum">     385 </span><span class="lineCov">       5685 :   std::vector&lt;Vector&gt; atom2( nelements );</span></a>
+<a name="386"><span class="lineNum">     386 </span>            :   // Two execution modes: gather force contributions on columns or on rows.</a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">       5685 :   if( actiondata.gatherForceOnColumns ) {</span></a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineCov">         39 :     std::size_t at2base = nargdata + 3*arg0.shape[0] + 3*task_index;</span></a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineCov">         39 :     Vector atom1( input.inputdata[at2base],</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">         39 :                   input.inputdata[at2base+1],</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineCov">         39 :                   input.inputdata[at2base+2] );</span></a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineCov">         39 :     std::size_t ag2base = arg1.start + task_index;</span></a>
+<a name="393"><span class="lineNum">     393 </span><span class="lineCov">         39 :     v2 = Vector( input.inputdata[ag2base],</span></a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineCov">         39 :                  input.inputdata[ag2base+arg1.ncols],</span></a>
+<a name="395"><span class="lineNum">     395 </span><span class="lineCov">         39 :                  input.inputdata[ag2base+2*arg1.ncols] );</span></a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">        158 :     for(unsigned i=0; i&lt;nelements; ++i) {</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">        119 :       std::size_t atbase = nargdata + 3*actiondata.outmat[fstart+1+i];</span></a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineCov">        119 :       atom2[i] = atom1 - Vector( input.inputdata[atbase],</span></a>
+<a name="399"><span class="lineNum">     399 </span><span class="lineCov">        119 :                                  input.inputdata[atbase+1],</span></a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineCov">        119 :                                  input.inputdata[atbase+2] );</span></a>
+<a name="401"><span class="lineNum">     401 </span>            :     }</a>
+<a name="402"><span class="lineNum">     402 </span>            :   } else {</a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineCov">       5646 :     std::size_t atbase = nargdata + 3*task_index;</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineCov">       5646 :     Vector atom1( input.inputdata[atbase],</span></a>
+<a name="405"><span class="lineNum">     405 </span><span class="lineCov">       5646 :                   input.inputdata[atbase+1],</span></a>
+<a name="406"><span class="lineNum">     406 </span><span class="lineCov">       5646 :                   input.inputdata[atbase+2] );</span></a>
+<a name="407"><span class="lineNum">     407 </span><span class="lineCov">       5646 :     std::size_t agbase = arg0.ncols*task_index;</span></a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">       5646 :     v1 = Vector( input.inputdata[agbase],</span></a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">       5646 :                  input.inputdata[agbase+1],</span></a>
+<a name="410"><span class="lineNum">     410 </span><span class="lineCov">       5646 :                  input.inputdata[agbase+2] );</span></a>
+<a name="411"><span class="lineNum">     411 </span>            : </a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineCov">    1044830 :     for(unsigned i=0; i&lt;nelements; ++i) {</span></a>
+<a name="413"><span class="lineNum">     413 </span>            :       std::size_t at2base = nargdata</a>
+<a name="414"><span class="lineNum">     414 </span>            :                             + 3*arg0.shape[0]</a>
+<a name="415"><span class="lineNum">     415 </span><span class="lineCov">    1039184 :                             + 3*actiondata.outmat[fstart+1+i];</span></a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineCov">    1039184 :       atom2[i] = Vector( input.inputdata[at2base],</span></a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">    1039184 :                          input.inputdata[at2base+1],</span></a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">    1039184 :                          input.inputdata[at2base+2] ) - atom1;</span></a>
+<a name="419"><span class="lineNum">     419 </span>            :     }</a>
+<a name="420"><span class="lineNum">     420 </span>            :   }</a>
+<a name="421"><span class="lineNum">     421 </span><span class="lineCov">       5685 :   input.pbc-&gt;apply( atom2, nelements );</span></a>
+<a name="422"><span class="lineNum">     422 </span>            : </a>
+<a name="423"><span class="lineNum">     423 </span>            :   // Now compute all the torsions</a>
+<a name="424"><span class="lineNum">     424 </span>            :   Torsion t;</a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">       5685 :   Vector dv1, dconn, dv2 ;</span></a>
+<a name="426"><span class="lineNum">     426 </span>            :   unsigned nderper = 21;</a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineCov">       5685 :   if( actiondata.no_thread_gather ) {</span></a>
+<a name="428"><span class="lineNum">     428 </span>            :     nderper = 15;</a>
+<a name="429"><span class="lineNum">     429 </span>            :   }</a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineCov">    1044988 :   for(unsigned i=0; i&lt;nelements; ++i) {</span></a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">    1039303 :     if( atom2[i].modulo2()&lt;epsilon ) {</span></a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineCov">        173 :       if( !input.noderiv ) {</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">         51 :         output.derivatives.subview( static_cast&lt;std::size_t&gt;(nderper) * static_cast&lt;std::size_t&gt;(i), nderper ).zero();</span></a>
+<a name="434"><span class="lineNum">     434 </span>            :       }</a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">        173 :       continue ;</span></a>
+<a name="436"><span class="lineNum">     436 </span>            :     }</a>
+<a name="437"><span class="lineNum">     437 </span>            : </a>
+<a name="438"><span class="lineNum">     438 </span><span class="lineCov">    1039130 :     if( actiondata.gatherForceOnColumns ) {</span></a>
+<a name="439"><span class="lineNum">     439 </span><span class="lineCov">        102 :       std::size_t ag1base = arg0.ncols*actiondata.outmat[fstart+1+i];</span></a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">        102 :       v1 = Vector( input.inputdata[ag1base],</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">        102 :                    input.inputdata[ag1base+1],</span></a>
+<a name="442"><span class="lineNum">     442 </span><span class="lineCov">        102 :                    input.inputdata[ag1base+2] );</span></a>
+<a name="443"><span class="lineNum">     443 </span>            :     } else {</a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineCov">    1039028 :       std::size_t ag2base = arg1.start + actiondata.outmat[fstart+1+i];</span></a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineCov">    1039028 :       v2 = Vector( input.inputdata[ag2base],</span></a>
+<a name="446"><span class="lineNum">     446 </span><span class="lineCov">    1039028 :                    input.inputdata[ag2base+arg1.ncols],</span></a>
+<a name="447"><span class="lineNum">     447 </span><span class="lineCov">    1039028 :                    input.inputdata[ag2base+2*arg1.ncols] );</span></a>
+<a name="448"><span class="lineNum">     448 </span>            :     }</a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineCov">    1039130 :     output.values[i] = t.compute( v1, atom2[i], v2, dv1, dconn, dv2 );</span></a>
+<a name="450"><span class="lineNum">     450 </span>            : </a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineCov">    1039130 :     if( input.noderiv ) {</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">    1037632 :       continue ;</span></a>
+<a name="453"><span class="lineNum">     453 </span>            :     }</a>
+<a name="454"><span class="lineNum">     454 </span>            : </a>
+<a name="455"><span class="lineNum">     455 </span><span class="lineCov">       1498 :     std::size_t base = static_cast&lt;std::size_t&gt;(nderper) * static_cast&lt;std::size_t&gt;(i);</span></a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineCov">       1498 :     if( !actiondata.no_thread_gather ) {</span></a>
+<a name="457"><span class="lineNum">     457 </span>            :       output.derivatives.subview_n&lt;3&gt;(base) = dv1;</a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineCov">       1294 :       output.derivatives.subview_n&lt;3&gt;(base+3) = -dconn;</span></a>
+<a name="459"><span class="lineNum">     459 </span><span class="lineCov">       1294 :       output.derivatives.subview_n&lt;3&gt;(base+6) = dv2;</span></a>
+<a name="460"><span class="lineNum">     460 </span><span class="lineCov">       1294 :       output.derivatives.subview_n&lt;3&gt;(base+9) = dconn;</span></a>
+<a name="461"><span class="lineNum">     461 </span><span class="lineCov">       1294 :       Tensor vir( -extProduct( atom2[i], dconn ) );</span></a>
+<a name="462"><span class="lineNum">     462 </span><span class="lineCov">       1294 :       View2D&lt;double,3,3&gt; virial( output.derivatives.data() + base + 12 );</span></a>
+<a name="463"><span class="lineNum">     463 </span><span class="lineCov">       5176 :       for(unsigned j=0; j&lt;3; ++j) {</span></a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineCov">      15528 :         for(unsigned k=0; k&lt;3; ++k) {</span></a>
+<a name="465"><span class="lineNum">     465 </span><span class="lineCov">      11646 :           virial[j][k] = vir[j][k];</span></a>
+<a name="466"><span class="lineNum">     466 </span>            :         }</a>
+<a name="467"><span class="lineNum">     467 </span>            :       }</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineCov">        204 :     } else if( actiondata.gatherForceOnColumns ) {</span></a>
+<a name="469"><span class="lineNum">     469 </span>            :       output.derivatives.subview_n&lt;3&gt;(base) = dv2;</a>
+<a name="470"><span class="lineNum">     470 </span><span class="lineCov">        102 :       output.derivatives.subview_n&lt;3&gt;(base+3) = dconn;</span></a>
+<a name="471"><span class="lineNum">     471 </span>            :     } else {</a>
+<a name="472"><span class="lineNum">     472 </span>            :       output.derivatives.subview_n&lt;3&gt;(base) = dv1;</a>
+<a name="473"><span class="lineNum">     473 </span><span class="lineCov">        102 :       output.derivatives.subview_n&lt;3&gt;(base+3) = -dconn;</span></a>
+<a name="474"><span class="lineNum">     474 </span><span class="lineCov">        102 :       Tensor vir( -extProduct( atom2[i], dconn ) );</span></a>
+<a name="475"><span class="lineNum">     475 </span><span class="lineCov">        102 :       View2D&lt;double,3,3&gt; virial( output.derivatives.data() + base + 6 );</span></a>
+<a name="476"><span class="lineNum">     476 </span><span class="lineCov">        408 :       for(unsigned j=0; j&lt;3; ++j) {</span></a>
+<a name="477"><span class="lineNum">     477 </span><span class="lineCov">       1224 :         for(unsigned k=0; k&lt;3; ++k) {</span></a>
+<a name="478"><span class="lineNum">     478 </span><span class="lineCov">        918 :           virial[j][k] = vir[j][k];</span></a>
+<a name="479"><span class="lineNum">     479 </span>            :         }</a>
+<a name="480"><span class="lineNum">     480 </span>            :       }</a>
+<a name="481"><span class="lineNum">     481 </span>            :     }</a>
+<a name="482"><span class="lineNum">     482 </span>            :   }</a>
+<a name="483"><span class="lineNum">     483 </span>            : </a>
+<a name="484"><span class="lineNum">     484 </span><span class="lineCov">       5685 : }</span></a>
+<a name="485"><span class="lineNum">     485 </span>            : </a>
+<a name="486"><span class="lineNum">     486 </span><span class="lineCov">         36 : void TorsionsMatrix::applyNonZeroRankForces( std::vector&lt;double&gt;&amp; outforces ) {</span></a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">         36 :   taskmanager.applyForces( outforces );</span></a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineCov">         36 :   if( no_thread_gather ) {</span></a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">         10 :     getColumnBookeepingArrays( taskmanager.getActionInput().outmat );</span></a>
+<a name="490"><span class="lineNum">     490 </span><span class="lineCov">         10 :     taskmanager.getActionInput().gatherForceOnColumns = gatherForceOnColumns = true;</span></a>
+<a name="491"><span class="lineNum">     491 </span><span class="lineCov">         10 :     taskmanager.setNForceScalars( getNumberOfComponents()*maxcolsize );</span></a>
+<a name="492"><span class="lineNum">     492 </span><span class="lineCov">         10 :     taskmanager.applyForces( outforces, false );</span></a>
+<a name="493"><span class="lineNum">     493 </span><span class="lineCov">         10 :     taskmanager.setNForceScalars( getNumberOfComponents()*getPntrToComponent(0)-&gt;getNumberOfColumns() );</span></a>
+<a name="494"><span class="lineNum">     494 </span><span class="lineCov">         10 :     taskmanager.getActionInput().gatherForceOnColumns = gatherForceOnColumns = false;</span></a>
+<a name="495"><span class="lineNum">     495 </span>            :   }</a>
+<a name="496"><span class="lineNum">     496 </span><span class="lineCov">         36 : }</span></a>
+<a name="497"><span class="lineNum">     497 </span>            : </a>
+<a name="498"><span class="lineNum">     498 </span><span class="lineCov">        268 : int TorsionsMatrix::getNumberOfValuesPerTask( std::size_t task_index,</span></a>
+<a name="499"><span class="lineNum">     499 </span>            :     const TorsionsMatrixInput&amp; actiondata ) {</a>
+<a name="500"><span class="lineNum">     500 </span><span class="lineCov">        268 :   std::size_t fstart = task_index*(1+actiondata.outmat.ncols);</span></a>
+<a name="501"><span class="lineNum">     501 </span><span class="lineCov">        268 :   return actiondata.outmat[fstart];</span></a>
+<a name="502"><span class="lineNum">     502 </span>            : }</a>
+<a name="503"><span class="lineNum">     503 </span>            : </a>
+<a name="504"><span class="lineNum">     504 </span><span class="lineCov">       1549 : void TorsionsMatrix::getForceIndices( std::size_t task_index,</span></a>
+<a name="505"><span class="lineNum">     505 </span>            :                                       std::size_t colno,</a>
+<a name="506"><span class="lineNum">     506 </span>            :                                       std::size_t ntotal_force,</a>
+<a name="507"><span class="lineNum">     507 </span>            :                                       const TorsionsMatrixInput&amp; actiondata,</a>
+<a name="508"><span class="lineNum">     508 </span>            :                                       const ParallelActionsInput&amp; input,</a>
+<a name="509"><span class="lineNum">     509 </span>            :                                       ForceIndexHolder force_indices ) {</a>
+<a name="510"><span class="lineNum">     510 </span><span class="lineCov">       1549 :   auto arg0=ArgumentBookeepingHolder::create( 0, input );</span></a>
+<a name="511"><span class="lineNum">     511 </span><span class="lineCov">       1549 :   auto arg1=ArgumentBookeepingHolder::create( 1, input );</span></a>
+<a name="512"><span class="lineNum">     512 </span><span class="lineCov">       1549 :   if( !actiondata.no_thread_gather ) {</span></a>
+<a name="513"><span class="lineNum">     513 </span><span class="lineCov">       1311 :     std::size_t fstart = task_index*(1+actiondata.outmat.ncols);</span></a>
+<a name="514"><span class="lineNum">     514 </span><span class="lineCov">       1311 :     std::size_t arg1start = task_index*arg0.ncols;</span></a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineCov">       1311 :     force_indices.indices[0][0] = arg1start;</span></a>
+<a name="516"><span class="lineNum">     516 </span><span class="lineCov">       1311 :     force_indices.indices[0][1] = arg1start + 1;</span></a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineCov">       1311 :     force_indices.indices[0][2] = arg1start + 2;</span></a>
+<a name="518"><span class="lineNum">     518 </span><span class="lineCov">       1311 :     std::size_t atomstart = arg1.start + arg1.shape[0]*arg1.ncols;</span></a>
+<a name="519"><span class="lineNum">     519 </span><span class="lineCov">       1311 :     std::size_t atom1start = atomstart + 3*task_index;</span></a>
+<a name="520"><span class="lineNum">     520 </span><span class="lineCov">       1311 :     force_indices.indices[0][3] = atom1start;</span></a>
+<a name="521"><span class="lineNum">     521 </span><span class="lineCov">       1311 :     force_indices.indices[0][4] = atom1start + 1;</span></a>
+<a name="522"><span class="lineNum">     522 </span><span class="lineCov">       1311 :     force_indices.indices[0][5] = atom1start + 2;</span></a>
+<a name="523"><span class="lineNum">     523 </span><span class="lineCov">       1311 :     force_indices.threadsafe_derivatives_end[0] = 6;</span></a>
+<a name="524"><span class="lineNum">     524 </span><span class="lineCov">       1311 :     force_indices.indices[0][6] = arg1.start</span></a>
+<a name="525"><span class="lineNum">     525 </span><span class="lineCov">       1311 :                                   + actiondata.outmat[fstart+1+colno];</span></a>
+<a name="526"><span class="lineNum">     526 </span><span class="lineCov">       1311 :     force_indices.indices[0][7] = arg1.start</span></a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineCov">       1311 :                                   + actiondata.outmat[fstart+1+colno]</span></a>
+<a name="528"><span class="lineNum">     528 </span><span class="lineCov">       1311 :                                   + arg1.ncols;</span></a>
+<a name="529"><span class="lineNum">     529 </span><span class="lineCov">       1311 :     force_indices.indices[0][8] = arg1.start</span></a>
+<a name="530"><span class="lineNum">     530 </span><span class="lineCov">       1311 :                                   + actiondata.outmat[fstart+1+colno]</span></a>
+<a name="531"><span class="lineNum">     531 </span><span class="lineCov">       1311 :                                   + 2*arg1.ncols;</span></a>
+<a name="532"><span class="lineNum">     532 </span>            :     std::size_t atom2start = atomstart</a>
+<a name="533"><span class="lineNum">     533 </span>            :                              + 3*arg0.shape[0]</a>
+<a name="534"><span class="lineNum">     534 </span><span class="lineCov">       1311 :                              + 3*actiondata.outmat[fstart+1+colno];</span></a>
+<a name="535"><span class="lineNum">     535 </span><span class="lineCov">       1311 :     force_indices.indices[0][9] = atom2start;</span></a>
+<a name="536"><span class="lineNum">     536 </span><span class="lineCov">       1311 :     force_indices.indices[0][10] = atom2start + 1;</span></a>
+<a name="537"><span class="lineNum">     537 </span><span class="lineCov">       1311 :     force_indices.indices[0][11] = atom2start + 2;</span></a>
+<a name="538"><span class="lineNum">     538 </span>            :     std::size_t n=12;</a>
+<a name="539"><span class="lineNum">     539 </span><span class="lineCov">      13110 :     for(unsigned j=ntotal_force-9; j&lt;ntotal_force; ++j) {</span></a>
+<a name="540"><span class="lineNum">     540 </span><span class="lineCov">      11799 :       force_indices.indices[0][n] = j;</span></a>
+<a name="541"><span class="lineNum">     541 </span><span class="lineCov">      11799 :       ++n;</span></a>
+<a name="542"><span class="lineNum">     542 </span>            :     }</a>
+<a name="543"><span class="lineNum">     543 </span><span class="lineCov">       1311 :     force_indices.tot_indices[0] = 21;</span></a>
+<a name="544"><span class="lineNum">     544 </span><span class="lineCov">        238 :   } else if( actiondata.gatherForceOnColumns ) {</span></a>
+<a name="545"><span class="lineNum">     545 </span>            :     // here task_index is the column: all the elements of the task share its vector and atom</a>
+<a name="546"><span class="lineNum">     546 </span><span class="lineCov">        119 :     force_indices.indices[0][0] = arg1.start + task_index;</span></a>
+<a name="547"><span class="lineNum">     547 </span><span class="lineCov">        119 :     force_indices.indices[0][1] = arg1.start + task_index + arg1.ncols;</span></a>
+<a name="548"><span class="lineNum">     548 </span><span class="lineCov">        119 :     force_indices.indices[0][2] = arg1.start + task_index + 2*arg1.ncols;</span></a>
+<a name="549"><span class="lineNum">     549 </span><span class="lineCov">        119 :     std::size_t atomstart = arg1.start + arg1.shape[0]*arg1.ncols;</span></a>
+<a name="550"><span class="lineNum">     550 </span>            :     std::size_t atom2start = atomstart</a>
+<a name="551"><span class="lineNum">     551 </span>            :                              + 3*arg0.shape[0]</a>
+<a name="552"><span class="lineNum">     552 </span><span class="lineCov">        119 :                              + 3*task_index;</span></a>
+<a name="553"><span class="lineNum">     553 </span><span class="lineCov">        119 :     force_indices.indices[0][3] = atom2start;</span></a>
+<a name="554"><span class="lineNum">     554 </span><span class="lineCov">        119 :     force_indices.indices[0][4] = atom2start + 1;</span></a>
+<a name="555"><span class="lineNum">     555 </span><span class="lineCov">        119 :     force_indices.indices[0][5] = atom2start + 2;</span></a>
+<a name="556"><span class="lineNum">     556 </span><span class="lineCov">        119 :     force_indices.threadsafe_derivatives_end[0] = 6;</span></a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineCov">        119 :     force_indices.tot_indices[0] = 6;</span></a>
+<a name="558"><span class="lineNum">     558 </span>            :   } else {</a>
+<a name="559"><span class="lineNum">     559 </span><span class="lineCov">        119 :     std::size_t arg1start = task_index*arg0.ncols;</span></a>
+<a name="560"><span class="lineNum">     560 </span><span class="lineCov">        119 :     force_indices.indices[0][0] = arg1start;</span></a>
+<a name="561"><span class="lineNum">     561 </span><span class="lineCov">        119 :     force_indices.indices[0][1] = arg1start + 1;</span></a>
+<a name="562"><span class="lineNum">     562 </span><span class="lineCov">        119 :     force_indices.indices[0][2] = arg1start + 2;</span></a>
+<a name="563"><span class="lineNum">     563 </span><span class="lineCov">        119 :     std::size_t atomstart = arg1.start + arg1.shape[0]*arg1.ncols;</span></a>
+<a name="564"><span class="lineNum">     564 </span><span class="lineCov">        119 :     std::size_t atom1start = atomstart + 3*task_index;</span></a>
+<a name="565"><span class="lineNum">     565 </span><span class="lineCov">        119 :     force_indices.indices[0][3] = atom1start;</span></a>
+<a name="566"><span class="lineNum">     566 </span><span class="lineCov">        119 :     force_indices.indices[0][4] = atom1start + 1;</span></a>
+<a name="567"><span class="lineNum">     567 </span><span class="lineCov">        119 :     force_indices.indices[0][5] = atom1start + 2;</span></a>
+<a name="568"><span class="lineNum">     568 </span><span class="lineCov">        119 :     force_indices.threadsafe_derivatives_end[0] = 6;</span></a>
+<a name="569"><span class="lineNum">     569 </span>            :     std::size_t n=6;</a>
+<a name="570"><span class="lineNum">     570 </span><span class="lineCov">       1190 :     for(unsigned j=ntotal_force-9; j&lt;ntotal_force; ++j) {</span></a>
+<a name="571"><span class="lineNum">     571 </span><span class="lineCov">       1071 :       force_indices.indices[0][n] = j;</span></a>
+<a name="572"><span class="lineNum">     572 </span><span class="lineCov">       1071 :       ++n;</span></a>
+<a name="573"><span class="lineNum">     573 </span>            :     }</a>
+<a name="574"><span class="lineNum">     574 </span><span class="lineCov">        119 :     force_indices.tot_indices[0] = 15;</span></a>
+<a name="575"><span class="lineNum">     575 </span>            :   }</a>
+<a name="576"><span class="lineNum">     576 </span><span class="lineCov">       1549 : }</span></a>
+<a name="577"><span class="lineNum">     577 </span>            : </a>
+<a name="578"><span class="lineNum">     578 </span>            : }</a>
+<a name="579"><span class="lineNum">     579 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
