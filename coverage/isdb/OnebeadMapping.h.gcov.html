@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - isdb/OnebeadMapping.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">isdb</a> - OnebeadMapping.h<span style="font-size: 80%;"> (source / <a href="OnebeadMapping.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-11-28 15:08:19</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2017-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #ifndef __PLUMED_isdb_OnebeadMapping_h</a>
+<a name="23"><span class="lineNum">      23 </span>            : #define __PLUMED_isdb_OnebeadMapping_h</a>
+<a name="24"><span class="lineNum">      24 </span>            : </a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;tools/AtomNumber.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &quot;tools/Vector.h&quot;</a>
+<a name="27"><span class="lineNum">      27 </span>            : </a>
+<a name="28"><span class="lineNum">      28 </span>            : #include &lt;functional&gt;</a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &lt;string&gt;</a>
+<a name="30"><span class="lineNum">      30 </span>            : #include &lt;vector&gt;</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : namespace PLMD {</a>
+<a name="33"><span class="lineNum">      33 </span>            : </a>
+<a name="34"><span class="lineNum">      34 </span>            : class Log;</a>
+<a name="35"><span class="lineNum">      35 </span>            : class PDB;</a>
+<a name="36"><span class="lineNum">      36 </span>            : </a>
+<a name="37"><span class="lineNum">      37 </span>            : namespace isdb {</a>
+<a name="38"><span class="lineNum">      38 </span>            : </a>
+<a name="39"><span class="lineNum">      39 </span>            : /// Identifiers of the ONEBEAD bead types and of the monoatomic ions, with the</a>
+<a name="40"><span class="lineNum">      40 </span>            : /// residue-name helpers that classify the residues of an all-atom structure.</a>
+<a name="41"><span class="lineNum">      41 </span>            : /// The enumerators are used as indices of parameter tables (e.g. the SAXS/SANS</a>
+<a name="42"><span class="lineNum">      42 </span>            : /// form factors), so their order must not change.</a>
+<a name="43"><span class="lineNum">      43 </span>            : struct OnebeadTypes {</a>
+<a name="44"><span class="lineNum">      44 </span>            :   /// Canonical ion identifiers. The ATOMISTIC (AFF_*) and ONEBEAD (OB_*) ion</a>
+<a name="45"><span class="lineNum">      45 </span>            :   /// slots of SAXS are listed in this same order.</a>
+<a name="46"><span class="lineNum">      46 </span>            :   enum { ION_NA, ION_K, ION_CL, ION_CA, ION_MG, ION_ZN, ION_FE2, ION_FE3, ION_MN, NIONS };</a>
+<a name="47"><span class="lineNum">      47 </span>            :   /// Bead types of the ONEBEAD model.</a>
+<a name="48"><span class="lineNum">      48 </span>            :   enum { TRP,</a>
+<a name="49"><span class="lineNum">      49 </span>            :          TYR,</a>
+<a name="50"><span class="lineNum">      50 </span>            :          PHE,</a>
+<a name="51"><span class="lineNum">      51 </span>            :          HIS,</a>
+<a name="52"><span class="lineNum">      52 </span>            :          HIP,</a>
+<a name="53"><span class="lineNum">      53 </span>            :          ARG,</a>
+<a name="54"><span class="lineNum">      54 </span>            :          LYS,</a>
+<a name="55"><span class="lineNum">      55 </span>            :          CYS,</a>
+<a name="56"><span class="lineNum">      56 </span>            :          CYX,</a>
+<a name="57"><span class="lineNum">      57 </span>            :          ASP,</a>
+<a name="58"><span class="lineNum">      58 </span>            :          GLU,</a>
+<a name="59"><span class="lineNum">      59 </span>            :          ILE,</a>
+<a name="60"><span class="lineNum">      60 </span>            :          LEU,</a>
+<a name="61"><span class="lineNum">      61 </span>            :          MET,</a>
+<a name="62"><span class="lineNum">      62 </span>            :          ASN,</a>
+<a name="63"><span class="lineNum">      63 </span>            :          PRO,</a>
+<a name="64"><span class="lineNum">      64 </span>            :          GLN,</a>
+<a name="65"><span class="lineNum">      65 </span>            :          SER,</a>
+<a name="66"><span class="lineNum">      66 </span>            :          THR,</a>
+<a name="67"><span class="lineNum">      67 </span>            :          VAL,</a>
+<a name="68"><span class="lineNum">      68 </span>            :          ALA,</a>
+<a name="69"><span class="lineNum">      69 </span>            :          GLY,</a>
+<a name="70"><span class="lineNum">      70 </span>            :          BB_PO2,</a>
+<a name="71"><span class="lineNum">      71 </span>            :          BB_PO3,</a>
+<a name="72"><span class="lineNum">      72 </span>            :          BB_DNA,</a>
+<a name="73"><span class="lineNum">      73 </span>            :          BB_DNA_5,</a>
+<a name="74"><span class="lineNum">      74 </span>            :          BB_DNA_3,</a>
+<a name="75"><span class="lineNum">      75 </span>            :          BB_RNA,</a>
+<a name="76"><span class="lineNum">      76 </span>            :          BB_RNA_5,</a>
+<a name="77"><span class="lineNum">      77 </span>            :          BB_RNA_3,</a>
+<a name="78"><span class="lineNum">      78 </span>            :          BASE_A,</a>
+<a name="79"><span class="lineNum">      79 </span>            :          BASE_C,</a>
+<a name="80"><span class="lineNum">      80 </span>            :          BASE_T,</a>
+<a name="81"><span class="lineNum">      81 </span>            :          BASE_G,</a>
+<a name="82"><span class="lineNum">      82 </span>            :          BASE_U,</a>
+<a name="83"><span class="lineNum">      83 </span>            :          // Monosaccharide bead types (one bead per residue, exactly as for the</a>
+<a name="84"><span class="lineNum">      84 </span>            :          // amino acids). GLYC_NAG/GLYC_NGA are the N-acetylated hexosamines</a>
+<a name="85"><span class="lineNum">      85 </span>            :          // (GlcNAc/GalNAc).</a>
+<a name="86"><span class="lineNum">      86 </span>            :          GLYC_FUC, GLYC_MAN, GLYC_BMA, GLYC_GAL, GLYC_GLC, GLYC_NAG, GLYC_NGA, GLYC_SIA,</a>
+<a name="87"><span class="lineNum">      87 </span>            :          // Monoatomic-ion bead types (one atom per bead), in the same order as ION_*.</a>
+<a name="88"><span class="lineNum">      88 </span>            :          OB_NA, OB_K, OB_CL, OB_CA, OB_MG, OB_ZN, OB_FE2, OB_FE3, OB_MN,</a>
+<a name="89"><span class="lineNum">      89 </span>            :          NONEBEAD</a>
+<a name="90"><span class="lineNum">      90 </span>            :        };</a>
+<a name="91"><span class="lineNum">      91 </span>            :   /// The ONEBEAD bead type of an ion</a>
+<a name="92"><span class="lineNum">      92 </span>            :   static unsigned obSlot(unsigned ion) {</a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">        318 :     return OB_NA + ion;</span></a>
+<a name="94"><span class="lineNum">      94 </span>            :   }</a>
+<a name="95"><span class="lineNum">      95 </span>            :   /// The canonical ION_* id for a residue name, or -1 if it is not a known ion.</a>
+<a name="96"><span class="lineNum">      96 </span>            :   static int ionTypeFromResname(const std::string &amp;resname);</a>
+<a name="97"><span class="lineNum">      97 </span>            :   /// The atomic mass (g/mol) of an ion.</a>
+<a name="98"><span class="lineNum">      98 </span>            :   static double ionMass(unsigned ion);</a>
+<a name="99"><span class="lineNum">      99 </span>            :   /// The canonical name of a residue whose name encodes a glycosylation site</a>
+<a name="100"><span class="lineNum">     100 </span>            :   /// (e.g. NLN -&gt; ASN); other names are returned unchanged.</a>
+<a name="101"><span class="lineNum">     101 </span>            :   static std::string onebeadResidueAlias(const std::string &amp;resname);</a>
+<a name="102"><span class="lineNum">     102 </span>            :   /// True when the residue is an amino acid (a single bead), CYX included.</a>
+<a name="103"><span class="lineNum">     103 </span>            :   static bool isOnebeadProteinResidue(const PDB &amp;pdb, const std::string &amp;resname);</a>
+<a name="104"><span class="lineNum">     104 </span>            :   /// The GLYC_* bead type of a monosaccharide residue name, or -1 if the residue</a>
+<a name="105"><span class="lineNum">     105 </span>            :   /// is not a supported glycan. hasN must be true when the residue carries an</a>
+<a name="106"><span class="lineNum">     106 </span>            :   /// amide nitrogen: that is what distinguishes GlcNAc from Glc and GalNAc from</a>
+<a name="107"><span class="lineNum">     107 </span>            :   /// Gal when the input file names an N-acetylhexosamine after its parent hexose.</a>
+<a name="108"><span class="lineNum">     108 </span>            :   static int glycanTypeFromResname(const std::string &amp;resname, bool hasN);</a>
+<a name="109"><span class="lineNum">     109 </span>            :   /// True for monosaccharides that are recognised but not parameterised.</a>
+<a name="110"><span class="lineNum">     110 </span>            :   static bool isUnsupportedGlycan(const std::string &amp;resname);</a>
+<a name="111"><span class="lineNum">     111 </span>            : };</a>
+<a name="112"><span class="lineNum">     112 </span>            : </a>
+<a name="113"><span class="lineNum">     113 </span>            : /// The ONEBEAD coarse-grained mapping of an all-atom structure.</a>
+<a name="114"><span class="lineNum">     114 </span>            : ///</a>
+<a name="115"><span class="lineNum">     115 </span>            : /// Every amino acid is one bead, every nucleotide is two or three beads (sugar,</a>
+<a name="116"><span class="lineNum">     116 </span>            : /// base and, when present, phosphate), every monosaccharide is one bead and every</a>
+<a name="117"><span class="lineNum">     117 </span>            : /// monoatomic ion is one bead. A bead is the centre of mass of its atoms.</a>
+<a name="118"><span class="lineNum">     118 </span>            : ///</a>
+<a name="119"><span class="lineNum">     119 </span>            : /// The mapping is built from an all-atom PDB (the template), read chain by chain</a>
+<a name="120"><span class="lineNum">     120 </span>            : /// and, within a chain, residue by residue. The template must contain exactly the</a>
+<a name="121"><span class="lineNum">     121 </span>            : /// atoms of the list passed to the constructor, in the same order. Atom indices in</a>
+<a name="122"><span class="lineNum">     122 </span>            : /// this class are positions in that list.</a>
+<a name="123"><span class="lineNum">     123 </span>            : class OnebeadMapping :</a>
+<a name="124"><span class="lineNum">     124 </span>            :   public OnebeadTypes {</a>
+<a name="125"><span class="lineNum">     125 </span>            : public:</a>
+<a name="126"><span class="lineNum">     126 </span>            :   /// Called with a message when the input is not valid. It must not return</a>
+<a name="127"><span class="lineNum">     127 </span>            :   /// (e.g. Action::error); if it does, the constructor throws.</a>
+<a name="128"><span class="lineNum">     128 </span>            :   typedef std::function&lt;void(const std::string &amp;)&gt; ErrorHandler;</a>
+<a name="129"><span class="lineNum">     129 </span>            :   /// Build the mapping of atoms. The template must be read with scale 1</a>
+<a name="130"><span class="lineNum">     130 </span>            :   /// (Angstrom). A summary of the residue-name aliases and of the glycans is</a>
+<a name="131"><span class="lineNum">     131 </span>            :   /// written to log.</a>
+<a name="132"><span class="lineNum">     132 </span>            :   OnebeadMapping(const PDB &amp;tmpl, const std::vector&lt;AtomNumber&gt; &amp;atoms, Log &amp;log, const ErrorHandler &amp;error);</a>
+<a name="133"><span class="lineNum">     133 </span>            :   unsigned getNumberOfAtoms() const {</a>
+<a name="134"><span class="lineNum">     134 </span>            :     return bead_of_.size();</a>
+<a name="135"><span class="lineNum">     135 </span>            :   }</a>
+<a name="136"><span class="lineNum">     136 </span>            :   unsigned getNumberOfBeads() const {</a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">        182 :     return bead_type_.size();</span></a>
+<a name="138"><span class="lineNum">     138 </span>            :   }</a>
+<a name="139"><span class="lineNum">     139 </span>            :   /// The bead of atom a.</a>
+<a name="140"><span class="lineNum">     140 </span>            :   unsigned getBead(unsigned a) const {</a>
+<a name="141"><span class="lineNum">     141 </span>            :     return bead_of_[a];</a>
+<a name="142"><span class="lineNum">     142 </span>            :   }</a>
+<a name="143"><span class="lineNum">     143 </span>            :   /// The bead type (TRP, ..., OB_MN) of bead b.</a>
+<a name="144"><span class="lineNum">     144 </span>            :   unsigned getBeadType(unsigned b) const {</a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">       4870 :     return bead_type_[b];</span></a>
+<a name="146"><span class="lineNum">     146 </span>            :   }</a>
+<a name="147"><span class="lineNum">     147 </span>            :   /// The atoms of bead b are getBeadAtoms()[k] for getBeadOffsets()[b] &lt;= k &lt; getBeadOffsets()[b+1],</a>
+<a name="148"><span class="lineNum">     148 </span>            :   /// in increasing order.</a>
+<a name="149"><span class="lineNum">     149 </span>            :   const std::vector&lt;unsigned&gt; &amp; getBeadOffsets() const {</a>
+<a name="150"><span class="lineNum">     150 </span>            :     return bead_off_;</a>
+<a name="151"><span class="lineNum">     151 </span>            :   }</a>
+<a name="152"><span class="lineNum">     152 </span>            :   const std::vector&lt;unsigned&gt; &amp; getBeadAtoms() const {</a>
+<a name="153"><span class="lineNum">     153 </span>            :     return bead_atoms_;</a>
+<a name="154"><span class="lineNum">     154 </span>            :   }</a>
+<a name="155"><span class="lineNum">     155 </span>            :   /// The mass of atom a (g/mol), from its element.</a>
+<a name="156"><span class="lineNum">     156 </span>            :   double getAtomMass(unsigned a) const {</a>
+<a name="157"><span class="lineNum">     157 </span>            :     return mass_[a];</a>
+<a name="158"><span class="lineNum">     158 </span>            :   }</a>
+<a name="159"><span class="lineNum">     159 </span>            :   /// The mass of atom a divided by the mass of its bead: the derivative of the</a>
+<a name="160"><span class="lineNum">     160 </span>            :   /// bead position with respect to the position of the atom.</a>
+<a name="161"><span class="lineNum">     161 </span>            :   double getAtomWeight(unsigned a) const {</a>
+<a name="162"><span class="lineNum">     162 </span>            :     return atom_weight_[a];</a>
+<a name="163"><span class="lineNum">     163 </span>            :   }</a>
+<a name="164"><span class="lineNum">     164 </span>            :   /// The atom name of atom a, as in the template.</a>
+<a name="165"><span class="lineNum">     165 </span>            :   const std::string &amp; getAtomName(unsigned a) const {</a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">      79854 :     return atom_name_[a];</span></a>
+<a name="167"><span class="lineNum">     167 </span>            :   }</a>
+<a name="168"><span class="lineNum">     168 </span>            :   /// The residue name of atom a, after onebeadResidueAlias().</a>
+<a name="169"><span class="lineNum">     169 </span>            :   const std::string &amp; getResidueName(unsigned a) const {</a>
+<a name="170"><span class="lineNum">     170 </span>            :     return residue_name_[a];</a>
+<a name="171"><span class="lineNum">     171 </span>            :   }</a>
+<a name="172"><span class="lineNum">     172 </span>            :   /// The GLYC_* bead type of atom a, or -1 if the atom is not in a monosaccharide.</a>
+<a name="173"><span class="lineNum">     173 </span>            :   int getGlycanType(unsigned a) const {</a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">      79854 :     return glyc_type_[a];</span></a>
+<a name="175"><span class="lineNum">     175 </span>            :   }</a>
+<a name="176"><span class="lineNum">     176 </span>            :   /// True for the oxygens bound to two heavy atoms in a monosaccharide (ring and</a>
+<a name="177"><span class="lineNum">     177 </span>            :   /// glycosidic oxygens), and for the protein or nucleic-acid atoms that carry a</a>
+<a name="178"><span class="lineNum">     178 </span>            :   /// glycan.</a>
+<a name="179"><span class="lineNum">     179 </span>            :   bool isGlycanBridge(unsigned a) const {</a>
+<a name="180"><span class="lineNum">     180 </span>            :     return glyc_bridge_[a];</a>
+<a name="181"><span class="lineNum">     181 </span>            :   }</a>
+<a name="182"><span class="lineNum">     182 </span>            :   /// The positions of the beads (centres of mass) from those of the atoms. The</a>
+<a name="183"><span class="lineNum">     183 </span>            :   /// sums are done in the order of the atoms, so the result does not depend on</a>
+<a name="184"><span class="lineNum">     184 </span>            :   /// the number of threads.</a>
+<a name="185"><span class="lineNum">     185 </span>            :   void getBeadPositions(const std::vector&lt;Vector&gt; &amp;pos, std::vector&lt;Vector&gt; &amp;beads) const;</a>
+<a name="186"><span class="lineNum">     186 </span>            : private:</a>
+<a name="187"><span class="lineNum">     187 </span>            :   // per atom</a>
+<a name="188"><span class="lineNum">     188 </span>            :   std::vector&lt;unsigned&gt; bead_of_;</a>
+<a name="189"><span class="lineNum">     189 </span>            :   std::vector&lt;double&gt; mass_;</a>
+<a name="190"><span class="lineNum">     190 </span>            :   std::vector&lt;double&gt; atom_weight_;</a>
+<a name="191"><span class="lineNum">     191 </span>            :   std::vector&lt;std::string&gt; atom_name_;</a>
+<a name="192"><span class="lineNum">     192 </span>            :   std::vector&lt;std::string&gt; residue_name_;</a>
+<a name="193"><span class="lineNum">     193 </span>            :   std::vector&lt;int&gt; glyc_type_;</a>
+<a name="194"><span class="lineNum">     194 </span>            :   std::vector&lt;bool&gt; glyc_bridge_;</a>
+<a name="195"><span class="lineNum">     195 </span>            :   // per bead</a>
+<a name="196"><span class="lineNum">     196 </span>            :   std::vector&lt;unsigned&gt; bead_type_;</a>
+<a name="197"><span class="lineNum">     197 </span>            :   std::vector&lt;unsigned&gt; bead_off_;</a>
+<a name="198"><span class="lineNum">     198 </span>            :   std::vector&lt;unsigned&gt; bead_atoms_;</a>
+<a name="199"><span class="lineNum">     199 </span>            :   std::vector&lt;double&gt; bead_inv_mass_;</a>
+<a name="200"><span class="lineNum">     200 </span>            :   // the bead types, from the residue and atom names</a>
+<a name="201"><span class="lineNum">     201 </span>            :   void assignBeadTypes(const PDB &amp;tmpl, const std::vector&lt;AtomNumber&gt; &amp;atoms, const ErrorHandler &amp;error);</a>
+<a name="202"><span class="lineNum">     202 </span>            : };</a>
+<a name="203"><span class="lineNum">     203 </span>            : </a>
+<a name="204"><span class="lineNum">     204 </span>            : }</a>
+<a name="205"><span class="lineNum">     205 </span>            : }</a>
+<a name="206"><span class="lineNum">     206 </span>            : </a>
+<a name="207"><span class="lineNum">     207 </span>            : #endif</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

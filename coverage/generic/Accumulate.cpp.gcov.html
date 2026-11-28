@@ -1,0 +1,551 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+<meta name="robots" content="noindex">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - generic/Accumulate.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">generic</a> - Accumulate.cpp<span style="font-size: 80%;"> (source / <a href="Accumulate.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">189</td>
+            <td class="headerCovTableEntry">205</td>
+            <td class="headerCovTableEntryHi">92.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2026-11-28 15:08:19</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryHi">93.8 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<a name="2"><span class="lineNum">       2 </span>            :    Copyright (c) 2016-2023 The plumed team</a>
+<a name="3"><span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)</a>
+<a name="4"><span class="lineNum">       4 </span>            : </a>
+<a name="5"><span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.</a>
+<a name="6"><span class="lineNum">       6 </span>            : </a>
+<a name="7"><span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.</a>
+<a name="8"><span class="lineNum">       8 </span>            : </a>
+<a name="9"><span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify</a>
+<a name="10"><span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by</a>
+<a name="11"><span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or</a>
+<a name="12"><span class="lineNum">      12 </span>            :    (at your option) any later version.</a>
+<a name="13"><span class="lineNum">      13 </span>            : </a>
+<a name="14"><span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,</a>
+<a name="15"><span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of</a>
+<a name="16"><span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</a>
+<a name="17"><span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License</a>
+<a name="20"><span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<a name="21"><span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &quot;core/ActionWithValue.h&quot;</a>
+<a name="23"><span class="lineNum">      23 </span>            : #include &quot;core/ActionWithArguments.h&quot;</a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &quot;core/ActionPilot.h&quot;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &quot;core/ActionWithGrid.h&quot;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &quot;core/ActionRegister.h&quot;</a>
+<a name="27"><span class="lineNum">      27 </span>            : #include &quot;core/PlumedMain.h&quot;</a>
+<a name="28"><span class="lineNum">      28 </span>            : #include &quot;core/ActionSet.h&quot;</a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &quot;tools/GridCoordinatesObject.h&quot;</a>
+<a name="30"><span class="lineNum">      30 </span>            : #include &quot;tools/Checkpoint.h&quot;</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : //+PLUMEDOC GRIDCALC ACCUMULATE</a>
+<a name="33"><span class="lineNum">      33 </span>            : /*</a>
+<a name="34"><span class="lineNum">      34 </span>            : Sum the elements of this value over the course of the trajectory</a>
+<a name="35"><span class="lineNum">      35 </span>            : </a>
+<a name="36"><span class="lineNum">      36 </span>            : This action is used to sum the outputs from another action over the course of the trajectory.  This is useful</a>
+<a name="37"><span class="lineNum">      37 </span>            : if you want to calculate the average value that a CV took over the course of a simulation.  As an example, the following</a>
+<a name="38"><span class="lineNum">      38 </span>            : input can be used to calculate the average distance between atom 1 and atom 2.</a>
+<a name="39"><span class="lineNum">      39 </span>            : </a>
+<a name="40"><span class="lineNum">      40 </span>            : ```plumed</a>
+<a name="41"><span class="lineNum">      41 </span>            : c: CONSTANT VALUE=1</a>
+<a name="42"><span class="lineNum">      42 </span>            : d: DISTANCE ATOMS=1,2</a>
+<a name="43"><span class="lineNum">      43 </span>            : # This adds together the value of the distance on every step</a>
+<a name="44"><span class="lineNum">      44 </span>            : s: ACCUMULATE ARG=d STRIDE=1</a>
+<a name="45"><span class="lineNum">      45 </span>            : # This adds one every time we add a new distance to the value s</a>
+<a name="46"><span class="lineNum">      46 </span>            : n: ACCUMULATE ARG=c STRIDE=1</a>
+<a name="47"><span class="lineNum">      47 </span>            : # This is thus the average distance</a>
+<a name="48"><span class="lineNum">      48 </span>            : a: CUSTOM ARG=s,n FUNC=x/y PERIODIC=NO</a>
+<a name="49"><span class="lineNum">      49 </span>            : # This prints out the average over the whole trajectory (STRIDE=0 means print at end only)</a>
+<a name="50"><span class="lineNum">      50 </span>            : PRINT ARG=a FILE=average.dat STRIDE=0</a>
+<a name="51"><span class="lineNum">      51 </span>            : ```</a>
+<a name="52"><span class="lineNum">      52 </span>            : </a>
+<a name="53"><span class="lineNum">      53 </span>            : You can use this action for block averaging by using the `CLEAR` keyword as shown below:</a>
+<a name="54"><span class="lineNum">      54 </span>            : </a>
+<a name="55"><span class="lineNum">      55 </span>            : ```plumed</a>
+<a name="56"><span class="lineNum">      56 </span>            : c: CONSTANT VALUE=1</a>
+<a name="57"><span class="lineNum">      57 </span>            : d: DISTANCE ATOMS=1,2</a>
+<a name="58"><span class="lineNum">      58 </span>            : # This adds together the value of the distance on every step</a>
+<a name="59"><span class="lineNum">      59 </span>            : s: ACCUMULATE ARG=d STRIDE=1 CLEAR=1000</a>
+<a name="60"><span class="lineNum">      60 </span>            : # This adds one every time we add a new distance to the value s</a>
+<a name="61"><span class="lineNum">      61 </span>            : n: ACCUMULATE ARG=c STRIDE=1 CLEAR=1000</a>
+<a name="62"><span class="lineNum">      62 </span>            : # This is thus the average distance</a>
+<a name="63"><span class="lineNum">      63 </span>            : a: CUSTOM ARG=s,n FUNC=x/y PERIODIC=NO</a>
+<a name="64"><span class="lineNum">      64 </span>            : # This prints out the average over the whole trajectory (STRIDE=0 means print at end only)</a>
+<a name="65"><span class="lineNum">      65 </span>            : PRINT ARG=a FILE=average.dat STRIDE=1000</a>
+<a name="66"><span class="lineNum">      66 </span>            : ```</a>
+<a name="67"><span class="lineNum">      67 </span>            : </a>
+<a name="68"><span class="lineNum">      68 </span>            : The instructions `CLEAR=1000` in the above input tells PLUMED to set the values `s` and `n` back to</a>
+<a name="69"><span class="lineNum">      69 </span>            : zero after 1000 new steps have been performed. The PRINT action will thus print a block average that</a>
+<a name="70"><span class="lineNum">      70 </span>            : is taken from the first 1000 steps of the trajectory, a second block average from the second 1000 steps</a>
+<a name="71"><span class="lineNum">      71 </span>            : of the trajectory and so on.  Notice that you can achieve a similar effect using UPDATE_FROM and UPDATE_UNTIL as</a>
+<a name="72"><span class="lineNum">      72 </span>            : shown below:</a>
+<a name="73"><span class="lineNum">      73 </span>            : </a>
+<a name="74"><span class="lineNum">      74 </span>            : ```plumed</a>
+<a name="75"><span class="lineNum">      75 </span>            : c: CONSTANT VALUE=1</a>
+<a name="76"><span class="lineNum">      76 </span>            : d: DISTANCE ATOMS=1,2</a>
+<a name="77"><span class="lineNum">      77 </span>            : s1: ACCUMULATE ARG=d STRIDE=1 UPDATE_UNTIL=1000</a>
+<a name="78"><span class="lineNum">      78 </span>            : n1: ACCUMULATE ARG=c STRIDE=1 UPDATE_UNTIL=1000</a>
+<a name="79"><span class="lineNum">      79 </span>            : a1: CUSTOM ARG=s1,n1 FUNC=x/y PERIODIC=NO</a>
+<a name="80"><span class="lineNum">      80 </span>            : s2: ACCUMULATE ARG=d STRIDE=1 UPDATE_FROM=1000</a>
+<a name="81"><span class="lineNum">      81 </span>            : n2: ACCUMULATE ARG=c STRIDE=1 UPDATE_FROM=1000</a>
+<a name="82"><span class="lineNum">      82 </span>            : a2: CUSTOM ARG=s2,n2 FUNC=x/y PERIODIC=NO</a>
+<a name="83"><span class="lineNum">      83 </span>            : diff: CUSTOM ARG=a1,a2 FUNC=x-y PERIODIC=NO</a>
+<a name="84"><span class="lineNum">      84 </span>            : PRINT ARG=a1,a2,diff FILE=colver STRIDE=2000</a>
+<a name="85"><span class="lineNum">      85 </span>            : ```</a>
+<a name="86"><span class="lineNum">      86 </span>            : </a>
+<a name="87"><span class="lineNum">      87 </span>            : This output calculates the average distance for the first 1000 frames of the trajectory and for the second 1000 frames of the trajectory.</a>
+<a name="88"><span class="lineNum">      88 </span>            : These two averages are then output to a file called colvar as well as the difference between them.</a>
+<a name="89"><span class="lineNum">      89 </span>            : </a>
+<a name="90"><span class="lineNum">      90 </span>            : ## Estimating histograms</a>
+<a name="91"><span class="lineNum">      91 </span>            : </a>
+<a name="92"><span class="lineNum">      92 </span>            : We can also use this action to construct histograms. The example below shows how you can estimate the</a>
+<a name="93"><span class="lineNum">      93 </span>            : distribution of distances between atoms 1 and 2 that are sampled over the course of the trajectory.</a>
+<a name="94"><span class="lineNum">      94 </span>            : </a>
+<a name="95"><span class="lineNum">      95 </span>            : ```plumed</a>
+<a name="96"><span class="lineNum">      96 </span>            : c: CONSTANT VALUE=1</a>
+<a name="97"><span class="lineNum">      97 </span>            : d: DISTANCE ATOMS=1,2</a>
+<a name="98"><span class="lineNum">      98 </span>            : # Construct the instantaneous histogram from the instantaneous value of the distance</a>
+<a name="99"><span class="lineNum">      99 </span>            : kde: KDE ARG=d BANDWIDTH=0.05 GRID_SPACING=0.01</a>
+<a name="100"><span class="lineNum">     100 </span>            : # Now add together all the instantaneous histograms</a>
+<a name="101"><span class="lineNum">     101 </span>            : hist: ACCUMULATE ARG=kde STRIDE=1</a>
+<a name="102"><span class="lineNum">     102 </span>            : # And normalise the histogram</a>
+<a name="103"><span class="lineNum">     103 </span>            : n: ACCUMULATE ARG=c STRIDE=1</a>
+<a name="104"><span class="lineNum">     104 </span>            : a: CUSTOM ARG=hist,n FUNC=x/y PERIODIC=NO</a>
+<a name="105"><span class="lineNum">     105 </span>            : # And print out the final histogram</a>
+<a name="106"><span class="lineNum">     106 </span>            : DUMPGRID ARG=a FILE=histo.grid</a>
+<a name="107"><span class="lineNum">     107 </span>            : ```</a>
+<a name="108"><span class="lineNum">     108 </span>            : </a>
+<a name="109"><span class="lineNum">     109 </span>            : At first glance the fact that we use a [KDE](KDE.md) action to construct an instantaneous histogram from a single</a>
+<a name="110"><span class="lineNum">     110 </span>            : distance may appear odd.  The reason for doing this, however, is to introduce a clear distinction between</a>
+<a name="111"><span class="lineNum">     111 </span>            : the syntaxes that are used for spatial and temporal averaging.  To see what I mean consider the following input:</a>
+<a name="112"><span class="lineNum">     112 </span>            : </a>
+<a name="113"><span class="lineNum">     113 </span>            : </a>
+<a name="114"><span class="lineNum">     114 </span>            : ```plumed</a>
+<a name="115"><span class="lineNum">     115 </span>            : c: CONSTANT VALUE=5</a>
+<a name="116"><span class="lineNum">     116 </span>            : d: DISTANCE ATOMS1=1,2 ATOMS2=3,4 ATOMS3=5,6 ATOMS4=7,8 ATOMS5=9,10</a>
+<a name="117"><span class="lineNum">     117 </span>            : # Construct the instantaneous histogram from the instantaneous value of the distance</a>
+<a name="118"><span class="lineNum">     118 </span>            : kde: KDE ARG=d BANDWIDTH=0.05 GRID_SPACING=0.01</a>
+<a name="119"><span class="lineNum">     119 </span>            : # Now add together all the instantaneous histograms</a>
+<a name="120"><span class="lineNum">     120 </span>            : hist: ACCUMULATE ARG=kde STRIDE=1</a>
+<a name="121"><span class="lineNum">     121 </span>            : # And normalise the histogram</a>
+<a name="122"><span class="lineNum">     122 </span>            : n: ACCUMULATE ARG=c STRIDE=1</a>
+<a name="123"><span class="lineNum">     123 </span>            : a: CUSTOM ARG=hist,n FUNC=x/y PERIODIC=NO</a>
+<a name="124"><span class="lineNum">     124 </span>            : # And print out the final histogram</a>
+<a name="125"><span class="lineNum">     125 </span>            : DUMPGRID ARG=a FILE=histo.grid</a>
+<a name="126"><span class="lineNum">     126 </span>            : ```</a>
+<a name="127"><span class="lineNum">     127 </span>            : </a>
+<a name="128"><span class="lineNum">     128 </span>            : This input computes 5 distances. Kernels corresponding to all five of these distances are added to the instantaneous</a>
+<a name="129"><span class="lineNum">     129 </span>            : histogram that is constructed using the [KDE](KDE.md) action.  When we call the accumulate action here we are thus</a>
+<a name="130"><span class="lineNum">     130 </span>            : not simply adding a single kernel to the accumulated grid when we add the elements from `kde`.</a>
+<a name="131"><span class="lineNum">     131 </span>            : </a>
+<a name="132"><span class="lineNum">     132 </span>            : ## Restart</a>
+<a name="133"><span class="lineNum">     133 </span>            : </a>
+<a name="134"><span class="lineNum">     134 </span>            : With [CHECKPOINT](CHECKPOINT.md) the accumulated data (scalar or grid) is stored in the checkpoint, so that sums, averages and histograms continue exactly after a restart.</a>
+<a name="135"><span class="lineNum">     135 </span>            : </a>
+<a name="136"><span class="lineNum">     136 </span>            : */</a>
+<a name="137"><span class="lineNum">     137 </span>            : //+ENDPLUMEDOC</a>
+<a name="138"><span class="lineNum">     138 </span>            : </a>
+<a name="139"><span class="lineNum">     139 </span>            : namespace PLMD {</a>
+<a name="140"><span class="lineNum">     140 </span>            : namespace generic {</a>
+<a name="141"><span class="lineNum">     141 </span>            : </a>
+<a name="142"><span class="lineNum">     142 </span>            : class Accumulate :</a>
+<a name="143"><span class="lineNum">     143 </span>            :   public ActionWithValue,</a>
+<a name="144"><span class="lineNum">     144 </span>            :   public ActionWithArguments,</a>
+<a name="145"><span class="lineNum">     145 </span>            :   public ActionPilot,</a>
+<a name="146"><span class="lineNum">     146 </span>            :   public GridOutput {</a>
+<a name="147"><span class="lineNum">     147 </span>            : private:</a>
+<a name="148"><span class="lineNum">     148 </span>            :   bool clearnextstep;</a>
+<a name="149"><span class="lineNum">     149 </span>            :   unsigned clearstride;</a>
+<a name="150"><span class="lineNum">     150 </span>            : /// The grid of the accumulated data. It is the grid of the argument when the data are accumulated; when the grid of</a>
+<a name="151"><span class="lineNum">     151 </span>            : /// the argument is extended (see KDE) the data are placed in the new grid at the next accumulation.</a>
+<a name="152"><span class="lineNum">     152 </span>            :   GridCoordinatesObject gridcoords;</a>
+<a name="153"><span class="lineNum">     153 </span>            :   bool gridset=false;</a>
+<a name="154"><span class="lineNum">     154 </span>            : /// the grid of the accumulated data becomes the one of the argument</a>
+<a name="155"><span class="lineNum">     155 </span>            :   void copyGrid();</a>
+<a name="156"><span class="lineNum">     156 </span>            :   void extendGrid();</a>
+<a name="157"><span class="lineNum">     157 </span>            : public:</a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">        159 :   std::vector&lt;std::string&gt; getGridCoordinateNames() const override {</span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">        159 :     return ActionWithGrid::getInputActionWithGrid( getPntrToArgument(0)-&gt;getPntrToAction() )-&gt;getGridCoordinateNames();</span></a>
+<a name="160"><span class="lineNum">     160 </span>            :   }</a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">       1748 :   const GridCoordinatesObject&amp; getGridCoordinatesObject() const override {</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">       1748 :     return gridcoords;</span></a>
+<a name="163"><span class="lineNum">     163 </span>            :   }</a>
+<a name="164"><span class="lineNum">     164 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">        200 :   bool hasCheckpointState() const override {</span></a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">        200 :     return true;</span></a>
+<a name="167"><span class="lineNum">     167 </span>            :   }</a>
+<a name="168"><span class="lineNum">     168 </span>            :   void writeCheckpoint(CheckpointWriter&amp; w) override;</a>
+<a name="169"><span class="lineNum">     169 </span>            :   void readCheckpoint(CheckpointReader&amp; r) override;</a>
+<a name="170"><span class="lineNum">     170 </span>            :   Accumulate( const ActionOptions&amp; );</a>
+<a name="171"><span class="lineNum">     171 </span>            :   unsigned getNumberOfDerivatives() override;</a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">       9832 :   bool calculateOnUpdate() override {</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">       9832 :     return false;</span></a>
+<a name="174"><span class="lineNum">     174 </span>            :   }</a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">        274 :   bool calculateConstantValues( const bool&amp; have_atoms ) override {</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">        274 :     return false;</span></a>
+<a name="177"><span class="lineNum">     177 </span>            :   }</a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">       4780 :   void calculate() override {}</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">       4780 :   void apply() override {}</span></a>
+<a name="180"><span class="lineNum">     180 </span>            :   void update() override ;</a>
+<a name="181"><span class="lineNum">     181 </span>            : };</a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span>            : PLUMED_REGISTER_ACTION(Accumulate,&quot;ACCUMULATE&quot;)</a>
+<a name="184"><span class="lineNum">     184 </span>            : </a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineCov">        250 : void Accumulate::registerKeywords( Keywords&amp; keys ) {</span></a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">        250 :   Action::registerKeywords( keys );</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">        250 :   ActionWithValue::registerKeywords( keys );</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">        250 :   ActionWithArguments::registerKeywords( keys );</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">        250 :   ActionPilot::registerKeywords( keys );</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">        250 :   keys.use(&quot;UPDATE_FROM&quot;);</span></a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">        250 :   keys.use(&quot;UPDATE_UNTIL&quot;);</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">        250 :   keys.remove(&quot;NUMERICAL_DERIVATIVES&quot;);</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">        500 :   keys.addInputKeyword(&quot;compulsory&quot;,&quot;ARG&quot;,&quot;scalar/grid&quot;,&quot;the label of the argument that is being added to on each timestep&quot;);</span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineCov">        250 :   keys.add(&quot;compulsory&quot;,&quot;STRIDE&quot;,&quot;1&quot;,&quot;the frequency with which the data should be collected and added to the quantity being averaged&quot;);</span></a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">        250 :   keys.add(&quot;compulsory&quot;,&quot;CLEAR&quot;,&quot;0&quot;,&quot;the frequency with which to clear all the accumulated data.  The default value &quot;</span></a>
+<a name="196"><span class="lineNum">     196 </span>            :            &quot;of 0 implies that all the data will be used and that the grid will never be cleared&quot;);</a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">        250 :   keys.addFlag(&quot;DO_AFTER_FINAL_STEP&quot;,false,&quot;do a final accumulation step at end the trajectory even if the trajectory's length is not a multiple of the stride&quot;);</span></a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">        500 :   keys.setValueDescription(&quot;scalar/grid&quot;,&quot;a sum calculated from the time series of the input quantity&quot;);</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">        250 : }</span></a>
+<a name="200"><span class="lineNum">     200 </span>            : </a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">        139 : Accumulate::Accumulate( const ActionOptions&amp; ao ):</span></a>
+<a name="202"><span class="lineNum">     202 </span>            :   Action(ao),</a>
+<a name="203"><span class="lineNum">     203 </span>            :   ActionWithValue(ao),</a>
+<a name="204"><span class="lineNum">     204 </span>            :   ActionWithArguments(ao),</a>
+<a name="205"><span class="lineNum">     205 </span>            :   ActionPilot(ao),</a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">        139 :   clearnextstep(true) {</span></a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">        139 :   if( getNumberOfArguments()!=1 ) {</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineNoCov">          0 :     error(&quot;there should only be one argument to this action&quot;);</span></a>
+<a name="209"><span class="lineNum">     209 </span>            :   }</a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">        139 :   if( !getPntrToArgument(0)-&gt;hasDerivatives() &amp;&amp; getPntrToArgument(0)-&gt;getRank()!=0 ) {</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineNoCov">          0 :     error(&quot;input to the accumulate action should be a scalar or a grid&quot;);</span></a>
+<a name="212"><span class="lineNum">     212 </span>            :   }</a>
+<a name="213"><span class="lineNum">     213 </span>            : </a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">        139 :   if( getStride()==0 ) {</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">          1 :     error(&quot;STRIDE should be a positive number of steps&quot;);</span></a>
+<a name="216"><span class="lineNum">     216 </span>            :   }</a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">        138 :   parse(&quot;CLEAR&quot;,clearstride);</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">        138 :   if( clearstride&gt;0 ) {</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">         26 :     if( clearstride%getStride()!=0 ) {</span></a>
+<a name="220"><span class="lineNum">     220 </span><span class="lineNoCov">          0 :       error(&quot;CLEAR parameter must be a multiple of STRIDE&quot;);</span></a>
+<a name="221"><span class="lineNum">     221 </span>            :     }</a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineCov">         26 :     log.printf(&quot;  clearing average every %u steps \n&quot;,clearstride);</span></a>
+<a name="223"><span class="lineNum">     223 </span>            :   }</a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineCov">        138 :   std::vector&lt;std::size_t&gt; shape( getPntrToArgument(0)-&gt;getShape() );</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">        138 :   addValueWithDerivatives( shape );</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">        138 :   setNotPeriodic();</span></a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">        138 :   if( shape.size()&gt;0 ) {</span></a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineCov">         66 :     if( !dynamic_cast&lt;const GridOutput*&gt;( getPntrToArgument(0)-&gt;getPntrToAction() ) ) {</span></a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineNoCov">          0 :       error(&quot;the input grid should be calculated by an action that outputs a grid (e.g. KDE)&quot;);</span></a>
+<a name="230"><span class="lineNum">     230 </span>            :     }</a>
+<a name="231"><span class="lineNum">     231 </span>            :     // the type, dimension and periodicity of the grid (the bounds are set at the first accumulation)</a>
+<a name="232"><span class="lineNum">     232 </span><span class="lineCov">         66 :     gridcoords=ActionWithGrid::getInputActionWithGrid( getPntrToArgument(0)-&gt;getPntrToAction() )-&gt;getGridCoordinatesObject();</span></a>
+<a name="233"><span class="lineNum">     233 </span>            :   }</a>
+<a name="234"><span class="lineNum">     234 </span><span class="lineCov">        138 :   if( getPntrToArgument(0)-&gt;isPeriodic() ) {</span></a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineNoCov">          0 :     error(&quot;you cannot accumulate a periodic quantity&quot;);</span></a>
+<a name="236"><span class="lineNum">     236 </span>            :   }</a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">        142 : }</span></a>
+<a name="238"><span class="lineNum">     238 </span>            : </a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">        113 : unsigned Accumulate::getNumberOfDerivatives() {</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">        113 :   if( getPntrToArgument(0)-&gt;getRank()&gt;0 ) {</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">        113 :     return getPntrToArgument(0)-&gt;getNumberOfGridDerivatives();</span></a>
+<a name="242"><span class="lineNum">     242 </span>            :   }</a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineNoCov">          0 :   return getPntrToArgument(0)-&gt;getNumberOfDerivatives();</span></a>
+<a name="244"><span class="lineNum">     244 </span>            : }</a>
+<a name="245"><span class="lineNum">     245 </span>            : </a>
+<a name="246"><span class="lineNum">     246 </span>            : // The accumulated data is the state that survives from one step to the next (this</a>
+<a name="247"><span class="lineNum">     247 </span>            : // is the value of type &quot;average&quot;): the data of the output value, with the</a>
+<a name="248"><span class="lineNum">     248 </span>            : // derivatives for grids, and whether it has to be cleared at the next update</a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">        184 : void Accumulate::writeCheckpoint(CheckpointWriter&amp; w) {</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">        184 :   w.write(&quot;clearnextstep&quot;,(long long) clearnextstep);</span></a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">        184 :   if( clearnextstep ) {</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">         27 :     return;</span></a>
+<a name="253"><span class="lineNum">     253 </span>            :   }</a>
+<a name="254"><span class="lineNum">     254 </span>            :   // the grid of the accumulated data, which can differ from the one of the argument at the restart (see extendGrid)</a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">        197 :   if( gridset &amp;&amp; gridcoords.getGridType()==&quot;flat&quot; ) {</span></a>
+<a name="256"><span class="lineNum">     256 </span><span class="lineCov">         40 :     std::vector&lt;long long&gt; bins;</span></a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">         80 :     for(const auto n : gridcoords.getNbin(false)) {</span></a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineCov">         40 :       bins.push_back(n);</span></a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">         40 :     }</span></a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">         80 :     w.write(&quot;grid_bins&quot;,bins);</span></a>
+<a name="261"><span class="lineNum">     261 </span><span class="lineCov">         80 :     w.write(&quot;grid_spacing&quot;,gridcoords.getGridSpacing());</span></a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">         80 :     for(unsigned i=0; i&lt;bins.size(); ++i) {</span></a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineCov">         80 :       w.write(&quot;grid_min&quot;+std::to_string(i),gridcoords.getMin()[i]);</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">         80 :       w.write(&quot;grid_max&quot;+std::to_string(i),gridcoords.getMax()[i]);</span></a>
+<a name="265"><span class="lineNum">     265 </span>            :     }</a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">         40 :   }</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">        157 :   const Value* myout = getPntrToComponent(0);</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">        157 :   std::vector&lt;long long&gt; shape;</span></a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineCov">        197 :   for(const auto&amp; d : myout-&gt;getShape()) {</span></a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">         40 :     shape.push_back(d);</span></a>
+<a name="271"><span class="lineNum">     271 </span>            :   }</a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineCov">        314 :   w.write(&quot;shape&quot;,shape);</span></a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">        157 :   std::vector&lt;double&gt; data;</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineCov">        157 :   const std::size_t nvals = myout-&gt;getNumberOfValues();</span></a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">       4170 :   for(std::size_t i=0; i&lt;nvals; ++i) {</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">       4013 :     data.push_back( myout-&gt;get(i) );</span></a>
+<a name="277"><span class="lineNum">     277 </span>            :   }</a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineCov">        314 :   w.write(&quot;data&quot;,data);</span></a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">        157 :   if( myout-&gt;getRank()&gt;0 ) {</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">         40 :     std::vector&lt;double&gt; der;</span></a>
+<a name="281"><span class="lineNum">     281 </span>            :     const unsigned nder = myout-&gt;getNumberOfGridDerivatives();</a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">       3936 :     for(std::size_t i=0; i&lt;nvals; ++i) {</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineCov">       7792 :       for(unsigned j=0; j&lt;nder; ++j) {</span></a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineCov">       3896 :         der.push_back( myout-&gt;getGridDerivative(i,j) );</span></a>
+<a name="285"><span class="lineNum">     285 </span>            :       }</a>
+<a name="286"><span class="lineNum">     286 </span>            :     }</a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">         80 :     w.write(&quot;derivatives&quot;,der);</span></a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineCov">         40 :   }</span></a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">        157 : }</span></a>
+<a name="290"><span class="lineNum">     290 </span>            : </a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">         16 : void Accumulate::readCheckpoint(CheckpointReader&amp; r) {</span></a>
+<a name="292"><span class="lineNum">     292 </span>            :   long long cl;</a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">         16 :   r.read(&quot;clearnextstep&quot;,cl);</span></a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">         16 :   clearnextstep = cl!=0;</span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">         16 :   if( clearnextstep ) {</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">          3 :     return;</span></a>
+<a name="297"><span class="lineNum">     297 </span>            :   }</a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">         26 :   if( r.has(&quot;grid_bins&quot;) ) {</span></a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">          4 :     std::vector&lt;long long&gt; bins;</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">          4 :     std::vector&lt;double&gt; spacing;</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">          4 :     r.read(&quot;grid_bins&quot;,bins);</span></a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">          8 :     r.read(&quot;grid_spacing&quot;,spacing);</span></a>
+<a name="303"><span class="lineNum">     303 </span><span class="lineCov">          4 :     std::vector&lt;std::string&gt; gmin( bins.size() ), gmax( bins.size() );</span></a>
+<a name="304"><span class="lineNum">     304 </span><span class="lineCov">          8 :     for(unsigned i=0; i&lt;bins.size(); ++i) {</span></a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">          8 :       r.read(&quot;grid_min&quot;+std::to_string(i),gmin[i]);</span></a>
+<a name="306"><span class="lineNum">     306 </span><span class="lineCov">          8 :       r.read(&quot;grid_max&quot;+std::to_string(i),gmax[i]);</span></a>
+<a name="307"><span class="lineNum">     307 </span>            :     }</a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">          4 :     std::vector&lt;std::size_t&gt; nb( bins.begin(), bins.end() );</span></a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">          4 :     gridcoords.setBounds( gmin, gmax, nb, spacing );</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">          4 :     gridset=true;</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineCov">          4 :   }</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineCov">         13 :   Value* myout = getPntrToComponent(0);</span></a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">         13 :   std::vector&lt;long long&gt; shape;</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">         26 :   r.read(&quot;shape&quot;,shape);</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">         13 :   std::vector&lt;std::size_t&gt; ss(shape.begin(),shape.end());</span></a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">         13 :   if( ss!=getPntrToArgument(0)-&gt;getShape() ) {</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineNoCov">          0 :     error(&quot;the checkpoint was written with a different shape of the argument&quot;);</span></a>
+<a name="318"><span class="lineNum">     318 </span>            :   }</a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineCov">         13 :   if( myout-&gt;getShape()!=ss ) {</span></a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">          2 :     myout-&gt;setShape(ss);</span></a>
+<a name="321"><span class="lineNum">     321 </span>            :   }</a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">         13 :   std::vector&lt;double&gt; data;</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineCov">         13 :   r.read(&quot;data&quot;,data);</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">         13 :   const std::size_t nvals = myout-&gt;getNumberOfValues();</span></a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">         13 :   if( data.size()!=nvals ) {</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineNoCov">          0 :     error(&quot;the checkpoint was written with a different number of values&quot;);</span></a>
+<a name="327"><span class="lineNum">     327 </span>            :   }</a>
+<a name="328"><span class="lineNum">     328 </span>            :   // the data of a grid holds the values and the derivatives: clear first, then restore</a>
+<a name="329"><span class="lineNum">     329 </span><span class="lineCov">         13 :   myout-&gt;clearDerivatives(true);</span></a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">        382 :   for(std::size_t i=0; i&lt;nvals; ++i) {</span></a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">        369 :     myout-&gt;set( i, data[i] );</span></a>
+<a name="332"><span class="lineNum">     332 </span>            :   }</a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">         13 :   if( myout-&gt;getRank()&gt;0 ) {</span></a>
+<a name="334"><span class="lineNum">     334 </span><span class="lineCov">          4 :     std::vector&lt;double&gt; der;</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">          8 :     r.read(&quot;derivatives&quot;,der);</span></a>
+<a name="336"><span class="lineNum">     336 </span>            :     const unsigned nder = myout-&gt;getNumberOfGridDerivatives();</a>
+<a name="337"><span class="lineNum">     337 </span><span class="lineCov">          4 :     if( der.size()!=nvals*nder ) {</span></a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineNoCov">          0 :       error(&quot;the checkpoint was written with a different number of derivatives&quot;);</span></a>
+<a name="339"><span class="lineNum">     339 </span>            :     }</a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">        364 :     for(std::size_t i=0; i&lt;nvals; ++i) {</span></a>
+<a name="341"><span class="lineNum">     341 </span><span class="lineCov">        720 :       for(unsigned j=0; j&lt;nder; ++j) {</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">        360 :         myout-&gt;addGridDerivatives( i, j, der[i*nder+j] );</span></a>
+<a name="343"><span class="lineNum">     343 </span>            :       }</a>
+<a name="344"><span class="lineNum">     344 </span>            :     }</a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineCov">          4 :   }</span></a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">         13 : }</span></a>
+<a name="347"><span class="lineNum">     347 </span>            : </a>
+<a name="348"><span class="lineNum">     348 </span>            : // The grid of the argument has been extended (e.g. KDE, when the kernels do not fit in it): the accumulated data</a>
+<a name="349"><span class="lineNum">     349 </span>            : // are placed in the new grid, which has the same spacing and contains the old one.</a>
+<a name="350"><span class="lineNum">     350 </span><span class="lineCov">         32 : void Accumulate::extendGrid() {</span></a>
+<a name="351"><span class="lineNum">     351 </span>            :   Value* myarg=getPntrToArgument(0);</a>
+<a name="352"><span class="lineNum">     352 </span><span class="lineCov">         32 :   Value* myout=getPntrToComponent(0);</span></a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineCov">         32 :   const std::size_t nold=myout-&gt;getNumberOfValues();</span></a>
+<a name="354"><span class="lineNum">     354 </span>            :   const unsigned nder=myout-&gt;getNumberOfGridDerivatives();</a>
+<a name="355"><span class="lineNum">     355 </span><span class="lineCov">         32 :   std::vector&lt;double&gt; old( nold*(1+nder) );</span></a>
+<a name="356"><span class="lineNum">     356 </span>            :   bool zero=true;</a>
+<a name="357"><span class="lineNum">     357 </span><span class="lineCov">      58661 :   for(std::size_t i=0; i&lt;nold; ++i) {</span></a>
+<a name="358"><span class="lineNum">     358 </span><span class="lineCov">      58629 :     old[i*(1+nder)]=myout-&gt;get(i);</span></a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineCov">     173757 :     for(unsigned j=0; j&lt;nder; ++j) {</span></a>
+<a name="360"><span class="lineNum">     360 </span><span class="lineCov">     115128 :       old[i*(1+nder)+1+j]=myout-&gt;getGridDerivative(i,j);</span></a>
+<a name="361"><span class="lineNum">     361 </span>            :     }</a>
+<a name="362"><span class="lineNum">     362 </span>            :   }</a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineCov">     153788 :   for(const auto v : old) {</span></a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineCov">     153782 :     if( v!=0.0 ) {</span></a>
+<a name="365"><span class="lineNum">     365 </span>            :       zero=false;</a>
+<a name="366"><span class="lineNum">     366 </span>            :       break;</a>
+<a name="367"><span class="lineNum">     367 </span>            :     }</a>
+<a name="368"><span class="lineNum">     368 </span>            :   }</a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineCov">         32 :   const std::vector&lt;std::size_t&gt; oldshape( myout-&gt;getShape() );</span></a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineCov">         32 :   myout-&gt;setShape( myarg-&gt;getShape() );</span></a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineCov">         32 :   myout-&gt;clearDerivatives(true);</span></a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">         32 :   const GridCoordinatesObject oldgrid( gridcoords );</span></a>
+<a name="373"><span class="lineNum">     373 </span><span class="lineCov">         32 :   copyGrid();</span></a>
+<a name="374"><span class="lineNum">     374 </span><span class="lineCov">         32 :   if( zero ) {</span></a>
+<a name="375"><span class="lineNum">     375 </span>            :     return;</a>
+<a name="376"><span class="lineNum">     376 </span>            :   }</a>
+<a name="377"><span class="lineNum">     377 </span>            :   const GridCoordinatesObject&amp; gc=gridcoords;</a>
+<a name="378"><span class="lineNum">     378 </span><span class="lineCov">         26 :   const std::size_t ndim=myout-&gt;getRank();</span></a>
+<a name="379"><span class="lineNum">     379 </span><span class="lineCov">         52 :   if( gc.getGridType()!=&quot;flat&quot; || oldgrid.getNumberOfPoints()!=nold ) {</span></a>
+<a name="380"><span class="lineNum">     380 </span><span class="lineNoCov">          0 :     error(&quot;the grid of the argument has changed: the accumulated data cannot be placed in it&quot;);</span></a>
+<a name="381"><span class="lineNum">     381 </span>            :   }</a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineCov">         26 :   std::vector&lt;long&gt; offset( ndim );</span></a>
+<a name="383"><span class="lineNum">     383 </span><span class="lineCov">         58 :   for(unsigned i=0; i&lt;ndim; ++i) {</span></a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineCov">         32 :     const double dx=gc.getGridSpacing()[i];</span></a>
+<a name="385"><span class="lineNum">     385 </span>            :     double newmin, oldmin;</a>
+<a name="386"><span class="lineNum">     386 </span><span class="lineCov">         32 :     Tools::convert( gc.getMin()[i], newmin );</span></a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">         32 :     Tools::convert( oldgrid.getMin()[i], oldmin );</span></a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineCov">         32 :     const double o=(oldmin-newmin)/dx;</span></a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineCov">         32 :     offset[i]=std::lround(o);</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">         32 :     if( std::fabs(dx-oldgrid.getGridSpacing()[i])&gt;1e-9*dx || std::fabs(o-offset[i])&gt;1e-6 ) {</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineNoCov">          0 :       error(&quot;the grid of the argument has changed spacing or lattice: the accumulated data cannot be placed in it&quot;);</span></a>
+<a name="392"><span class="lineNum">     392 </span>            :     }</a>
+<a name="393"><span class="lineNum">     393 </span>            :   }</a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineCov">         26 :   const std::vector&lt;unsigned&gt; oldnbin( oldshape.begin(), oldshape.end() );</span></a>
+<a name="395"><span class="lineNum">     395 </span>            :   const std::vector&lt;std::size_t&gt;&amp; newshape=myout-&gt;getShape();</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">         26 :   std::vector&lt;unsigned&gt; oldind( ndim ), newind( ndim );</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">       7895 :   for(std::size_t i=0; i&lt;nold; ++i) {</span></a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineCov">       7869 :     gc.convertIndexToIndices( i, oldnbin, oldind );</span></a>
+<a name="399"><span class="lineNum">     399 </span>            :     bool inside=true;</a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineCov">      21722 :     for(unsigned j=0; j&lt;ndim; ++j) {</span></a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineCov">      13853 :       const long k=static_cast&lt;long&gt;(oldind[j])+offset[j];</span></a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineCov">      13853 :       if( k&lt;0 || k&gt;=static_cast&lt;long&gt;(newshape[j]) ) {</span></a>
+<a name="403"><span class="lineNum">     403 </span>            :         inside=false;</a>
+<a name="404"><span class="lineNum">     404 </span>            :         break;</a>
+<a name="405"><span class="lineNum">     405 </span>            :       }</a>
+<a name="406"><span class="lineNum">     406 </span><span class="lineCov">      13853 :       newind[j]=k;</span></a>
+<a name="407"><span class="lineNum">     407 </span>            :     }</a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">       7869 :     const double* const point=old.data()+i*(1+nder);</span></a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">       7869 :     if( !inside ) {</span></a>
+<a name="410"><span class="lineNum">     410 </span><span class="lineNoCov">          0 :       for(unsigned j=0; j&lt;=nder; ++j) {</span></a>
+<a name="411"><span class="lineNum">     411 </span><span class="lineNoCov">          0 :         if( point[j]!=0.0 ) {</span></a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineNoCov">          0 :           error(&quot;the grid of the argument does not contain the accumulated data&quot;);</span></a>
+<a name="413"><span class="lineNum">     413 </span>            :         }</a>
+<a name="414"><span class="lineNum">     414 </span>            :       }</a>
+<a name="415"><span class="lineNum">     415 </span>            :       continue;</a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineNoCov">          0 :     }</span></a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">       7869 :     const unsigned ind=gc.getIndex( newind );</span></a>
+<a name="418"><span class="lineNum">     418 </span><span class="lineCov">       7869 :     myout-&gt;set( ind, point[0] );</span></a>
+<a name="419"><span class="lineNum">     419 </span><span class="lineCov">      21722 :     for(unsigned j=0; j&lt;nder; ++j) {</span></a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineCov">      13853 :       myout-&gt;setGridDerivatives( ind, j, point[1+j] );</span></a>
+<a name="421"><span class="lineNum">     421 </span>            :     }</a>
+<a name="422"><span class="lineNum">     422 </span>            :   }</a>
+<a name="423"><span class="lineNum">     423 </span><span class="lineCov">         32 : }</span></a>
+<a name="424"><span class="lineNum">     424 </span>            : </a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">         99 : void Accumulate::copyGrid() {</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">         99 :   gridcoords=ActionWithGrid::getInputActionWithGrid( getPntrToArgument(0)-&gt;getPntrToAction() )-&gt;getGridCoordinatesObject();</span></a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineCov">         99 :   gridset=true;</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineCov">         99 : }</span></a>
+<a name="429"><span class="lineNum">     429 </span>            : </a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineCov">       4777 : void Accumulate::update() {</span></a>
+<a name="431"><span class="lineNum">     431 </span>            :   Value* myarg=getPntrToArgument(0);</a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineCov">       4777 :   Value* myout = getPntrToComponent(0);</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">       4777 :   if( clearnextstep ) {</span></a>
+<a name="434"><span class="lineNum">     434 </span><span class="lineCov">        180 :     if( myout-&gt;getNumberOfValues()!=myarg-&gt;getNumberOfValues() ) {</span></a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">         13 :       myout-&gt;setShape( myarg-&gt;getShape() );</span></a>
+<a name="436"><span class="lineNum">     436 </span>            :     }</a>
+<a name="437"><span class="lineNum">     437 </span><span class="lineCov">        180 :     clearnextstep=false;</span></a>
+<a name="438"><span class="lineNum">     438 </span><span class="lineCov">        180 :     myout-&gt;set(0,0.0);</span></a>
+<a name="439"><span class="lineNum">     439 </span><span class="lineCov">        180 :     myout-&gt;clearDerivatives(true);</span></a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">        180 :     if( myarg-&gt;getRank()&gt;0 ) {</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">         67 :       copyGrid();</span></a>
+<a name="442"><span class="lineNum">     442 </span>            :     }</a>
+<a name="443"><span class="lineNum">     443 </span>            :   }</a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineCov">       4777 :   if( getStep()==0 ) {</span></a>
+<a name="445"><span class="lineNum">     445 </span>            :     return;</a>
+<a name="446"><span class="lineNum">     446 </span>            :   }</a>
+<a name="447"><span class="lineNum">     447 </span>            : </a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">       4661 :   if( myarg-&gt;getRank()&gt;0 ) {</span></a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineCov">       1035 :     if( myarg-&gt;getNumberOfValues()!=myout-&gt;getNumberOfValues() ) {</span></a>
+<a name="450"><span class="lineNum">     450 </span><span class="lineCov">         32 :       extendGrid();</span></a>
+<a name="451"><span class="lineNum">     451 </span>            :     }</a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">       1035 :     const std::size_t nvals = myarg-&gt;getNumberOfValues();</span></a>
+<a name="453"><span class="lineNum">     453 </span>            :     const unsigned nder = myarg-&gt;getNumberOfGridDerivatives();</a>
+<a name="454"><span class="lineNum">     454 </span><span class="lineCov">     519390 :     for(std::size_t i=0; i&lt;nvals; ++i) {</span></a>
+<a name="455"><span class="lineNum">     455 </span><span class="lineCov">     518355 :       myout-&gt;set( i, myout-&gt;get(i) + myarg-&gt;get(i) );</span></a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineCov">    1514846 :       for(unsigned j=0; j&lt;nder; ++j) {</span></a>
+<a name="457"><span class="lineNum">     457 </span><span class="lineCov">     996491 :         myout-&gt;addGridDerivatives( i, j, myarg-&gt;getGridDerivative( i, j ) );</span></a>
+<a name="458"><span class="lineNum">     458 </span>            :       }</a>
+<a name="459"><span class="lineNum">     459 </span>            :     }</a>
+<a name="460"><span class="lineNum">     460 </span><span class="lineCov">       1035 :     if( !gridset ) {</span></a>
+<a name="461"><span class="lineNum">     461 </span><span class="lineNoCov">          0 :       copyGrid();</span></a>
+<a name="462"><span class="lineNum">     462 </span>            :     }</a>
+<a name="463"><span class="lineNum">     463 </span>            :   } else {</a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineCov">       3626 :     myout-&gt;add( myarg-&gt;get() );</span></a>
+<a name="465"><span class="lineNum">     465 </span>            :   }</a>
+<a name="466"><span class="lineNum">     466 </span>            : </a>
+<a name="467"><span class="lineNum">     467 </span>            :   // Clear if required</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineCov">       4661 :   if( clearstride&gt;0 &amp;&amp; getStep()%clearstride==0 ) {</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineCov">         66 :     clearnextstep=true;</span></a>
+<a name="470"><span class="lineNum">     470 </span>            :   }</a>
+<a name="471"><span class="lineNum">     471 </span>            : }</a>
+<a name="472"><span class="lineNum">     472 </span>            : </a>
+<a name="473"><span class="lineNum">     473 </span>            : }</a>
+<a name="474"><span class="lineNum">     474 </span>            : }</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 1.16</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
